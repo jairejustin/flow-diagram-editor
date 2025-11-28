@@ -73,7 +73,8 @@ export default function CanvasPage() {
         <div
           style={{
             transform: `translate(${translateX}px, ${translateY}px) scale(${scale})`,
-            transformOrigin: '0 0'
+            transformOrigin: '0 0',
+            overflow: 'visible',
           }}
         >
           {nodes.map((node) => (

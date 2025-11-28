@@ -1,72 +1,135 @@
-import type { NodeData } from "../../lib/types";
 import { useRef, useState } from "react";
+import type { NodeData } from "../../lib/types";
 import "./Node.css";
 
 export const Node = ({ node }: { node: NodeData }) => {
-    const [position, setPosition] = useState(node.position);
-    let mouseStartPos = { x: 0, y: 0 };
-    const cardRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState(node.position);
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState(node.content);
 
-    const mouseMove = (e: MouseEvent) => {
-        //1 - Calculate move direction
-        let mouseMoveDir = {
-            x: mouseStartPos.x - e.clientX,
-            y: mouseStartPos.y - e.clientY,
-        };
-    
-        //2 - Update start position for next move.
-        mouseStartPos.x = e.clientX;
-        mouseStartPos.y = e.clientY;
-    
-        //3 - Update card top and left position.
-        if (cardRef.current) {
-           setPosition({
-               x: cardRef.current.offsetLeft - mouseMoveDir.x,
-               y: cardRef.current.offsetTop - mouseMoveDir.y,
-           });
-        }
-    };
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  let mousePos = { x: 0, y: 0 };
 
-    const mouseUp = () => {
-       document.removeEventListener("mousemove", mouseMove);
-       document.removeEventListener("mouseup", mouseUp);
-    };
+  const onMouseMove = (e: MouseEvent) => {
+    const dx = e.clientX - mousePos.x;
+    const dy = e.clientY - mousePos.y;
+    mousePos = { x: e.clientX, y: e.clientY };
+    setPosition(pos => ({ x: pos.x + dx, y: pos.y + dy }));
+  };
 
-    const mouseDown = (e: React.MouseEvent) => {
-        e.stopPropagation(); // Prevent canvas panning when dragging a node
-        mouseStartPos.x = e.clientX;
-        mouseStartPos.y = e.clientY;
-        
-        document.addEventListener("mousemove", mouseMove);
-        document.addEventListener("mouseup", mouseUp);
-    };
+  const onMouseUp = () => {
+    document.removeEventListener("mousemove", onMouseMove);
+    document.removeEventListener("mouseup", onMouseUp);
+  };
 
-    return (
-        <div
-            ref={cardRef}
-            className="node"
-            onMouseDown={mouseDown}
-            style={{
-                left: position.x,
-                top: position.y,
-                width: node.width,
-                height: node.height,
-                border: `${node.style?.borderWidth 
-                    || 2}px solid ${node.style?.borderColor 
-                    || "#333"
-                    }`,
-                backgroundColor: node.style?.backgroundColor 
-                || "#fff",
-            }}
+  const onMouseDown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (editing) return;
+    mousePos = { x: e.clientX, y: e.clientY };
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+  };
+
+  // fix for clipping: add padding around SVG equal to strokeWidth
+  const border = node.style?.borderWidth || 2;
+  const pad = border * 2;
+
+  const w = node.width;
+  const h = node.height;
+
+  return (
+    <div
+      ref={wrapperRef}
+      className="node"
+      style={{
+        transform: `translate(${position.x}px, ${position.y}px)`,
+        width: w + pad,
+        height: h + pad,
+      }}
+      onMouseDown={onMouseDown}
+      onDoubleClick={() => setEditing(true)}
+    >
+      {!editing && (
+        <svg
+          width={w + pad}
+          height={h + pad}
+          style={{ overflow: "visible", pointerEvents: "none" }}
         >
-            <textarea
-                defaultValue={node.content}
-                style={{
-                    color: node.style?.textColor || "#000",
-                    fontSize: node.style?.fontSize || 14,
-                    fontWeight: node.style?.fontWeight || "normal",
-                }}
-            />
-        </div>
-    );
+          <g transform={`translate(${pad / 2}, ${pad / 2})`}>
+            {renderShape(node)}
+            <text
+              x={w / 2}
+              y={h / 2}
+              dominantBaseline="middle"
+              textAnchor="middle"
+              fill={node.style?.textColor || "#000"}
+              fontSize={node.style?.fontSize || 14}
+              fontWeight={node.style?.fontWeight || "normal"}
+              style={{ userSelect: "none", pointerEvents: "none" }}
+            >
+              {text}
+            </text>
+          </g>
+        </svg>
+      )}
+
+      {editing && (
+        <textarea
+          autoFocus
+          className="node-textarea"
+          defaultValue={text}
+          onBlur={e => {
+            setText(e.target.value);
+            setEditing(false);
+          }}
+          style={{
+            position: "absolute",
+            left: pad / 2,
+            top: pad / 2,
+            width: w,
+            height: h,
+            color: node.style?.textColor || "#000",
+            fontSize: node.style?.fontSize || 14,
+            fontWeight: node.style?.fontWeight || "normal",
+          }}
+        />
+      )}
+    </div>
+  );
 };
+
+function renderShape(node: NodeData) {
+  const w = node.width;
+  const h = node.height;
+  const s = node.style;
+  const stroke = s?.borderWidth || 2;
+
+  switch (node.type) {
+    case "rectangle":
+      return (
+        <rect
+          width={w}
+          height={h}
+          fill={s?.backgroundColor || "#fff"}
+          stroke={s?.borderColor || "#333"}
+          strokeWidth={stroke}
+          rx={s?.borderRadius || 0}
+        />
+      );
+
+    case "diamond":
+      return (
+        <polygon
+          points={`${w / 2},0 ${w},${h / 2} ${w / 2},${h} 0,${h / 2}`}
+          fill={s?.backgroundColor || "#fff"}
+          stroke={s?.borderColor || "#333"}
+          strokeWidth={stroke}
+        />
+      );
+
+    // TO DO: more cases for other shapes
+
+    default:
+      return null;
+  }
+}

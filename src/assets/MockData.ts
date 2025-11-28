@@ -15,7 +15,7 @@ export const mockFlowDocument: FlowDocument = {
   nodes: {
     "node_start": {
       id: "node_start",
-      type: "terminator",
+      type: "rectangle",
       position: { x: 200, y: 80 },
       width: 140,
       height: 50,
@@ -61,7 +61,7 @@ export const mockFlowDocument: FlowDocument = {
 
     "node_end": {
       id: "node_end",
-      type: "terminator",
+      type: "rectangle",
       position: { x: 200, y: 580 },
       width: 140,
       height: 50,
