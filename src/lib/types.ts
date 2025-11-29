@@ -19,7 +19,7 @@ type EdgeData = {
 
 export type NodeData = {
   id: string
-  type: "rectangle" | "diamond" | "terminator" | "custom"
+  type: "rectangle" | "diamond" // add more shapes as needed
   position: position;
   width: number
   height: number
