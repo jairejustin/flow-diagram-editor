@@ -12,8 +12,8 @@ export const mockFlowDocument: FlowDocument = {
     zoom: 1
   },
 
-  nodes: {
-    "node_start": {
+  nodes: [
+    {
       id: "node_start",
       shape: "rectangle",
       position: { x: 200, y: 80 },
@@ -23,7 +23,7 @@ export const mockFlowDocument: FlowDocument = {
       style: {}
     },
 
-    "node_input": {
+    {
       id: "node_input",
       shape: "rectangle",
       position: { x: 200, y: 180 },
@@ -35,7 +35,7 @@ export const mockFlowDocument: FlowDocument = {
       }
     },
 
-    "node_decision": {
+    {
       id: "node_decision",
       shape: "diamond",
       position: { x: 200, y: 300 },
@@ -47,7 +47,7 @@ export const mockFlowDocument: FlowDocument = {
       }
     },
 
-    "node_process": {
+    {
       id: "node_process",
       shape: "rectangle",
       position: { x: 200, y: 450 },
@@ -59,7 +59,7 @@ export const mockFlowDocument: FlowDocument = {
       }
     },
 
-    "node_end": {
+    {
       id: "node_end",
       shape: "rectangle",
       position: { x: 200, y: 580 },
@@ -68,40 +68,38 @@ export const mockFlowDocument: FlowDocument = {
       content: "End",
       style: {}
     }
-  },
+  ],
 
-  edges: {
-    "edge_1": {
+  edges: [
+    {
       id: "edge_1",
       from: "node_start",
       to: "node_input",
       path: "straight"
-    },
-    "edge_2": {
+    },{
       id: "edge_2",
       from: "node_input",
       to: "node_decision",
       path: "straight"
-    },
-    "edge_3": {
+    },{
       id: "edge_3",
       from: "node_decision",
       to: "node_process",
-      label: "Yes",
+      label: {text: "Yes", t: 0.5, offset: {x: 10, y: -10}},
       path: "straight"
     },
-    "edge_4": {
+    {
       id: "edge_4",
       from: "node_process",
       to: "node_end",
       path: "straight"
     },
-    "edge_5": {
+    {
       id: "edge_5",
       from: "node_decision",
       to: "node_end",
-      label: "No",
+      label: {text: "No", t: 0.5, offset: {x: 10, y: -10}},
       path: "straight"
     }
-  }
+  ]
 }

@@ -4,6 +4,7 @@ import { Node } from "../../components/node/Node";
 import Toolbar from "../../components/toolbar/Toolbar";
 import ZoomControls from "../../components/zoom-controls/ZoomControls";
 import { useFlowStore } from "../../store/flowStore";
+import StylePanel from "../../components/style-panel/StylePanel";
 import "./CanvasPage.css";
 
 interface CanvasPageProps {
@@ -125,6 +126,7 @@ const handleTouchEnd = () => {
       onTouchEnd={handleTouchEnd}
     >
       <Toolbar />
+      <StylePanel />
       <ZoomControls
         zoomFactor={scale}
         onZoomIn={onZoomIn}
