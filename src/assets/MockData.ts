@@ -5,13 +5,11 @@ export const mockFlowDocument: FlowDocument = {
   title: "Sample Flowchart",
   createdAt: 1732600000000,
   updatedAt: 1732600500000,
-
   viewport: {
     x: 0,
     y: 0,
     zoom: 1
   },
-
   nodes: [
     {
       id: "node_start",
@@ -22,7 +20,6 @@ export const mockFlowDocument: FlowDocument = {
       content: "Start",
       style: {}
     },
-
     {
       id: "node_input",
       shape: "rectangle",
@@ -34,7 +31,6 @@ export const mockFlowDocument: FlowDocument = {
         borderRadius: 10
       }
     },
-
     {
       id: "node_decision",
       shape: "diamond",
@@ -46,7 +42,6 @@ export const mockFlowDocument: FlowDocument = {
         borderRadius: 10
       }
     },
-
     {
       id: "node_process",
       shape: "rectangle",
@@ -58,7 +53,6 @@ export const mockFlowDocument: FlowDocument = {
         borderRadius: 10
       }
     },
-
     {
       id: "node_end",
       shape: "rectangle",
@@ -69,7 +63,6 @@ export const mockFlowDocument: FlowDocument = {
       style: {}
     }
   ],
-
   edges: [
     {
       id: "edge_1",
@@ -77,23 +70,27 @@ export const mockFlowDocument: FlowDocument = {
       to: "node_input",
       path: "straight",
       fromAnchor: { side: "bottom" },
-      toAnchor: { side: "top" }
-
-    },{
+      toAnchor: { side: "top" },
+      points: [] // straight line, no bends
+    },
+    {
       id: "edge_2",
       from: "node_input",
       to: "node_decision",
       path: "straight",
       fromAnchor: { side: "bottom" },
-      toAnchor: { side: "top" }
-    },{
+      toAnchor: { side: "top" },
+      points: [] // straight line, no bends
+    },
+    {
       id: "edge_3",
       from: "node_decision",
-      to: "node_process",
-      label: {text: "Yes", t: 0.5},
+      to: { x: 450, y: 480 },
+      label: { text: "Yes", t: 0.5 },
       path: "straight",
       fromAnchor: { side: "bottom" },
-      toAnchor: { side: "top" }
+      toAnchor: { side: "top" },
+      points: [] // straight line, no bends
     },
     {
       id: "edge_4",
@@ -101,16 +98,32 @@ export const mockFlowDocument: FlowDocument = {
       to: "node_end",
       path: "straight",
       fromAnchor: { side: "right" },
-      toAnchor: { side: "top" }
+      toAnchor: { side: "top" },
+      points: [
+        { x: 450, y: 480 },  // go right first
+        { x: 450, y: 560 },  // go down
+        { x: 270, y: 560 }   // come back left to target
+      ],
+      style: {
+        width: 2
+      }
     },
     {
       id: "edge_5",
       from: "node_decision",
       to: "node_end",
-      label: {text: "No", t: 0.5},
+      label: { text: "No", t: 0.3, offset: { x: -15, y: 0 } },
       path: "straight",
-      fromAnchor: { side: "bottom" },
-      toAnchor: { side: "top" }
+      fromAnchor: { side: "right" },
+      toAnchor: { side: "left" },
+      points: [
+        { x: 420, y: 350 },  // go right
+        { x: 420, y: 605 },  // go down
+        { x: 200, y: 605 }   // come back to target
+      ],
+      style: {
+        width: 2
+      }
     }
   ]
 }

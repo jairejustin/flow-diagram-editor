@@ -4,7 +4,12 @@ import { wrapText } from "../../lib/utils";
 import { useFlowStore } from "../../store/flowStore";
 import "./Node.css";
 
-export const Node = ({ node }: { node: NodeData }) => {
+interface NodeProps {
+  node: NodeData;
+  selectNode: (id: string) => void;
+}
+
+export const Node = ({ node, selectNode }: NodeProps) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const mousePosRef = useRef({ x: 0, y: 0 });
@@ -54,6 +59,8 @@ export const Node = ({ node }: { node: NodeData }) => {
     document.removeEventListener("mouseup", onEnd);
     document.removeEventListener("touchmove", onTouchMove);
     document.removeEventListener("touchend", onEnd);
+    selectNode(node.id);
+    
     setIsDraggingNode(false);
   };
 

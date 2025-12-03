@@ -14,6 +14,10 @@ interface CanvasPageProps {
 
 export default function CanvasPage({ flowDocument }: CanvasPageProps) {
   const isDraggingNode = useFlowStore((state) => state.isDraggingNode);
+  const selectedNodeId = useFlowStore((state) => state.selectedNodeId);
+
+  // select node callback function
+  const selectNode = (id: string) => useFlowStore.setState({ selectedNodeId: id });
   
   // Subscribe to nodes from store so edges update when nodes move
   const nodes = useFlowStore((state) => state.nodes);
@@ -35,6 +39,7 @@ export default function CanvasPage({ flowDocument }: CanvasPageProps) {
     if (isDraggingNode) return;
     
     setIsPanning(true);
+    useFlowStore.setState({ selectedNodeId: null });
     lastMousePos.current = { x: event.clientX, y: event.clientY };
   };
 
@@ -60,6 +65,7 @@ export default function CanvasPage({ flowDocument }: CanvasPageProps) {
     if (isDraggingNode) return;
     
     setIsPanning(true);
+    useFlowStore.setState({ selectedNodeId: null });
     lastMousePos.current = { 
       x: event.touches[0].clientX, 
       y: event.touches[0].clientY 
@@ -127,7 +133,9 @@ export default function CanvasPage({ flowDocument }: CanvasPageProps) {
       onTouchEnd={handleTouchEnd}
     >
       <Toolbar />
+      { selectedNodeId ? (
       <StylePanel />
+      ) : null }
       <ZoomControls
         zoomFactor={scale}
         onZoomIn={onZoomIn}
@@ -171,7 +179,10 @@ export default function CanvasPage({ flowDocument }: CanvasPageProps) {
           ))}
         </svg>
         {nodes.map((node) => (
-          <Node key={node.id} node={node} />
+          <Node 
+          key={node.id}
+          node={node} 
+          selectNode={selectNode}/>
         ))}
       </div>
     </div>

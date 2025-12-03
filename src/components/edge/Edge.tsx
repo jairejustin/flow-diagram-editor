@@ -19,25 +19,34 @@ function getAnchorPoint(node: NodeData, anchor: EdgeAnchor) {
 }
 
 export function Edge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
-  const fromNode = nodes.find(n => n.id === edge.from)
-  const toNode = nodes.find(n => n.id === edge.to)
+  const fromNode = nodes.find(n => n.id === edge.from);
+  if (!fromNode) return null;
+
+  const p1 = getAnchorPoint(fromNode, edge.fromAnchor);
+
+  let p2;
   
-  if (!fromNode || !toNode) return null
-  
-  const p1 = getAnchorPoint(fromNode, edge.fromAnchor)
-  const p2 = getAnchorPoint(toNode, edge.toAnchor)
-  
-  const color = edge.style?.color || "black"
-  
-  // Calculate label position if label exists
-  let labelX = 0
-  let labelY = 0
-  if (edge.label) {
-    const t = edge.label.t || 0.5
-    labelX = p1.x + (p2.x - p1.x) * t + (edge.label.offset?.x || 0)
-    labelY = p1.y + (p2.y - p1.y) * t + (edge.label.offset?.y || 0)
+  if (typeof edge.to === "string") {
+    const toNode = nodes.find(n => n.id === edge.to);
+    if (!toNode) return null;
+
+    p2 = getAnchorPoint(toNode, edge.toAnchor);
+  } else {
+    // edge.to is a raw {x, y} position
+    p2 = edge.to; 
   }
-  
+
+  const color = edge.style?.color || "black";
+
+  // Calculate label position if label exists
+  let labelX = 0;
+  let labelY = 0;
+  if (edge.label) {
+    const t = edge.label.t || 0.5;
+    labelX = p1.x + (p2.x - p1.x) * t + (edge.label.offset?.x || 0);
+    labelY = p1.y + (p2.y - p1.y) * t + (edge.label.offset?.y || 0);
+  }
+
   return (
     <g>
       <line
@@ -76,5 +85,5 @@ export function Edge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
         </g>
       )}
     </g>
-  )
+  );
 }

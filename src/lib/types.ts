@@ -34,7 +34,7 @@ export interface EdgeStyle {
 export interface EdgeData {
   id: string
   from: string
-  to: string
+  to: string | position
   path: EdgePathType
   fromAnchor: EdgeAnchor
   toAnchor: EdgeAnchor
