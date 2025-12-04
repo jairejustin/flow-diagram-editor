@@ -7,10 +7,15 @@
     width: 1.5rem;
     align-items: center;
     padding: 8px;
-    background-color: #f0f0f0;
-    border: 2px solid #000;
-    border-radius: 10px;
 
+    color: #1A1A1A;
+    background-color: #F7F7F8;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.06),
+        0 4px 12px rgba(0, 0, 0, 0.08),
+        0 2px 4px rgba(0, 0, 0, 0.04);
+    border-radius: 10px;
     z-index: 100;
 }
 

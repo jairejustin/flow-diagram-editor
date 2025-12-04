@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { NodeData, position } from "../lib/types";
+import type { NodeData, position, NodeStyle } from "../lib/types";
 
 interface FlowState {
   nodes: NodeData[];
@@ -13,6 +13,7 @@ interface FlowState {
   updateNodeDimensions: (id: string, width: number, height: number) => void;
   updateNodeContent: (id: string, content: string) => void;
   updateNodeEditing: (id: string, editing: boolean) => void;
+  updateNodeStyles: (id: string, style: Partial<NodeStyle>) => void;
 
   setNodes: (nodes: NodeData[]) => void;
 }
@@ -50,6 +51,15 @@ export const useFlowStore = create<FlowState>((set) => ({
     set((state) => ({
       nodes: state.nodes.map((node) =>
         node.id === id ? { ...node, editing } : node
+      ),
+    })),
+
+  updateNodeStyles: (id, style) =>
+    set((state) => ({
+      nodes: state.nodes.map((node) =>
+        node.id === id
+          ? { ...node, style: { ...node.style!, ...style } }
+          : node
       ),
     })),
 

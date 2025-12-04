@@ -17,7 +17,7 @@ export default function CanvasPage({ flowDocument }: CanvasPageProps) {
   const selectedNodeId = useFlowStore((state) => state.selectedNodeId);
 
   // select node callback function
-  const selectNode = (id: string) => useFlowStore.setState({ selectedNodeId: id });
+  const selectNode = (id: string | null) => useFlowStore.setState({ selectedNodeId: id });
   
   // Subscribe to nodes from store so edges update when nodes move
   const nodes = useFlowStore((state) => state.nodes);
@@ -35,14 +35,23 @@ export default function CanvasPage({ flowDocument }: CanvasPageProps) {
   const lastMousePos = useRef({ x: 0, y: 0 });
 
   const handleMouseDown = (event: React.MouseEvent) => {
-    //prevent panning when dragging a node
-    if (isDraggingNode) return;
-    
-    setIsPanning(true);
-    useFlowStore.setState({ selectedNodeId: null });
-    lastMousePos.current = { x: event.clientX, y: event.clientY };
-  };
+  // Check if we're clicking on an interactive element
+  const target = event.target as HTMLElement;
+  if (
+    isDraggingNode || 
+    target.closest('.style-panel') || 
+    target.closest('.toolbar') ||
+    target.closest('.zoom-controls') ||
+    target.closest('.node') || 
+    target.closest('.edge')
+  ) {
+    return;
+  }
 
+  useFlowStore.setState({ selectedNodeId: null });
+  setIsPanning(true);
+  lastMousePos.current = { x: event.clientX, y: event.clientY };
+};
   const handleMouseMove = (event: React.MouseEvent) => {
     if (!isPanning) return;
     
@@ -62,6 +71,7 @@ export default function CanvasPage({ flowDocument }: CanvasPageProps) {
   };
 
   const handleTouchStart = (event: React.TouchEvent) => {
+    if (event.target !== event.currentTarget) return;
     if (isDraggingNode) return;
     
     setIsPanning(true);
@@ -134,7 +144,7 @@ export default function CanvasPage({ flowDocument }: CanvasPageProps) {
     >
       <Toolbar />
       { selectedNodeId ? (
-      <StylePanel />
+      <StylePanel nodeId={selectedNodeId}/>
       ) : null }
       <ZoomControls
         zoomFactor={scale}

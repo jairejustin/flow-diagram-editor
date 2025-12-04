@@ -6,20 +6,17 @@ import "./Node.css";
 
 interface NodeProps {
   node: NodeData;
-  selectNode: (id: string) => void;
+  selectNode: (id: string | null) => void;
 }
 
 export const Node = ({ node, selectNode }: NodeProps) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const mousePosRef = useRef({ x: 0, y: 0 });
   const startPosRef = useRef({ x: 0, y: 0 });
 
   //read states from store
   const storeNode = useFlowStore((state) => state.nodes.find((n) => n.id === node.id));
   const updateNodePosition = useFlowStore((state) => state.updateNodePosition);
-  const updateNodeDimensions = useFlowStore((state) => state.updateNodeDimensions);
-  const updateNodeContent = useFlowStore((state) => state.updateNodeContent);
   const updateNodeEditing = useFlowStore((state) => state.updateNodeEditing);
   const setIsDraggingNode = useFlowStore((state) => state.setIsDraggingNode);
 
@@ -103,68 +100,40 @@ export const Node = ({ node, selectNode }: NodeProps) => {
       onTouchStart={onTouchStart}
       onDoubleClick={() => updateNodeEditing(node.id, true)}
     >
-      {!editing && (
-        <svg
-          width={width + pad}
-          height={height + pad}
-          style={{ overflow: "visible", pointerEvents: "none" }}
-        >
-          <g transform={`translate(${pad / 2}, ${pad / 2})`}>
-            {renderShape(node, width, height)}
-            {(() => {
-              const fontSize = node.style?.fontSize || 14;
-              const wrappedLines = wrapText(text, width - pad, fontSize);
-              const lineHeight = fontSize * 1.2;
-              const startY = (height / 2) - (wrappedLines.length / 2 - 0.5) * lineHeight;
+      <svg
+        width={width + pad}
+        height={height + pad}
+        style={{ overflow: "visible", pointerEvents: "none" }}
+      >
+        <g transform={`translate(${pad / 2}, ${pad / 2})`}>
+          {renderShape(node, width, height)}
+          {(() => {
+            const fontSize = node.style?.fontSize || 14;
+            const wrappedLines = wrapText(text, width - pad, fontSize);
+            const lineHeight = fontSize * 1.2;
+            const startY = (height / 2) - (wrappedLines.length / 2 - 0.5) * lineHeight;
 
-              return (
-                <text
-                  x={width / 2}
-                  y={startY}
-                  dominantBaseline="middle"
-                  textAnchor="middle"
-                  fill={node.style?.textColor || "#000"}
-                  fontSize={fontSize}
-                  fontWeight={node.style?.fontWeight || "normal"}
-                  style={{ userSelect: "none", pointerEvents: "none" }}
-                >
-                  {wrappedLines.map((line, index) => (
-                    <tspan key={index} x={width / 2} dy={index === 0 ? 0 : lineHeight}>
-                      {line}
-                    </tspan>
-                  ))}
-                </text>
-              );
-            })()}
-          </g>
-        </svg>
-      )}
-      {editing && (
-        <textarea
-          autoFocus
-          ref={textareaRef}
-          defaultValue={text}
-          onBlur={e => {
-            updateNodeContent(node.id, e.target.value);
-            updateNodeEditing(node.id, false);
-          }}
-          onChange={e => {
-            updateNodeContent(node.id, e.target.value);
-            const newHeight = textareaRef.current!.scrollHeight;
-            updateNodeDimensions(node.id, width, newHeight);
-          }}
-          style={{
-            position: "absolute",
-            left: pad / 2,
-            top: pad / 2,
-            width: width,
-            height: height,
-            color: node.style?.textColor || "#000",
-            fontSize: node.style?.fontSize,
-            fontWeight: node.style?.fontWeight || "normal",
-          }}
-        />
-      )}
+            return (
+              <text
+                x={width / 2}
+                y={startY}
+                dominantBaseline="middle"
+                textAnchor="middle"
+                fill={node.style?.textColor || "#000"}
+                fontSize={fontSize}
+                fontWeight={node.style?.fontWeight || "normal"}
+                style={{ userSelect: "none", pointerEvents: "none" }}
+              >
+                {wrappedLines.map((line, index) => (
+                  <tspan key={index} x={width / 2} dy={index === 0 ? 0 : lineHeight}>
+                    {line}
+                  </tspan>
+                ))}
+              </text>
+            );
+          })()}
+        </g>
+      </svg>
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pen, LetterTextIcon, ShapesIcon } from "lucide-react";
+import { Type, LetterTextIcon, ShapesIcon } from "lucide-react";
 import "./Toolbar.css";
 
 export default function Toolbar() {
@@ -9,7 +9,7 @@ export default function Toolbar() {
           <div>
             {/* TO DO */}
             <button className="toolbar__button">
-              <Pen />
+              <Type />
             </button>
             <button className="toolbar__button">
               <LetterTextIcon />
