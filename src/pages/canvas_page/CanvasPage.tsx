@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import type { FlowDocument } from "../../lib/types";
 import { Node } from "../../components/node/Node";
 import { Edge } from "../../components/edge/Edge";
@@ -7,6 +7,7 @@ import ZoomControls from "../../components/zoom-controls/ZoomControls";
 import { useFlowStore } from "../../store/flowStore";
 import StylePanel from "../../components/style-panel/StylePanel";
 import "./CanvasPage.css";
+import { ResizeHandles } from "../../components/resize-handles/ResizeHandles";
 
 interface CanvasPageProps {
   flowDocument: FlowDocument;
@@ -14,6 +15,7 @@ interface CanvasPageProps {
 
 export default function CanvasPage({ flowDocument }: CanvasPageProps) {
   const isDraggingNode = useFlowStore((state) => state.isDraggingNode);
+  const isResizingNode = useFlowStore((state) => state.isResizingNode);
   const selectedNodeId = useFlowStore((state) => state.selectedNodeId);
 
   // select node callback function
@@ -38,11 +40,12 @@ export default function CanvasPage({ flowDocument }: CanvasPageProps) {
   // Check if we're clicking on an interactive element
   const target = event.target as HTMLElement;
   if (
-    isDraggingNode || 
-    target.closest('.style-panel') || 
+    isDraggingNode ||
+    isResizingNode || // Prevent panning when resizing
+    target.closest('.style-panel') ||
     target.closest('.toolbar') ||
     target.closest('.zoom-controls') ||
-    target.closest('.node') || 
+    target.closest('.node') ||
     target.closest('.edge')
   ) {
     return;
@@ -72,7 +75,7 @@ export default function CanvasPage({ flowDocument }: CanvasPageProps) {
 
   const handleTouchStart = (event: React.TouchEvent) => {
     if (event.target !== event.currentTarget) return;
-    if (isDraggingNode) return;
+    if (isDraggingNode || isResizingNode) return;
     
     setIsPanning(true);
     useFlowStore.setState({ selectedNodeId: null });
@@ -189,10 +192,19 @@ export default function CanvasPage({ flowDocument }: CanvasPageProps) {
           ))}
         </svg>
         {nodes.map((node) => (
-          <Node 
-          key={node.id}
-          node={node} 
-          selectNode={selectNode}/>
+          <React.Fragment key={node.id}>
+            <Node node={node} selectNode={selectNode} />
+            {selectedNodeId === node.id && !node.editing && (
+              <ResizeHandles
+                nodeId={node.id}
+                position={node.position}
+                width={node.width}
+                height={node.height}
+                scale={scale}
+                borderPad={(node.style?.borderWidth || 2) * 2}
+              />
+            )}
+          </React.Fragment>
         ))}
       </div>
     </div>

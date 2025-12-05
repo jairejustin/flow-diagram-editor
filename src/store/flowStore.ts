@@ -5,9 +5,11 @@ interface FlowState {
   nodes: NodeData[];
   selectedNodeId: string | null;
   isDraggingNode: boolean;
+  isResizingNode: boolean;
   
   selectNode: (id: string | null) => void;
   setIsDraggingNode: (isDragging: boolean) => void;
+  setIsResizingNode: (isResizing: boolean) => void;
 
   updateNodePosition: (id: string, newPosition: position) => void;
   updateNodeDimensions: (id: string, width: number, height: number) => void;
@@ -22,9 +24,11 @@ export const useFlowStore = create<FlowState>((set) => ({
   nodes: [],
   selectedNodeId: null,
   isDraggingNode: false,
+  isResizingNode: false,
 
   selectNode: (id) => set({ selectedNodeId: id }),
   setIsDraggingNode: (isDraggingNode) => set({ isDraggingNode }),
+  setIsResizingNode: (isResizingNode) => set({ isResizingNode }),
 
   updateNodePosition: (id, newPosition) =>
     set((state) => ({
