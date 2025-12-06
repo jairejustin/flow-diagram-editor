@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Square, SquareRoundCorner } from 'lucide-react';
 import { useFlowStore } from '../../store/flowStore';
 import './StylePanel.css';
 import ColorPicker from "../color-picker/ColorPicker"
@@ -24,7 +25,7 @@ export default function StylePanel({ nodeId }: StylePanelProps) {
   const textColor = node.style?.textColor || '#000000';
   const backgroundColor = node.style?.backgroundColor || '#ffffff';
   const borderColor = node.style?.borderColor || '#000000';
-  const borderWidth = node.style?.borderWidth || 1;
+  const borderWidth = node.style?.borderWidth || 2;
   const borderRadius = node.style?.borderRadius || 0;
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -36,8 +37,8 @@ export default function StylePanel({ nodeId }: StylePanelProps) {
     updateNodeStyles(node.id, { [property]: value });
   };
 
-  const openColorPicker = (pickerType: string, event: React.MouseEvent<HTMLDivElement>) => {
-    setOpenPicker(pickerType);
+  const openColorPicker = (pickerType: string) => {
+    setOpenPicker(openPicker === pickerType ? null : pickerType);
   };
 
   return (
@@ -53,69 +54,75 @@ export default function StylePanel({ nodeId }: StylePanelProps) {
         onChange={handleTextChange}
       />
 
-      <div className='style-row'>
-        <label>Font size</label>
-        <input
-          type='number'
-          className='style-input'
-          value={fontSize}
-          onChange={(e) => handleStyleChange('fontSize', Number(e.target.value))}
-          min='8'
-          max='72'
-        />
-      </div>
-
-      <div className='style-row'>
-        <label>Text color</label>
-        <div
-          className='style-input-color'
-          style={{ backgroundColor: textColor, cursor: 'pointer' }}
-          onClick={(e) => openColorPicker('text', e)}
-        />
-      </div>
-
-      <div className='style-row'>
-        <label>Background</label>
-        <div
-          className='style-input-color'
-          style={{ backgroundColor: backgroundColor, cursor: 'pointer' }}
-          onClick={(e) => openColorPicker('background', e)}
-        />
-      </div>
-
-      <div className='style-row'>
-        <label>Border color</label>
-        <div
-          className='style-input-color'
-          style={{ backgroundColor: borderColor, cursor: 'pointer' }}
-          onClick={(e) => openColorPicker('border', e)}
-        />
-      </div>
-
-      <div className='style-row'>
-        <label>Border width</label>
-        <input
-          type='number'
-          className='style-input'
-          value={borderWidth}
-          onChange={(e) => handleStyleChange('borderWidth', Number(e.target.value))}
-          min='1'
-          max='10'
-        />
-      </div>
-      {shape === 'rectangle' && (
-        <div className='style-row'>
-          <label>Border radius</label>
+      {/* Text Row */}
+      <div className='style-row-compact'>
+        <label>Text</label>
+        <div className='style-row-compact__controls'>
+          <div
+            className='style-input-color'
+            style={{ backgroundColor: textColor }}
+            onClick={() => openColorPicker('text')}
+          />
           <input
             type='number'
-            className='style-input'
-            value={borderRadius}
-            onChange={(e) => handleStyleChange('borderRadius', Number(e.target.value))}
-            min='0'
-            max='50'
+            className='style-input-small'
+            value={fontSize}
+            onChange={(e) => handleStyleChange('fontSize', Number(e.target.value))}
+            min='8'
+            max='72'
           />
         </div>
-      )}
+      </div>
+
+      {/* Background Row */}
+      <div className='style-row-compact'>
+        <label>Background</label>
+        <div className='style-row-compact__controls'>
+          <div
+            className='style-input-color'
+            style={{ backgroundColor: backgroundColor }}
+            onClick={() => openColorPicker('background')}
+          />
+        </div>
+      </div>
+
+      {/* Border Row */}
+      <div className='style-row-compact'>
+        <label>Border</label>
+        <div className='style-row-compact__controls'>
+          <div
+            className='style-input-color'
+            style={{ backgroundColor: borderColor }}
+            onClick={() => openColorPicker('border')}
+          />
+          <input
+            type='number'
+            className='style-input-small'
+            value={borderWidth}
+            onChange={(e) => handleStyleChange('borderWidth', Number(e.target.value))}
+            min='0'
+            max='10'
+          />
+          {shape === 'rectangle' && (
+            <div className='border-type-buttons'>
+              <button
+                className={`border-type-btn ${borderRadius === 0 ? 'active' : ''}`}
+                onClick={() => handleStyleChange('borderRadius', 0)}
+                title='Square corners'
+              >
+                <Square size={16} strokeWidth={2} />
+              </button>
+              <button
+                className={`border-type-btn ${borderRadius > 0 ? 'active' : ''}`}
+                onClick={() => handleStyleChange('borderRadius', 10)}
+                title='Rounded corners'
+              >
+                <SquareRoundCorner size={16} strokeWidth={2} />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
 
       {openPicker === 'text' && (
         <ColorPicker
