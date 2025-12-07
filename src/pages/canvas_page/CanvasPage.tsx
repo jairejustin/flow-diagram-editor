@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from "react";
-import type { FlowDocument } from "../../lib/types";
 import { Node } from "../../components/node/Node";
 import { Edge } from "../../components/edge/Edge";
 import Toolbar from "../../components/toolbar/Toolbar";
@@ -9,53 +8,63 @@ import StylePanel from "../../components/style-panel/StylePanel";
 import "./CanvasPage.css";
 import { ResizeHandles } from "../../components/resize-handles/ResizeHandles";
 
-interface CanvasPageProps {
-  flowDocument: FlowDocument;
-}
-
-export default function CanvasPage({ flowDocument }: CanvasPageProps) {
+export default function CanvasPage() {
   const isDraggingNode = useFlowStore((state) => state.isDraggingNode);
   const isResizingNode = useFlowStore((state) => state.isResizingNode);
   const selectedNodeId = useFlowStore((state) => state.selectedNodeId);
+  const setViewport = useFlowStore((state) => state.setViewport);
+  const viewport = useFlowStore((state) => state.viewport);
 
   // select node callback function
   const selectNode = (id: string | null) => useFlowStore.setState({ selectedNodeId: id });
   
-  // Subscribe to nodes from store so edges update when nodes move
+  // Subscribe to nodes and edges from store
   const nodes = useFlowStore((state) => state.nodes);
   const edges = useFlowStore((state) => state.edges);
 
-  //initialize store once on mount
-  useEffect(() => {
-    useFlowStore.getState().setNodes(flowDocument.nodes);
-    useFlowStore.getState().setEdges(flowDocument.edges);
-  }, []);
-
-  const [translateX, setTranslateX] = useState(0);
-  const [translateY, setTranslateY] = useState(0);
-  const [scale, setScale] = useState(1);
+  // Initialize viewport from store
+  const [translateX, setTranslateX] = useState(viewport.x);
+  const [translateY, setTranslateY] = useState(viewport.y);
+  const [scale, setScale] = useState(viewport.zoom);
   const [isPanning, setIsPanning] = useState(false);
   const lastMousePos = useRef({ x: 0, y: 0 });
 
-  const handleMouseDown = (event: React.MouseEvent) => {
-  // Check if we're clicking on an interactive element
-  const target = event.target as HTMLElement;
-  if (
-    isDraggingNode ||
-    isResizingNode ||
-    target.closest('.style-panel') ||
-    target.closest('.toolbar') ||
-    target.closest('.zoom-controls') ||
-    target.closest('.node') ||
-    target.closest('.edge')
-  ) {
-    return;
-  }
+  // Sync local state with viewport from store when store viewport changes
+  useEffect(() => {
+    setTranslateX(viewport.x);
+    setTranslateY(viewport.y);
+    setScale(viewport.zoom);
+  }, [viewport.x, viewport.y, viewport.zoom]);
 
-  useFlowStore.setState({ selectedNodeId: null });
-  setIsPanning(true);
-  lastMousePos.current = { x: event.clientX, y: event.clientY };
-};
+  // Sync local viewport changes to store (debounced)
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setViewport({ x: translateX, y: translateY, zoom: scale });
+    }, 100);
+    
+    return () => clearTimeout(timeoutId);
+  }, [translateX, translateY, scale, setViewport]);
+
+  const handleMouseDown = (event: React.MouseEvent) => {
+    // Check if we're clicking on an interactive element
+    const target = event.target as HTMLElement;
+    if (
+      isDraggingNode ||
+      isResizingNode ||
+      target.closest('.style-panel') ||
+      target.closest('.toolbar') ||
+      target.closest('.zoom-controls') ||
+      target.closest('.node') ||
+      target.closest('.edge')
+    ) {
+      return;
+    }
+
+    useFlowStore.setState({ selectedNodeId: null });
+    setIsPanning(true);
+    lastMousePos.current = { x: event.clientX, y: event.clientY };
+  };
+
   const handleMouseMove = (event: React.MouseEvent) => {
     if (!isPanning) return;
     
@@ -75,8 +84,20 @@ export default function CanvasPage({ flowDocument }: CanvasPageProps) {
   };
 
   const handleTouchStart = (event: React.TouchEvent) => {
-    if (event.target !== event.currentTarget) return;
-    if (isDraggingNode || isResizingNode) return;
+    event.preventDefault();
+    
+    const target = event.target as HTMLElement;
+    if (
+      isDraggingNode ||
+      isResizingNode ||
+      target.closest('.style-panel') ||
+      target.closest('.toolbar') ||
+      target.closest('.zoom-controls') ||
+      target.closest('.node') ||
+      target.closest('.edge')
+    ) {
+      return;
+    }
     
     setIsPanning(true);
     useFlowStore.setState({ selectedNodeId: null });
@@ -88,6 +109,8 @@ export default function CanvasPage({ flowDocument }: CanvasPageProps) {
 
   const handleTouchMove = (event: React.TouchEvent) => {
     if (!isPanning) return;
+    
+    event.preventDefault();
     
     const dx = event.touches[0].clientX - lastMousePos.current.x;
     const dy = event.touches[0].clientY - lastMousePos.current.y;
@@ -145,11 +168,14 @@ export default function CanvasPage({ flowDocument }: CanvasPageProps) {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      style={{
+        touchAction: 'none',
+      }}
     >
       <Toolbar />
-      { selectedNodeId ? (
-      <StylePanel nodeId={selectedNodeId}/>
-      ) : null }
+      {selectedNodeId && (
+        <StylePanel nodeId={selectedNodeId} />
+      )}
       <ZoomControls
         zoomFactor={scale}
         onZoomIn={onZoomIn}
@@ -159,10 +185,12 @@ export default function CanvasPage({ flowDocument }: CanvasPageProps) {
         style={{
           transform: `translate(${translateX}px, ${translateY}px) scale(${scale})`,
           transformOrigin: "0 0",
-          overflow: "visible",
-          position: "relative",
+          position: "absolute",
+          left: 0,
+          top: 0,
           width: "100%",
           height: "100%",
+          pointerEvents: "auto",
         }}
       >
         <svg
@@ -206,7 +234,6 @@ export default function CanvasPage({ flowDocument }: CanvasPageProps) {
             )}
           </React.Fragment>
         ))}
-        
       </div>
     </div>
   );

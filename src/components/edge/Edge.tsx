@@ -10,13 +10,13 @@ function getAnchorPoint(node: NodeData, anchor: EdgeAnchor) {
   
   switch (anchor.side) {
     case "top":
-      return { x: x + width / 2, y }
+      return { x: (x + width / 2) + 2, y }
     case "bottom":
-      return { x: x + width / 2, y: y + height }
+      return { x: (x + width / 2) + 2, y: y + height }
     case "left":
-      return { x, y: y + height / 2 }
+      return { x, y: (y + height / 2) + 2 }
     case "right":
-      return { x: x + width, y: y + height / 2 }
+      return { x: x + width, y: (y + height / 2) + 2 }
   }
 }
 
@@ -224,7 +224,7 @@ export function Edge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
         <circle
           cx={p2.x}
           cy={p2.y}
-          r={7}
+          r={20}
           fill="transparent"
           style={{ cursor: "grab", touchAction: "none", pointerEvents: "auto" }}
           onMouseDown={onMouseDown}

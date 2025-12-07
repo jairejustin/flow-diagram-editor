@@ -19,10 +19,15 @@
     z-index: 100;
 }
 
+.toolbar__main-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
 .toolbar__button {
     outline: none;
     display: block;
-    margin: 0 auto;
     cursor: pointer;
     text-align: center;
     border: none;
@@ -32,4 +37,30 @@
 
 .toolbar__button:hover {
     background-color: #d0d0d0;
+}
+
+.toolbar__shapes-option {
+    position: fixed;
+    top: 8rem;
+    left: 1rem;
+    display: flex;
+    flex-direction: column;
+    width: 1.5rem;
+    align-items: center;
+    padding: 8px;
+    color: #1A1A1A;
+    background-color: #F7F7F8;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.06),
+        0 4px 12px rgba(0, 0, 0, 0.08),
+        0 2px 4px rgba(0, 0, 0, 0.04);
+    border-radius: 10px;
+    z-index: 100;
+}
+
+.toolbar__button.active {
+  border-color: #0066cc;
+  background-color: #e6f2ff;
+  
 }
