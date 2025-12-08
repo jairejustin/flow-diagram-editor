@@ -14,9 +14,6 @@ export default function CanvasPage() {
   const selectedNodeId = useFlowStore((state) => state.selectedNodeId);
   const setViewport = useFlowStore((state) => state.setViewport);
   const viewport = useFlowStore((state) => state.viewport);
-
-  // select node callback function
-  const selectNode = (id: string | null) => useFlowStore.setState({ selectedNodeId: id });
   
   // Subscribe to nodes and edges from store
   const nodes = useFlowStore((state) => state.nodes);
@@ -222,7 +219,7 @@ export default function CanvasPage() {
         </svg>
         {nodes.map((node) => (
           <React.Fragment key={node.id}>
-            <Node node={node} selectNode={selectNode} />
+            <Node node={node} />
             {selectedNodeId === node.id && !node.editing && (
               <ResizeHandles
                 nodeId={node.id}
