@@ -1,3 +1,7 @@
+import type { NodeData, EdgeAnchor } from "./types";
+
+// NODES AND EDGES
+
 export function wrapText(text: string, maxWidth: number, fontSize: number): string[] {
   const words = text.split(' ');
   const lines: string[] = [];
@@ -19,3 +23,38 @@ export function wrapText(text: string, maxWidth: number, fontSize: number): stri
   lines.push(currentLine);
   return lines;
 }
+
+export function getAnchorPoint(node: NodeData, anchor: EdgeAnchor) {
+  const { x, y } = node.position;
+  const width = node.width;
+  const height = node.height;
+
+  switch (anchor.side) {
+    case "top":
+      return { x: x + width / 2 + 2, y };
+    case "bottom":
+      return { x: x + width / 2 + 2, y: y + height };
+    case "left":
+      return { x, y: y + height / 2 + 2 };
+    case "right":
+      return { x: x + width, y: y + height / 2 + 2 };
+  }
+}
+
+// COLOR PICKER
+
+export function hexToRgb(hex: string): { r: number; g: number; b: number }{
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : { r: 0, g: 0, b: 0 };
+};
+
+export function rgbToHex (r: number, g: number, b: number): string {
+  return "#" + [r, g, b].map(x => {
+    const hex = x.toString(16);
+    return hex.length === 1 ? "0" + hex : hex;
+  }).join('');
+};

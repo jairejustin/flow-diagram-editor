@@ -1,27 +1,12 @@
 import { RgbColorPicker } from 'react-colorful';
 import "./ColorPicker.css"
+import { rgbToHex, hexToRgb } from '../../lib/utils';
 
 interface ColorPickerProps {
   color: string;
   target: string;
   onChange: (color: string) => void;
 }
-
-const hexToRgb = (hex: string): { r: number; g: number; b: number } => {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result ? {
-    r: parseInt(result[1], 16),
-    g: parseInt(result[2], 16),
-    b: parseInt(result[3], 16)
-  } : { r: 0, g: 0, b: 0 };
-};
-
-const rgbToHex = (r: number, g: number, b: number): string => {
-  return "#" + [r, g, b].map(x => {
-    const hex = x.toString(16);
-    return hex.length === 1 ? "0" + hex : hex;
-  }).join('');
-};
 
 export default function ColorPicker({ color, target, onChange }: ColorPickerProps) {
   const handleColorChange = (rgb: { r: number; g: number; b: number }) => {

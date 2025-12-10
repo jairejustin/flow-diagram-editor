@@ -1,210 +1,30 @@
-import { useRef, useCallback, useEffect } from "react"
-import type { NodeData, EdgeData, EdgeAnchor, position } from "../../lib/types"
+import type { NodeData, EdgeData, position } from "../../lib/types"
 import { useFlowStore } from "../../store/flowStore"
 import "./Edge.css"
-
-function getAnchorPoint(node: NodeData, anchor: EdgeAnchor) {
-  const { x, y } = node.position
-  const width = node.width
-  const height = node.height
-  
-  switch (anchor.side) {
-    case "top":
-      return { x: (x + width / 2) + 2, y }
-    case "bottom":
-      return { x: (x + width / 2) + 2, y: y + height }
-    case "left":
-      return { x, y: (y + height / 2) + 2 }
-    case "right":
-      return { x: x + width, y: (y + height / 2) + 2 }
-  }
-}
+import { useEdgeDrag } from "../hooks/useEdgeDrag"
+import { getAnchorPoint } from "../../lib/utils"
 
 export function Edge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
-
-  const mousePosRef = useRef({ x: 0, y: 0 });
-  const startPosRef = useRef({ x: 0, y: 0 });
-  const handlersRef = useRef<{
-    onMouseMove: ((e: MouseEvent) => void) | null;
-    onMouseUp: ((e: MouseEvent) => void) | null;
-    onTouchMove: ((e: TouchEvent) => void) | null;
-    onTouchEnd: ((e: TouchEvent) => void) | null;
-  }>({
-    onMouseMove: null,
-    onMouseUp: null,
-    onTouchMove: null,
-    onTouchEnd: null,
-  });
-
-  // Cleanup function
-  const cleanupListeners = useCallback(() => {
-    if (handlersRef.current.onMouseMove) {
-      document.removeEventListener("mousemove", handlersRef.current.onMouseMove);
-      handlersRef.current.onMouseMove = null;
-    }
-    if (handlersRef.current.onMouseUp) {
-      document.removeEventListener("mouseup", handlersRef.current.onMouseUp);
-      handlersRef.current.onMouseUp = null;
-    }
-    if (handlersRef.current.onTouchMove) {
-      document.removeEventListener("touchmove", handlersRef.current.onTouchMove);
-      handlersRef.current.onTouchMove = null;
-    }
-    if (handlersRef.current.onTouchEnd) {
-      document.removeEventListener("touchend", handlersRef.current.onTouchEnd);
-      handlersRef.current.onTouchEnd = null;
-    }
-  }, []);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      cleanupListeners();
-    };
-  }, [cleanupListeners]);
-  
-  const fromNode = nodes.find(n => n.id === edge.from);
-  //read states from store
+  // Read states from store first
   const storeEdge = useFlowStore((state) => state.edges.find((e) => e.id === edge.id));
-  const allNodes = useFlowStore((state) => state.nodes);
-  const updateEdgeHead = useFlowStore((state) => state.updateEdgeHead);
-  const setIsDraggingEdge = useFlowStore((state) => state.setIsDraggingEdge);
-  const selectNode = useFlowStore((state) => state.selectNode)
+  const fromNode = nodes.find(n => n.id === edge.from);
 
+  // Extract values with defaults for the hook
+  const storeEdgeTo = storeEdge?.to || { x: 0, y: 0 };
+  const storeEdgeToAnchor = storeEdge?.toAnchor || { side: "top" as const };
+  const fromNodeId = fromNode?.id || "";
 
+  // Call hook before any early returns
+  const { onMouseDown, onTouchStart } = useEdgeDrag(
+    edge.id,
+    fromNodeId,
+    storeEdgeTo,
+    storeEdgeToAnchor,
+    nodes
+  );
+
+  // Safety checks after all hooks
   if (!fromNode || !storeEdge) return null;
-
-  const onMove = useCallback(
-    (clientX: number, clientY: number) => {
-      const dx = clientX - mousePosRef.current.x;
-      const dy = clientY - mousePosRef.current.y;
-
-      const newX = startPosRef.current.x + dx;
-      const newY = startPosRef.current.y + dy;
-
-      // Collision detection and snapping will be implemented here
-      let snappedToNode = false;
-      for (const node of allNodes) {
-        if (node.id === fromNode.id) continue; // Don't snap to the source node
-        const { x, y } = node.position;
-        const { width, height } = node;
-
-        // Check for collision with node bounding box
-        if (newX > x && newX < x + width && newY > y && newY < y + height) {
-          // Collision detected, snap to nearest side
-          const distLeft = Math.abs(newX - x);
-          const distRight = Math.abs(newX - (x + width));
-          const distTop = Math.abs(newY - y);
-          const distBottom = Math.abs(newY - (y + height));
-
-          const minDist = Math.min(distLeft, distRight, distTop, distBottom);
-
-          let anchorSide: "top" | "bottom" | "left" | "right" = "top";
-
-          if (minDist === distLeft) {
-            anchorSide = "left";
-          } else if (minDist === distRight) {
-            anchorSide = "right";
-          } else if (minDist === distTop) {
-            anchorSide = "top";
-          } else {
-            anchorSide = "bottom";
-          }
-          updateEdgeHead(edge.id, node.id, { side: anchorSide });
-          snappedToNode = true;
-          break;
-        }
-      }
-
-      if (!snappedToNode) {
-        updateEdgeHead(edge.id, { x: newX, y: newY });
-      }
-    },
-    [allNodes, edge.id, fromNode.id, updateEdgeHead]
-  );
-
-  const onEnd = useCallback(() => {
-    cleanupListeners();
-    setIsDraggingEdge(false);
-  }, [setIsDraggingEdge, cleanupListeners]);
-
-  const onMouseDown = useCallback(
-    (e: React.MouseEvent) => {
-      // Clean up any existing listeners first
-      cleanupListeners();
-      e.stopPropagation();
-      selectNode(null);
-
-      let p2: position;
-
-      if (typeof storeEdge.to === "string") {
-        const toNode = nodes.find((n) => n.id === storeEdge.to);
-        if (!toNode) return;
-        p2 = getAnchorPoint(toNode, storeEdge.toAnchor);
-      } else {
-        p2 = storeEdge.to;
-      }
-
-      mousePosRef.current = { x: e.clientX, y: e.clientY };
-      startPosRef.current = { x: p2.x, y: p2.y };
-      setIsDraggingEdge(true);
-
-      const onMouseMove = (e: MouseEvent) => {
-        onMove(e.clientX, e.clientY);
-      };
-
-      const onMouseUp = () => {
-        onEnd();
-      };
-
-      handlersRef.current.onMouseMove = onMouseMove;
-      handlersRef.current.onMouseUp = onMouseUp;
-
-      document.addEventListener("mousemove", onMouseMove);
-      document.addEventListener("mouseup", onMouseUp);
-    },
-    [nodes, onEnd, onMove, selectNode, setIsDraggingEdge, storeEdge.to, storeEdge.toAnchor, cleanupListeners]
-  );
-
-  const onTouchStart = useCallback(
-    (e: React.TouchEvent) => {
-      // Clean up any existing listeners first
-      cleanupListeners();
-      e.stopPropagation();
-
-      let p2: position;
-
-      if (typeof storeEdge.to === "string") {
-        const toNode = nodes.find((n) => n.id === storeEdge.to);
-        if (!toNode) return;
-        p2 = getAnchorPoint(toNode, storeEdge.toAnchor);
-      } else {
-        p2 = storeEdge.to;
-      }
-
-      mousePosRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-      startPosRef.current = { x: p2.x, y: p2.y };
-      setIsDraggingEdge(true);
-
-      const onTouchMove = (e: TouchEvent) => {
-        e.preventDefault();
-        selectNode(null);
-        onMove(e.touches[0].clientX, e.touches[0].clientY);
-      };
-
-      const onTouchEnd = () => {
-        onEnd();
-      };
-
-      handlersRef.current.onTouchMove = onTouchMove;
-      handlersRef.current.onTouchEnd = onTouchEnd;
-
-      document.addEventListener("touchmove", onTouchMove, { passive: false });
-      document.addEventListener("touchend", onTouchEnd);
-    },
-    [nodes, onEnd, onMove, setIsDraggingEdge, storeEdge.to, storeEdge.toAnchor, cleanupListeners, selectNode]
-  );
-
 
   const p1 = getAnchorPoint(fromNode, storeEdge.fromAnchor);
 

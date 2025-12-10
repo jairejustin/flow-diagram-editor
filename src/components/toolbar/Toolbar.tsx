@@ -17,6 +17,10 @@ export default function Toolbar() {
     setOpenCreateNode(false);
   };
 
+  const toggleOpenCreateNode = () => {
+    setOpenCreateNode(prev => !prev);
+    };
+
   return (
     <div className="toolbar">
         <aside>
@@ -30,10 +34,7 @@ export default function Toolbar() {
             </button>
             <button className=
             {`toolbar__button ${openCreateNode ? 'active' : ''}`}
-            onClick={()=>{openCreateNode ?
-            setOpenCreateNode(false) :
-            setOpenCreateNode(true);
-            }}>
+            onClick={toggleOpenCreateNode}>
               <ShapesIcon />
             </button>
           </div>
@@ -50,4 +51,4 @@ export default function Toolbar() {
         </aside>
     </div>
   )
-}
+};
