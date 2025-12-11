@@ -1,7 +1,7 @@
 import type { NodeData, EdgeData, position } from "../../lib/types"
 import { useFlowStore } from "../../store/flowStore"
 import "./Edge.css"
-import { useEdgeDrag } from "../hooks/useEdgeDrag"
+import { useEdgeDrag } from "../../hooks/useEdgeDrag"
 import { getAnchorPoint } from "../../lib/utils"
 
 export function Edge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {

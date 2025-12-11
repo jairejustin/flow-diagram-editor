@@ -1,4 +1,4 @@
-import { useNodeResize } from "../hooks/useNodeResize";
+import { useNodeResize } from "../../hooks/useNodeResize";
 
 type ResizeHandle = "nw" | "ne" | "sw" | "se" | "n" | "s" | "e" | "w";
 

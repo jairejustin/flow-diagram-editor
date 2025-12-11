@@ -3,7 +3,7 @@ import type { NodeData } from "../../lib/types";
 import { wrapText } from "../../lib/utils";
 import { useFlowStore } from "../../store/flowStore";
 import "./Node.css";
-import { useNodeDrag } from "../hooks/useNodeDrag";
+import { useNodeDrag } from "../../hooks/useNodeDrag";
 
 interface NodeProps {
   node: NodeData;
