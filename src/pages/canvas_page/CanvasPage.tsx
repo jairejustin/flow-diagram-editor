@@ -8,6 +8,7 @@ import StylePanel from "../../components/style-panel/StylePanel";
 import { ResizeHandles } from "../../components/resize-handles/ResizeHandles";
 import { useCanvasPan } from "../../hooks/useCanvasPan";
 import { getAnchorPoint } from "../../lib/utils";
+import { EdgeCreationHandles } from "../../components/edge-creation-handles/EdgeCreationHandles";
 import "./CanvasPage.css";
 
 export default function CanvasPage() {
@@ -115,13 +116,22 @@ export default function CanvasPage() {
           <React.Fragment key={node.id}>
             <Node node={node} />
             {selectedNodeId === node.id && !node.editing && (
-              <ResizeHandles
-                nodeId={node.id}
-                position={node.position}
-                width={node.width}
-                height={node.height}
-                scale={scale}
-              />
+              <>
+                <ResizeHandles
+                  nodeId={node.id}
+                  position={node.position}
+                  width={node.width}
+                  height={node.height}
+                  scale={scale}
+                />
+                <EdgeCreationHandles
+                  nodeId={node.id}
+                  position={node.position}
+                  width={node.width}
+                  height={node.height}
+                  scale={scale}
+                />
+              </>
             )}
           </React.Fragment>
         ))}

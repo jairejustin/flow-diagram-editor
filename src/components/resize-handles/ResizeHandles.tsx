@@ -40,7 +40,7 @@ export const ResizeHandles = ({ nodeId, position, width, height, scale }: Resize
         width: width,
         height: height,
         pointerEvents: "none",
-        border: `1px solid #4A90E2`,
+        border: `1px solid #4b5563`,
       }}
     >
       {resizeHandles.map(({ handle, cursor, x, y }) => (
@@ -53,7 +53,7 @@ export const ResizeHandles = ({ nodeId, position, width, height, scale }: Resize
             top: y,
             width: handleSize,
             height: handleSize,
-            backgroundColor: "#4A90E2",
+            backgroundColor: "#4b5563",
             border: "1px solid #fff",
             borderRadius: "50%",
             cursor,

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Type, LetterTextIcon, ShapesIcon, Diamond, Square } from "lucide-react";
+import { Type, ShapesIcon, Diamond, Square, Spline } from "lucide-react";
 import "./Toolbar.css";
 import { useFlowStore } from "../../store/flowStore";
 
@@ -30,7 +30,7 @@ export default function Toolbar() {
               <Type />
             </button>
             <button className="toolbar__button">
-              <LetterTextIcon />
+              <Spline />
             </button>
             <button className=
             {`toolbar__button ${openCreateNode ? 'active' : ''}`}
