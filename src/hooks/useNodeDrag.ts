@@ -6,18 +6,17 @@ export function useNodeDrag(
   position: { x: number; y: number },
   editing: boolean
 ) {
-  const mousePosRef = useRef({ x: 0, y: 0 });
+  const pointerPosRef = useRef({ x: 0, y: 0 });
   const startPosRef = useRef({ x: 0, y: 0 });
+  const activePointerId = useRef<number | null>(null);
   const handlersRef = useRef<{
-    onMouseMove: ((e: MouseEvent) => void) | null;
-    onMouseUp: ((e: MouseEvent) => void) | null;
-    onTouchMove: ((e: TouchEvent) => void) | null;
-    onTouchEnd: ((e: TouchEvent) => void) | null;
+    onPointerMove: ((e: PointerEvent) => void) | null;
+    onPointerUp: ((e: PointerEvent) => void) | null;
+    onPointerCancel: ((e: PointerEvent) => void) | null;
   }>({
-    onMouseMove: null,
-    onMouseUp: null,
-    onTouchMove: null,
-    onTouchEnd: null,
+    onPointerMove: null,
+    onPointerUp: null,
+    onPointerCancel: null,
   });
 
   const selectNode = useCallback(
@@ -28,22 +27,19 @@ export function useNodeDrag(
   const setIsDraggingNode = useFlowStore((state) => state.setIsDraggingNode);
 
   const cleanupListeners = useCallback(() => {
-    if (handlersRef.current.onMouseMove) {
-      document.removeEventListener("mousemove", handlersRef.current.onMouseMove);
-      handlersRef.current.onMouseMove = null;
+    if (handlersRef.current.onPointerMove) {
+      document.removeEventListener("pointermove", handlersRef.current.onPointerMove);
+      handlersRef.current.onPointerMove = null;
     }
-    if (handlersRef.current.onMouseUp) {
-      document.removeEventListener("mouseup", handlersRef.current.onMouseUp);
-      handlersRef.current.onMouseUp = null;
+    if (handlersRef.current.onPointerUp) {
+      document.removeEventListener("pointerup", handlersRef.current.onPointerUp);
+      handlersRef.current.onPointerUp = null;
     }
-    if (handlersRef.current.onTouchMove) {
-      document.removeEventListener("touchmove", handlersRef.current.onTouchMove);
-      handlersRef.current.onTouchMove = null;
+    if (handlersRef.current.onPointerCancel) {
+      document.removeEventListener("pointercancel", handlersRef.current.onPointerCancel);
+      handlersRef.current.onPointerCancel = null;
     }
-    if (handlersRef.current.onTouchEnd) {
-      document.removeEventListener("touchend", handlersRef.current.onTouchEnd);
-      handlersRef.current.onTouchEnd = null;
-    }
+    activePointerId.current = null;
   }, []);
 
   useEffect(() => {
@@ -54,8 +50,8 @@ export function useNodeDrag(
 
   const onMove = useCallback(
     (clientX: number, clientY: number) => {
-      const dx = clientX - mousePosRef.current.x;
-      const dy = clientY - mousePosRef.current.y;
+      const dx = clientX - pointerPosRef.current.x;
+      const dy = clientY - pointerPosRef.current.y;
 
       updateNodePosition(nodeId, {
         x: startPosRef.current.x + dx,
@@ -78,62 +74,58 @@ export function useNodeDrag(
     setIsDraggingNode(false);
   }, [nodeId, selectNode, setIsDraggingNode, cleanupListeners]);
 
-  const onMouseDown = useCallback(
-    (e: React.MouseEvent) => {
+  const onPointerDown = useCallback(
+    (e: React.PointerEvent) => {
       e.stopPropagation();
       if (editing) return;
 
+      // check for another pointer
+      if (activePointerId.current !== null) {
+        return;
+      }
+
       cleanupListeners();
 
-      mousePosRef.current = { x: e.clientX, y: e.clientY };
+      // get the pointer for tracking
+      (e.target as HTMLElement).setPointerCapture(e.pointerId);
+      activePointerId.current = e.pointerId;
+
+      pointerPosRef.current = { x: e.clientX, y: e.clientY };
       startPosRef.current = { x: position.x, y: position.y };
       setIsDraggingNode(true);
 
-      const onMouseMove = (e: MouseEvent) => {
+      const onPointerMove = (e: PointerEvent) => {
+        // only the captured pointer
+        if (e.pointerId !== activePointerId.current) {
+          return;
+        }
         onMove(e.clientX, e.clientY);
       };
 
-      const onMouseUp = () => {
+      const onPointerUp = (e: PointerEvent) => {
+        if (e.pointerId !== activePointerId.current) {
+          return;
+        }
         onEnd();
       };
 
-      handlersRef.current.onMouseMove = onMouseMove;
-      handlersRef.current.onMouseUp = onMouseUp;
+      const onPointerCancel = (e: PointerEvent) => {
+        if (e.pointerId !== activePointerId.current) {
+          return;
+        }
+        onEnd();
+      };
 
-      document.addEventListener("mousemove", onMouseMove);
-      document.addEventListener("mouseup", onMouseUp);
+      handlersRef.current.onPointerMove = onPointerMove;
+      handlersRef.current.onPointerUp = onPointerUp;
+      handlersRef.current.onPointerCancel = onPointerCancel;
+
+      document.addEventListener("pointermove", onPointerMove);
+      document.addEventListener("pointerup", onPointerUp);
+      document.addEventListener("pointercancel", onPointerCancel);
     },
     [editing, position.x, position.y, setIsDraggingNode, onMove, onEnd, cleanupListeners]
   );
 
-  const onTouchStart = useCallback(
-    (e: React.TouchEvent) => {
-      e.stopPropagation();
-      if (editing) return;
-
-      cleanupListeners();
-
-      mousePosRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-      startPosRef.current = { x: position.x, y: position.y };
-      setIsDraggingNode(true);
-
-      const onTouchMove = (e: TouchEvent) => {
-        e.preventDefault();
-        onMove(e.touches[0].clientX, e.touches[0].clientY);
-      };
-
-      const onTouchEnd = () => {
-        onEnd();
-      };
-
-      handlersRef.current.onTouchMove = onTouchMove;
-      handlersRef.current.onTouchEnd = onTouchEnd;
-
-      document.addEventListener("touchmove", onTouchMove, { passive: false });
-      document.addEventListener("touchend", onTouchEnd);
-    },
-    [editing, position.x, position.y, setIsDraggingNode, onMove, onEnd, cleanupListeners]
-  );
-
-  return { onMouseDown, onTouchStart };
+  return { onPointerDown };
 }

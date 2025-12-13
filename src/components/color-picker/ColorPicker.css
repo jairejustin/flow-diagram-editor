@@ -19,9 +19,9 @@
     letter-spacing: -0.5px;
 }
 
-@media (width: 500px) {
+@media (width: 360px) {
 .color-picker {
-    top: 310px;
-    right: 1rem;
+    top: 350px;
+    right: 0.5rem;
   }
 }

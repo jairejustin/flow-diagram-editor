@@ -11,45 +11,35 @@ export function useCanvasPan(
   isPanning: boolean,
   setIsPanning: (value: boolean) => void
 ) {
-  const lastMousePos = useRef({ x: 0, y: 0 });
+  const lastPointerPos = useRef({ x: 0, y: 0 });
+  const activePointerId = useRef<number | null>(null);
   const handlersRef = useRef<{
-    onMouseMove: ((e: MouseEvent) => void) | null;
-    onMouseUp: ((e: MouseEvent) => void) | null;
-    onMouseLeave: ((e: MouseEvent) => void) | null;
-    onTouchMove: ((e: TouchEvent) => void) | null;
-    onTouchEnd: ((e: TouchEvent) => void) | null;
+    onPointerMove: ((e: PointerEvent) => void) | null;
+    onPointerUp: ((e: PointerEvent) => void) | null;
+    onPointerCancel: ((e: PointerEvent) => void) | null;
   }>({
-    onMouseMove: null,
-    onMouseUp: null,
-    onMouseLeave: null,
-    onTouchMove: null,
-    onTouchEnd: null,
+    onPointerMove: null,
+    onPointerUp: null,
+    onPointerCancel: null,
   });
 
   const isDraggingNode = useFlowStore((state) => state.isDraggingNode);
   const isResizingNode = useFlowStore((state) => state.isResizingNode);
   const setViewport = useFlowStore((state) => state.setViewport);
+  const setShowPanel = useFlowStore((state) => state.setShowPanel);
 
   const cleanupListeners = useCallback(() => {
-    if (handlersRef.current.onMouseMove) {
-      document.removeEventListener("mousemove", handlersRef.current.onMouseMove);
-      handlersRef.current.onMouseMove = null;
+    if (handlersRef.current.onPointerMove) {
+      document.removeEventListener("pointermove", handlersRef.current.onPointerMove);
+      handlersRef.current.onPointerMove = null;
     }
-    if (handlersRef.current.onMouseUp) {
-      document.removeEventListener("mouseup", handlersRef.current.onMouseUp);
-      handlersRef.current.onMouseUp = null;
+    if (handlersRef.current.onPointerUp) {
+      document.removeEventListener("pointerup", handlersRef.current.onPointerUp);
+      handlersRef.current.onPointerUp = null;
     }
-    if (handlersRef.current.onMouseLeave) {
-      document.removeEventListener("mouseleave", handlersRef.current.onMouseLeave);
-      handlersRef.current.onMouseLeave = null;
-    }
-    if (handlersRef.current.onTouchMove) {
-      document.removeEventListener("touchmove", handlersRef.current.onTouchMove);
-      handlersRef.current.onTouchMove = null;
-    }
-    if (handlersRef.current.onTouchEnd) {
-      document.removeEventListener("touchend", handlersRef.current.onTouchEnd);
-      handlersRef.current.onTouchEnd = null;
+    if (handlersRef.current.onPointerCancel) {
+      document.removeEventListener("pointercancel", handlersRef.current.onPointerCancel);
+      handlersRef.current.onPointerCancel = null;
     }
   }, []);
 
@@ -70,10 +60,16 @@ export function useCanvasPan(
   const onPanEnd = useCallback(() => {
     cleanupListeners();
     setIsPanning(false);
+    activePointerId.current = null;
   }, [cleanupListeners, setIsPanning]);
 
-  const handleMouseDown = useCallback(
-    (event: React.MouseEvent) => {
+  const handlePointerDown = useCallback(
+    (event: React.PointerEvent) => {
+      // check for another pointer
+      if (activePointerId.current !== null) {
+        return;
+      }
+
       const target = event.target as HTMLElement;
       if (
         isDraggingNode ||
@@ -82,93 +78,64 @@ export function useCanvasPan(
         target.closest('.toolbar') ||
         target.closest('.zoom-controls') ||
         target.closest('.node') ||
-        target.closest('.edge')
+        target.closest('.edge') ||
+        target.closest('.mobile-toggle-editor-button')
       ) {
         return;
       }
 
+      // to avoid scrolling
+      if (event.pointerType === 'touch') {
+        event.preventDefault();
+      }
+
       cleanupListeners();
+
+      // get the pointer for tracking
+      (event.target as HTMLElement).setPointerCapture(event.pointerId);
+      activePointerId.current = event.pointerId;
 
       useFlowStore.setState({ selectedNodeId: null, selectedEdgeId: null });
+      setShowPanel(false);
       setIsPanning(true);
-      lastMousePos.current = { x: event.clientX, y: event.clientY };
+      lastPointerPos.current = { x: event.clientX, y: event.clientY };
 
-      const onMouseMove = (e: MouseEvent) => {
-        const dx = e.clientX - lastMousePos.current.x;
-        const dy = e.clientY - lastMousePos.current.y;
+      const onPointerMove = (e: PointerEvent) => {
+        // handle the captured pointer
+        if (e.pointerId !== activePointerId.current) {
+          return;
+        }
+
+        const dx = e.clientX - lastPointerPos.current.x;
+        const dy = e.clientY - lastPointerPos.current.y;
         setTranslateX((prev) => prev + dx);
         setTranslateY((prev) => prev + dy);
-        lastMousePos.current = { x: e.clientX, y: e.clientY };
+        lastPointerPos.current = { x: e.clientX, y: e.clientY };
       };
 
-      const onMouseUp = () => {
+      const onPointerUp = (e: PointerEvent) => {
+        if (e.pointerId !== activePointerId.current) {
+          return;
+        }
         onPanEnd();
       };
 
-      const onMouseLeave = () => {
+      const onPointerCancel = (e: PointerEvent) => {
+        if (e.pointerId !== activePointerId.current) {
+          return;
+        }
         onPanEnd();
       };
 
-      handlersRef.current.onMouseMove = onMouseMove;
-      handlersRef.current.onMouseUp = onMouseUp;
-      handlersRef.current.onMouseLeave = onMouseLeave;
+      handlersRef.current.onPointerMove = onPointerMove;
+      handlersRef.current.onPointerUp = onPointerUp;
+      handlersRef.current.onPointerCancel = onPointerCancel;
 
-      document.addEventListener("mousemove", onMouseMove);
-      document.addEventListener("mouseup", onMouseUp);
-      document.addEventListener("mouseleave", onMouseLeave);
+      document.addEventListener("pointermove", onPointerMove);
+      document.addEventListener("pointerup", onPointerUp);
+      document.addEventListener("pointercancel", onPointerCancel);
     },
-    [isDraggingNode, isResizingNode, setIsPanning, setTranslateX, setTranslateY, onPanEnd, cleanupListeners]
-  );
-
-  const handleTouchStart = useCallback(
-    (event: React.TouchEvent) => {
-      event.preventDefault();
-
-      const target = event.target as HTMLElement;
-      if (
-        isDraggingNode ||
-        isResizingNode ||
-        target.closest('.style-panel') ||
-        target.closest('.toolbar') ||
-        target.closest('.zoom-controls') ||
-        target.closest('.node') ||
-        target.closest('.edge')
-      ) {
-        return;
-      }
-
-      cleanupListeners();
-
-      setIsPanning(true);
-      useFlowStore.setState({ selectedNodeId: null });
-      lastMousePos.current = {
-        x: event.touches[0].clientX,
-        y: event.touches[0].clientY
-      };
-
-      const onTouchMove = (e: TouchEvent) => {
-        e.preventDefault();
-        const dx = e.touches[0].clientX - lastMousePos.current.x;
-        const dy = e.touches[0].clientY - lastMousePos.current.y;
-        setTranslateX((prev) => prev + dx);
-        setTranslateY((prev) => prev + dy);
-        lastMousePos.current = {
-          x: e.touches[0].clientX,
-          y: e.touches[0].clientY
-        };
-      };
-
-      const onTouchEnd = () => {
-        onPanEnd();
-      };
-
-      handlersRef.current.onTouchMove = onTouchMove;
-      handlersRef.current.onTouchEnd = onTouchEnd;
-
-      document.addEventListener("touchmove", onTouchMove, { passive: false });
-      document.addEventListener("touchend", onTouchEnd);
-    },
-    [isDraggingNode, isResizingNode, setIsPanning, setTranslateX, setTranslateY, onPanEnd, cleanupListeners]
+    [isDraggingNode, isResizingNode, setShowPanel, setIsPanning, setTranslateX, setTranslateY, onPanEnd, cleanupListeners]
   );
 
   const handleWheel = useCallback(
@@ -192,8 +159,7 @@ export function useCanvasPan(
   );
 
   return {
-    handleMouseDown,
-    handleTouchStart,
+    handlePointerDown,
     handleWheel,
   };
 }

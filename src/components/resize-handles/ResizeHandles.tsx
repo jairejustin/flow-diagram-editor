@@ -1,4 +1,5 @@
 import { useNodeResize } from "../../hooks/useNodeResize";
+import { useFlowStore } from "../../store/flowStore";
 
 type ResizeHandle = "nw" | "ne" | "sw" | "se" | "n" | "s" | "e" | "w";
 
@@ -11,15 +12,16 @@ interface ResizeHandlesProps {
 }
 
 export const ResizeHandles = ({ nodeId, position, width, height, scale }: ResizeHandlesProps) => {
-  const { onResizeHandleMouseDown, onResizeHandleTouchStart } = useNodeResize(
+  const { onResizeHandlePointerDown } = useNodeResize(
     nodeId,
     position,
     width,
     height,
     scale
   );
-
-  const handleSize = 8;
+  
+  const isMobile = useFlowStore((state) => state.isMobile);
+  const handleSize = isMobile? 18 : 8;
 
   const resizeHandles: { handle: ResizeHandle; cursor: string; x: number; y: number }[] = [
     { handle: "nw", cursor: "nwse-resize", x: -handleSize / 2, y: -handleSize / 2 },
@@ -60,8 +62,8 @@ export const ResizeHandles = ({ nodeId, position, width, height, scale }: Resize
             pointerEvents: "auto",
             zIndex: 10,
           }}
-          onMouseDown={(e) => onResizeHandleMouseDown(e, handle)}
-          onTouchStart={(e) => onResizeHandleTouchStart(e, handle)}
+          onPointerDown={(e) => onResizeHandlePointerDown(e,handle)}
+
         />
       ))}
     </div>

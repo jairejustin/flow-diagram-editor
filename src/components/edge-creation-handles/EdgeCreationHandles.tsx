@@ -17,7 +17,7 @@ export const EdgeCreationHandles = ({
   width,
   height,
 }: EdgeCreationHandlesProps) => {
-  const { onHandleMouseDown, onHandleTouchStart } = useEdgeCreation(
+  const { onHandlePointerDown } = useEdgeCreation(
     nodeId,
     position,
     width,
@@ -70,8 +70,7 @@ export const EdgeCreationHandles = ({
             alignItems: "center",
             justifyContent: "center",
           }}
-          onMouseDown={(e) => onHandleMouseDown(e, handle)}
-          onTouchStart={(e) => onHandleTouchStart(e, handle)}
+          onPointerDown={(e) => onHandlePointerDown(e, handle)}
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = "scale(1.3)";
             e.currentTarget.style.opacity = "0.9";

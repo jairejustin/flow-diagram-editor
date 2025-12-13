@@ -1,92 +1,99 @@
 import { useRef, useCallback, useEffect } from "react";
 import { useFlowStore } from "../store/flowStore";
 
-type ResizeHandle = "nw" | "ne" | "sw" | "se" | "n" | "s" | "e" | "w";
+export type ResizeHandle = "nw" | "ne" | "sw" | "se" | "n" | "s" | "e" | "w";
+
+type Point = { x: number; y: number };
+
+type Size = { width: number; height: number };
+
 
 export function useNodeResize(
   nodeId: string,
-  position: { x: number; y: number },
+  position: Point,
   width: number,
   height: number,
   scale: number
 ) {
-  const mousePosRef = useRef({ x: 0, y: 0 });
-  const startPosRef = useRef({ x: 0, y: 0 });
-  const startSizeRef = useRef({ width: 0, height: 0 });
-  const resizeHandleRef = useRef<ResizeHandle | null>(null);
+  const startPointerRef = useRef<Point>({ x: 0, y: 0 });
+  const startPosRef = useRef<Point>({ x: 0, y: 0 });
+  const startSizeRef = useRef<Size>({ width: 0, height: 0 });
+  const activeHandleRef = useRef<ResizeHandle | null>(null);
+  const activePointerIdRef = useRef<number | null>(null);
+  const rafRef = useRef<number | null>(null);
+
+  const updateNodePosition = useFlowStore((s) => s.updateNodePosition);
+  const updateNodeSize = useFlowStore((s) => s.updateNodeDimensions);
+  const setIsResizingNode = useFlowStore((s) => s.setIsResizingNode);
+
   const handlersRef = useRef<{
-    onMouseMove: ((e: MouseEvent) => void) | null;
-    onMouseUp: ((e: MouseEvent) => void) | null;
-    onTouchMove: ((e: TouchEvent) => void) | null;
-    onTouchEnd: ((e: TouchEvent) => void) | null;
+    move: ((e: PointerEvent) => void) | null;
+    end: ((e: PointerEvent) => void) | null;
   }>({
-    onMouseMove: null,
-    onMouseUp: null,
-    onTouchMove: null,
-    onTouchEnd: null,
+    move: null,
+    end: null,
   });
 
-  const updateNodePosition = useFlowStore((state) => state.updateNodePosition);
-  const updateNodeSize = useFlowStore((state) => state.updateNodeDimensions);
-  const setIsResizingNode = useFlowStore((state) => state.setIsResizingNode);
 
-  const cleanupListeners = useCallback(() => {
-    if (handlersRef.current.onMouseMove) {
-      document.removeEventListener("mousemove", handlersRef.current.onMouseMove);
-      handlersRef.current.onMouseMove = null;
+  const cleanup = useCallback(() => {
+    if (handlersRef.current.move) {
+      document.removeEventListener("pointermove", handlersRef.current.move);
+      handlersRef.current.move = null;
     }
-    if (handlersRef.current.onMouseUp) {
-      document.removeEventListener("mouseup", handlersRef.current.onMouseUp);
-      handlersRef.current.onMouseUp = null;
-    }
-    if (handlersRef.current.onTouchMove) {
-      document.removeEventListener("touchmove", handlersRef.current.onTouchMove);
-      handlersRef.current.onTouchMove = null;
-    }
-    if (handlersRef.current.onTouchEnd) {
-      document.removeEventListener("touchend", handlersRef.current.onTouchEnd);
-      handlersRef.current.onTouchEnd = null;
-    }
-  }, []);
 
-  useEffect(() => {
-    return () => {
-      cleanupListeners();
-    };
-  }, [cleanupListeners]);
+    if (handlersRef.current.end) {
+      document.removeEventListener("pointerup", handlersRef.current.end);
+      document.removeEventListener("pointercancel", handlersRef.current.end);
+      handlersRef.current.end = null;
+    }
 
-  const onResize = useCallback(
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+
+    activePointerIdRef.current = null;
+    activeHandleRef.current = null;
+    setIsResizingNode(false);
+  }, [setIsResizingNode]);
+
+  useEffect(() => cleanup, [cleanup]);
+
+  const applyResize = useCallback(
     (clientX: number, clientY: number) => {
-      if (!resizeHandleRef.current) return;
+      if (!activeHandleRef.current) return;
 
-      const dx = (clientX - mousePosRef.current.x) / scale;
-      const dy = (clientY - mousePosRef.current.y) / scale;
-      const handle = resizeHandleRef.current;
+      const dx = (clientX - startPointerRef.current.x) / scale;
+      const dy = (clientY - startPointerRef.current.y) / scale;
+      const handle = activeHandleRef.current;
+
+      const minSize = 50;
 
       let newWidth = startSizeRef.current.width;
       let newHeight = startSizeRef.current.height;
       let newX = startPosRef.current.x;
       let newY = startPosRef.current.y;
 
-      const minSize = 50;
-
       if (handle.includes("e")) {
         newWidth = Math.max(minSize, startSizeRef.current.width + dx);
       }
+
       if (handle.includes("w")) {
-        const proposedWidth = startSizeRef.current.width - dx;
-        if (proposedWidth >= minSize) {
-          newWidth = proposedWidth;
+        const proposed = startSizeRef.current.width - dx;
+        if (proposed >= minSize) {
+          newWidth = proposed;
           newX = startPosRef.current.x + dx;
         }
       }
+
       if (handle.includes("s")) {
         newHeight = Math.max(minSize, startSizeRef.current.height + dy);
       }
+
       if (handle.includes("n")) {
-        const proposedHeight = startSizeRef.current.height - dy;
-        if (proposedHeight >= minSize) {
-          newHeight = proposedHeight;
+        const proposed = startSizeRef.current.height - dy;
+        if (proposed >= minSize) {
+          newHeight = proposed;
           newY = startPosRef.current.y + dy;
         }
       }
@@ -97,72 +104,46 @@ export function useNodeResize(
     [nodeId, scale, updateNodePosition, updateNodeSize]
   );
 
-  const onEnd = useCallback(() => {
-    cleanupListeners();
-    setIsResizingNode(false);
-    resizeHandleRef.current = null;
-  }, [cleanupListeners, setIsResizingNode]);
+  const onPointerMove = useCallback((e: PointerEvent) => {
+    if (e.pointerId !== activePointerIdRef.current) return;
 
-  const onResizeHandleMouseDown = useCallback(
-    (e: React.MouseEvent, handle: ResizeHandle) => {
+    if (rafRef.current) return;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      applyResize(e.clientX, e.clientY);
+    });
+  }, [applyResize]);
+
+  const onPointerUp = useCallback((e: PointerEvent) => {
+    if (e.pointerId !== activePointerIdRef.current) return;
+    cleanup();
+  }, [cleanup]);
+
+  const onResizeHandlePointerDown = useCallback(
+    (e: React.PointerEvent, handle: ResizeHandle) => {
       e.stopPropagation();
-      e.preventDefault();
 
-      cleanupListeners();
+      const target = e.currentTarget as HTMLElement;
+      target.setPointerCapture(e.pointerId);
 
-      mousePosRef.current = { x: e.clientX, y: e.clientY };
-      startPosRef.current = { x: position.x, y: position.y };
+      cleanup();
+
+      activePointerIdRef.current = e.pointerId;
+      activeHandleRef.current = handle;
+      startPointerRef.current = { x: e.clientX, y: e.clientY };
+      startPosRef.current = { ...position };
       startSizeRef.current = { width, height };
-      resizeHandleRef.current = handle;
+
       setIsResizingNode(true);
 
-      const onMouseMove = (e: MouseEvent) => {
-        onResize(e.clientX, e.clientY);
-      };
-
-      const onMouseUp = () => {
-        onEnd();
-      };
-
-      handlersRef.current.onMouseMove = onMouseMove;
-      handlersRef.current.onMouseUp = onMouseUp;
-
-      document.addEventListener("mousemove", onMouseMove);
-      document.addEventListener("mouseup", onMouseUp);
+      document.addEventListener("pointermove", onPointerMove);
+      document.addEventListener("pointerup", onPointerUp);
+      document.addEventListener("pointercancel", onPointerUp);
     },
-    [height, onEnd, onResize, position.x, position.y, setIsResizingNode, width, cleanupListeners]
+    [cleanup, height, onPointerMove, onPointerUp, position, setIsResizingNode, width]
   );
 
-  const onResizeHandleTouchStart = useCallback(
-    (e: React.TouchEvent, handle: ResizeHandle) => {
-      e.stopPropagation();
-      e.preventDefault();
-
-      cleanupListeners();
-
-      mousePosRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-      startPosRef.current = { x: position.x, y: position.y };
-      startSizeRef.current = { width, height };
-      resizeHandleRef.current = handle;
-      setIsResizingNode(true);
-
-      const onTouchMove = (e: TouchEvent) => {
-        e.preventDefault();
-        onResize(e.touches[0].clientX, e.touches[0].clientY);
-      };
-
-      const onTouchEnd = () => {
-        onEnd();
-      };
-
-      handlersRef.current.onTouchMove = onTouchMove;
-      handlersRef.current.onTouchEnd = onTouchEnd;
-
-      document.addEventListener("touchmove", onTouchMove, { passive: false });
-      document.addEventListener("touchend", onTouchEnd);
-    },
-    [height, onEnd, onResize, position.x, position.y, setIsResizingNode, width, cleanupListeners]
-  );
-
-  return { onResizeHandleMouseDown, onResizeHandleTouchStart };
+  return {
+    onResizeHandlePointerDown,
+  };
 }

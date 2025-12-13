@@ -34,7 +34,7 @@ export function Edge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
     toNodeIdForHook = typeof storeEdge.to === "string" ? storeEdge.to : undefined;
   }
 
-  const { onMouseDownHead, onTouchStartHead, onMouseDownTail, onTouchStartTail } = useEdgeDrag(
+  const { onPointerDownHead, onPointerDownTail } = useEdgeDrag(
     edge.id,
     fromNodeIdForHook,
     toNodeIdForHook,
@@ -104,6 +104,18 @@ export function Edge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
   
   return (
     <g>
+        <defs>
+          <marker
+            id={`arrowhead-${edge.id}`}
+            markerWidth="10"
+            markerHeight="10"
+            refX="9"
+            refY="3"
+            orient="auto"
+          >
+            <polygon points="0 0, 10 3, 0 6" fill={color}/>
+          </marker>
+        </defs>
       <line
         x1={p1.x}
         y1={p1.y}
@@ -113,7 +125,7 @@ export function Edge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
         strokeWidth={storeEdge.style?.width || 2}
         strokeDasharray={storeEdge.style?.dashed ? "5,5" : undefined}
         onMouseDown={handleEdgeClick}
-        markerEnd="url(#arrowhead)"
+        markerEnd={`url(#arrowhead-${edge.id})`}
         style={{ 
           cursor: "pointer", 
           pointerEvents: "auto",
@@ -168,8 +180,7 @@ export function Edge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
         r={20}
         fill="transparent"
         style={{ cursor: "grab", touchAction: "none", pointerEvents: "auto" }}
-        onMouseDown={onMouseDownHead}
-        onTouchStart={onTouchStartHead}
+        onPointerDown={onPointerDownHead}
       />
       
       {/* from endpoint */}
@@ -180,8 +191,7 @@ export function Edge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
         r={20}
         fill="transparent"
         style={{ cursor: "grab", touchAction: "none", pointerEvents: "auto" }}
-        onMouseDown={onMouseDownTail}
-        onTouchStart={onTouchStartTail}
+        onPointerDown={onPointerDownTail}
       />
     </g>
   );

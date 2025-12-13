@@ -13,19 +13,18 @@ export function useEdgeDrag(
   storeEdgeFromAnchor: EdgeAnchor,
   nodes: NodeData[]
 ) {
-  const mousePosRef = useRef({ x: 0, y: 0 });
+  const pointerPosRef = useRef({ x: 0, y: 0 });
   const startPosRef = useRef({ x: 0, y: 0 });
-  const draggingEndRef = useRef<"from" | "to" | null>(null); // track which is end
+  const draggingEndRef = useRef<"from" | "to" | null>(null);
+  const activePointerId = useRef<number | null>(null);
   const handlersRef = useRef<{
-    onMouseMove: ((e: MouseEvent) => void) | null;
-    onMouseUp: ((e: MouseEvent) => void) | null;
-    onTouchMove: ((e: TouchEvent) => void) | null;
-    onTouchEnd: ((e: TouchEvent) => void) | null;
+    onPointerMove: ((e: PointerEvent) => void) | null;
+    onPointerUp: ((e: PointerEvent) => void) | null;
+    onPointerCancel: ((e: PointerEvent) => void) | null;
   }>({
-    onMouseMove: null,
-    onMouseUp: null,
-    onTouchMove: null,
-    onTouchEnd: null,
+    onPointerMove: null,
+    onPointerUp: null,
+    onPointerCancel: null,
   });
 
   const selectEdge = useCallback(
@@ -40,22 +39,19 @@ export function useEdgeDrag(
   const selectNode = useFlowStore((state) => state.selectNode);
 
   const cleanupListeners = useCallback(() => {
-    if (handlersRef.current.onMouseMove) {
-      document.removeEventListener("mousemove", handlersRef.current.onMouseMove);
-      handlersRef.current.onMouseMove = null;
+    if (handlersRef.current.onPointerMove) {
+      document.removeEventListener("pointermove", handlersRef.current.onPointerMove);
+      handlersRef.current.onPointerMove = null;
     }
-    if (handlersRef.current.onMouseUp) {
-      document.removeEventListener("mouseup", handlersRef.current.onMouseUp);
-      handlersRef.current.onMouseUp = null;
+    if (handlersRef.current.onPointerUp) {
+      document.removeEventListener("pointerup", handlersRef.current.onPointerUp);
+      handlersRef.current.onPointerUp = null;
     }
-    if (handlersRef.current.onTouchMove) {
-      document.removeEventListener("touchmove", handlersRef.current.onTouchMove);
-      handlersRef.current.onTouchMove = null;
+    if (handlersRef.current.onPointerCancel) {
+      document.removeEventListener("pointercancel", handlersRef.current.onPointerCancel);
+      handlersRef.current.onPointerCancel = null;
     }
-    if (handlersRef.current.onTouchEnd) {
-      document.removeEventListener("touchend", handlersRef.current.onTouchEnd);
-      handlersRef.current.onTouchEnd = null;
-    }
+    activePointerId.current = null;
   }, []);
 
   useEffect(() => {
@@ -66,8 +62,8 @@ export function useEdgeDrag(
 
   const onMove = useCallback(
     (clientX: number, clientY: number) => {
-      const dx = clientX - mousePosRef.current.x;
-      const dy = clientY - mousePosRef.current.y;
+      const dx = clientX - pointerPosRef.current.x;
+      const dy = clientY - pointerPosRef.current.y;
 
       const newX = startPosRef.current.x + dx;
       const newY = startPosRef.current.y + dy;
@@ -134,11 +130,17 @@ export function useEdgeDrag(
     draggingEndRef.current = null;
   }, [setIsDraggingEdge, cleanupListeners]);
 
-  // handler for "to" endpoint
-  const onMouseDownHead = useCallback(
-    (e: React.MouseEvent) => {
-      cleanupListeners();
+  // head endpoint
+  const onPointerDownHead = useCallback(
+    (e: React.PointerEvent) => {
       e.stopPropagation();
+
+      // check for another pointer
+      if (activePointerId.current !== null) {
+        return;
+      }
+
+      cleanupListeners();
       selectNode(null);
 
       const currentSelectedId = useFlowStore.getState().selectedEdgeId;
@@ -158,24 +160,44 @@ export function useEdgeDrag(
         p2 = storeEdgeTo;
       }
 
-      mousePosRef.current = { x: e.clientX, y: e.clientY };
+      // get the pointer for tracking
+      (e.target as HTMLElement).setPointerCapture(e.pointerId);
+      activePointerId.current = e.pointerId;
+
+      pointerPosRef.current = { x: e.clientX, y: e.clientY };
       startPosRef.current = { x: p2.x, y: p2.y };
       draggingEndRef.current = "to";
       setIsDraggingEdge(true);
 
-      const onMouseMove = (e: MouseEvent) => {
+      const onPointerMove = (e: PointerEvent) => {
+        // handle the captured pointer
+        if (e.pointerId !== activePointerId.current) {
+          return;
+        }
         onMove(e.clientX, e.clientY);
       };
 
-      const onMouseUp = () => {
+      const onPointerUp = (e: PointerEvent) => {
+        if (e.pointerId !== activePointerId.current) {
+          return;
+        }
         onEnd();
       };
 
-      handlersRef.current.onMouseMove = onMouseMove;
-      handlersRef.current.onMouseUp = onMouseUp;
+      const onPointerCancel = (e: PointerEvent) => {
+        if (e.pointerId !== activePointerId.current) {
+          return;
+        }
+        onEnd();
+      };
 
-      document.addEventListener("mousemove", onMouseMove);
-      document.addEventListener("mouseup", onMouseUp);
+      handlersRef.current.onPointerMove = onPointerMove;
+      handlersRef.current.onPointerUp = onPointerUp;
+      handlersRef.current.onPointerCancel = onPointerCancel;
+
+      document.addEventListener("pointermove", onPointerMove);
+      document.addEventListener("pointerup", onPointerUp);
+      document.addEventListener("pointercancel", onPointerCancel);
     },
     [
       nodes,
@@ -191,11 +213,17 @@ export function useEdgeDrag(
     ]
   );
 
-  // handler for "from" endpoint
-  const onMouseDownTail = useCallback(
-    (e: React.MouseEvent) => {
-      cleanupListeners();
+  // tail endpoint
+  const onPointerDownTail = useCallback(
+    (e: React.PointerEvent) => {
       e.stopPropagation();
+
+      // check for another pointer
+      if (activePointerId.current !== null) {
+        return;
+      }
+
+      cleanupListeners();
       selectNode(null);
 
       const currentSelectedId = useFlowStore.getState().selectedEdgeId;
@@ -215,24 +243,44 @@ export function useEdgeDrag(
         p1 = storeEdgeFrom;
       }
 
-      mousePosRef.current = { x: e.clientX, y: e.clientY };
+      // get the pointer for tracking
+      (e.target as HTMLElement).setPointerCapture(e.pointerId);
+      activePointerId.current = e.pointerId;
+
+      pointerPosRef.current = { x: e.clientX, y: e.clientY };
       startPosRef.current = { x: p1.x, y: p1.y };
       draggingEndRef.current = "from";
       setIsDraggingEdge(true);
 
-      const onMouseMove = (e: MouseEvent) => {
+      const onPointerMove = (e: PointerEvent) => {
+        // handle the captured pointer
+        if (e.pointerId !== activePointerId.current) {
+          return;
+        }
         onMove(e.clientX, e.clientY);
       };
 
-      const onMouseUp = () => {
+      const onPointerUp = (e: PointerEvent) => {
+        if (e.pointerId !== activePointerId.current) {
+          return;
+        }
         onEnd();
       };
 
-      handlersRef.current.onMouseMove = onMouseMove;
-      handlersRef.current.onMouseUp = onMouseUp;
+      const onPointerCancel = (e: PointerEvent) => {
+        if (e.pointerId !== activePointerId.current) {
+          return;
+        }
+        onEnd();
+      };
 
-      document.addEventListener("mousemove", onMouseMove);
-      document.addEventListener("mouseup", onMouseUp);
+      handlersRef.current.onPointerMove = onPointerMove;
+      handlersRef.current.onPointerUp = onPointerUp;
+      handlersRef.current.onPointerCancel = onPointerCancel;
+
+      document.addEventListener("pointermove", onPointerMove);
+      document.addEventListener("pointerup", onPointerUp);
+      document.addEventListener("pointercancel", onPointerCancel);
     },
     [
       nodes,
@@ -243,130 +291,13 @@ export function useEdgeDrag(
       storeEdgeFrom,
       storeEdgeFromAnchor,
       cleanupListeners,
-      selectEdge,
-      edgeId,
-    ]
-  );
-
-  // similar handlers for touch events
-  const onTouchStartHead = useCallback(
-    (e: React.TouchEvent) => {
-      cleanupListeners();
-      e.stopPropagation();
-      selectNode(null);
-
-      const currentSelectedId = useFlowStore.getState().selectedEdgeId;
-      if (edgeId === currentSelectedId) {
-        selectEdge(null);
-      } else {
-        selectEdge(edgeId);
-      }
-
-      let p2: position;
-
-      if (typeof storeEdgeTo === "string") {
-        const toNode = nodes.find((n) => n.id === storeEdgeTo);
-        if (!toNode) return;
-        p2 = getAnchorPoint(toNode, storeEdgeToAnchor);
-      } else {
-        p2 = storeEdgeTo;
-      }
-
-      mousePosRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-      startPosRef.current = { x: p2.x, y: p2.y };
-      draggingEndRef.current = "to";
-      setIsDraggingEdge(true);
-
-      const onTouchMove = (e: TouchEvent) => {
-        e.preventDefault();
-        onMove(e.touches[0].clientX, e.touches[0].clientY);
-      };
-
-      const onTouchEnd = () => {
-        onEnd();
-      };
-
-      handlersRef.current.onTouchMove = onTouchMove;
-      handlersRef.current.onTouchEnd = onTouchEnd;
-
-      document.addEventListener("touchmove", onTouchMove, { passive: false });
-      document.addEventListener("touchend", onTouchEnd);
-    },
-    [
-      nodes,
-      onEnd,
-      onMove,
-      setIsDraggingEdge,
-      storeEdgeTo,
-      storeEdgeToAnchor,
-      cleanupListeners,
-      selectNode,
-      selectEdge,
-      edgeId,
-    ]
-  );
-
-  const onTouchStartTail = useCallback(
-    (e: React.TouchEvent) => {
-      cleanupListeners();
-      e.stopPropagation();
-      selectNode(null);
-
-      const currentSelectedId = useFlowStore.getState().selectedEdgeId;
-      if (edgeId === currentSelectedId) {
-        selectEdge(null);
-      } else {
-        selectEdge(edgeId);
-      }
-
-      let p1: position;
-
-      if (typeof storeEdgeFrom === "string") {
-        const fromNode = nodes.find((n) => n.id === storeEdgeFrom);
-        if (!fromNode) return;
-        p1 = getAnchorPoint(fromNode, storeEdgeFromAnchor);
-      } else {
-        p1 = storeEdgeFrom;
-      }
-
-      mousePosRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-      startPosRef.current = { x: p1.x, y: p1.y };
-      draggingEndRef.current = "from";
-      setIsDraggingEdge(true);
-
-      const onTouchMove = (e: TouchEvent) => {
-        e.preventDefault();
-        onMove(e.touches[0].clientX, e.touches[0].clientY);
-      };
-
-      const onTouchEnd = () => {
-        onEnd();
-      };
-
-      handlersRef.current.onTouchMove = onTouchMove;
-      handlersRef.current.onTouchEnd = onTouchEnd;
-
-      document.addEventListener("touchmove", onTouchMove, { passive: false });
-      document.addEventListener("touchend", onTouchEnd);
-    },
-    [
-      nodes,
-      onEnd,
-      onMove,
-      setIsDraggingEdge,
-      storeEdgeFrom,
-      storeEdgeFromAnchor,
-      cleanupListeners,
-      selectNode,
       selectEdge,
       edgeId,
     ]
   );
 
   return { 
-    onMouseDownHead, 
-    onTouchStartHead,
-    onMouseDownTail,
-    onTouchStartTail
+    onPointerDownHead, 
+    onPointerDownTail
   };
 }

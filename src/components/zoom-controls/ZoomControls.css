@@ -44,7 +44,7 @@
     background-color: #d0d0d0;
 }
 
-@media (width: 500px) {
+@media (width: 360px) {
 .zoom-controls {
     bottom: 0.5rem;
     left: 0.5rem;

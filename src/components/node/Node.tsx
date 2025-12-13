@@ -24,7 +24,7 @@ export const Node = ({ node }: NodeProps) => {
   const text = storeNode?.content || "";
 
   //drag hook
-  const { onMouseDown, onTouchStart } = useNodeDrag(node.id, position, editing);
+  const { onPointerDown } = useNodeDrag(node.id, position, editing);
 
   //check
   if (!storeNode) {
@@ -46,8 +46,7 @@ export const Node = ({ node }: NodeProps) => {
         height: height + pad,
         touchAction: "none"
       }}
-      onMouseDown={onMouseDown}
-      onTouchStart={onTouchStart}
+      onPointerDown={onPointerDown}
       onDoubleClick={() => updateNodeEditing(node.id, true)}
     >
       <svg

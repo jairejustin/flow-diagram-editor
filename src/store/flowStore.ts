@@ -26,6 +26,7 @@ interface FlowState {
   isResizingNode: boolean;
   isDraggingEdge: boolean;
   isMobile: boolean;
+  showPanel: boolean;
   
   // Simple init
   loadMockData: (mockDoc: FlowDocument) => void;
@@ -59,6 +60,7 @@ interface FlowState {
   setIsDraggingNode: (isDragging: boolean) => void;
   setIsResizingNode: (isResizing: boolean) => void;
   setIsDraggingEdge: (isDragging: boolean) => void;
+  setShowPanel: (showPanel: boolean) => void;
 }
 
 export const useFlowStore = create<FlowState>()(
@@ -74,6 +76,7 @@ export const useFlowStore = create<FlowState>()(
       isResizingNode: false,
       isDraggingEdge: false,
       isMobile:window.matchMedia("(max-width: 500px)").matches,
+      showPanel: false,
 
       // Load mock data (only if store is empty)
       loadMockData: (mockDoc: FlowDocument) => {
@@ -242,6 +245,7 @@ export const useFlowStore = create<FlowState>()(
       setIsDraggingNode: (isDraggingNode) => set({ isDraggingNode }),
       setIsResizingNode: (isResizingNode) => set({ isResizingNode }),
       setIsDraggingEdge: (isDraggingEdge) => set({ isDraggingEdge }),
+      setShowPanel: (showPanel) => set({ showPanel })
     }),
     {
       name: "flow-storage",

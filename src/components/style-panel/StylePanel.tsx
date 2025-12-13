@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Square, SquareRoundCorner, Trash2, Copy, RefreshCw } from 'lucide-react';
 import { useFlowStore } from '../../store/flowStore';
 import './StylePanel.css';
@@ -11,14 +11,34 @@ interface StylePanelProps {
 
 export default function StylePanel({ id, type }: StylePanelProps) {
   const [openPicker, setOpenPicker] = useState<string | null>(null);
-  
-  const node = useFlowStore((state) => 
+
+  const node = useFlowStore((state) =>
     type === "Node" ? state.nodes.find(n => n.id === id) : null
   );
-  
-  const edge = useFlowStore((state) => 
+
+  const edge = useFlowStore((state) =>
     type === "Edge" ? state.edges.find(e => e.id === id) : null
   );
+
+  const fontSizeFromStore = node?.style?.fontSize || 14;
+  const borderWidthFromStore = node?.style?.borderWidth || 2;
+  const edgeWidthFromStore = edge?.style?.width || 2;
+
+  const [fontSize, setFontSize] = useState<string>(String(fontSizeFromStore));
+  const [borderWidth, setBorderWidth] = useState<string>(String(borderWidthFromStore));
+  const [edgeWidth, setEdgeWidth] = useState<string>(String(edgeWidthFromStore));
+
+  useEffect(() => {
+    setFontSize(String(fontSizeFromStore));
+  }, [fontSizeFromStore]);
+
+  useEffect(() => {
+    setBorderWidth(String(borderWidthFromStore));
+  }, [borderWidthFromStore]);
+
+  useEffect(() => {
+    setEdgeWidth(String(edgeWidthFromStore));
+  }, [edgeWidthFromStore]);
   
   const updateNodeContent = useFlowStore((state) => state.updateNodeContent);
   const updateNodeEditing = useFlowStore((state) => state.updateNodeEditing);
@@ -26,8 +46,8 @@ export default function StylePanel({ id, type }: StylePanelProps) {
   const updateEdgeStyles = useFlowStore((state) => state.updateEdgeStyles);
   const selectNode = useFlowStore((state) => state.selectNode);
   const selectEdge = useFlowStore((state) => state.selectEdge);
-  const { addNode, deleteNode, deleteEdge, flipEdge } = useFlowStore(); 
-  
+  const { addNode, deleteNode, deleteEdge, flipEdge } = useFlowStore();
+
   const openColorPicker = (pickerType: string) => {
     setOpenPicker(openPicker === pickerType ? null : pickerType);
   };
@@ -40,11 +60,9 @@ export default function StylePanel({ id, type }: StylePanelProps) {
 
     const text = node.content;
     const shape = node.shape;
-    const fontSize = node.style?.fontSize || 14;
     const textColor = node.style?.textColor || '#000000';
     const backgroundColor = node.style?.backgroundColor || '#ffffff';
     const borderColor = node.style?.borderColor || '#000000';
-    const borderWidth = node.style?.borderWidth || 2;
     const borderRadius = node.style?.borderRadius || 0;
 
     const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -69,11 +87,11 @@ export default function StylePanel({ id, type }: StylePanelProps) {
         shape: node.shape,
         style: node.style,
         position: {
-          x: node.position.x + 20, 
-          y: node.position.y + 20, 
+          x: node.position.x + 20,
+          y: node.position.y + 20,
         },
       };
-      
+
       const newId = addNode(duplicateNodeData);
       selectNode(newId);
     }
@@ -83,7 +101,7 @@ export default function StylePanel({ id, type }: StylePanelProps) {
         <textarea
           className='style-panel__node-textbox'
           placeholder='Write text'
-          autoFocus
+
           value={text}
           onBlur={() => {
             updateNodeEditing(node.id, false);
@@ -104,7 +122,15 @@ export default function StylePanel({ id, type }: StylePanelProps) {
               type='number'
               className='style-input-small'
               value={fontSize}
-              onChange={(e) => handleStyleChange('fontSize', Number(e.target.value))}
+              onChange={(e) => setFontSize(e.target.value)}
+              onBlur={() => {
+                const numValue = Number(fontSize);
+                if (!isNaN(numValue)) {
+                  handleStyleChange('fontSize', Math.max(8, Math.min(72, numValue)));
+                } else {
+                  setFontSize(String(fontSizeFromStore)); // Revert to stored value if invalid
+                }
+              }}
               min='8'
               max='72'
             />
@@ -136,7 +162,15 @@ export default function StylePanel({ id, type }: StylePanelProps) {
               type='number'
               className='style-input-small'
               value={borderWidth}
-              onChange={(e) => handleStyleChange('borderWidth', Number(e.target.value))}
+              onChange={(e) => setBorderWidth(e.target.value)}
+              onBlur={() => {
+                const numValue = Number(borderWidth);
+                if (!isNaN(numValue)) {
+                  handleStyleChange('borderWidth', Math.max(0, Math.min(10, numValue)));
+                } else {
+                  setBorderWidth(String(borderWidthFromStore)); // Revert to stored value if invalid
+                }
+              }}
               min='0'
               max='10'
             />
@@ -186,12 +220,12 @@ export default function StylePanel({ id, type }: StylePanelProps) {
         )}
         
         <div className='action-buttons'>
-          <button 
+          <button
             className='action-button'
             onClick={handleDeleteNode}>
             <Trash2/>
           </button>
-          <button 
+          <button
             className='action-button'
             onClick={handleDuplicateNode}>
             <Copy />
@@ -208,7 +242,6 @@ export default function StylePanel({ id, type }: StylePanelProps) {
     }
 
     const edgeColor = edge.style?.color || '#000000';
-    const edgeWidth = edge.style?.width || 2;
 
     const handleEdgeStyleChange = (property: string, value: string | number) => {
       updateEdgeStyles(edge.id, { [property]: value });
@@ -245,7 +278,15 @@ export default function StylePanel({ id, type }: StylePanelProps) {
               type='number'
               className='style-input-small'
               value={edgeWidth}
-              onChange={(e) => handleEdgeStyleChange('width', Number(e.target.value))}
+              onChange={(e) => setEdgeWidth(e.target.value)}
+              onBlur={() => {
+                const numValue = Number(edgeWidth);
+                if (!isNaN(numValue)) {
+                  handleEdgeStyleChange('width', Math.max(1, Math.min(10, numValue)));
+                } else {
+                  setEdgeWidth(String(edgeWidthFromStore)); // Revert to stored value if invalid
+                }
+              }}
               min='1'
               max='10'
             />
@@ -261,12 +302,12 @@ export default function StylePanel({ id, type }: StylePanelProps) {
         )}
         
         <div className='action-buttons'>
-          <button 
+          <button
             className='action-button'
             onClick={handleDeleteEdge}>
             <Trash2/>
           </button>
-          <button 
+          <button
             className='action-button'
             onClick={handleFlipEdge}>
             <RefreshCw/>

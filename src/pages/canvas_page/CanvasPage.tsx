@@ -9,12 +9,39 @@ import { ResizeHandles } from "../../components/resize-handles/ResizeHandles";
 import { useCanvasPan } from "../../hooks/useCanvasPan";
 import { getAnchorPoint } from "../../lib/utils";
 import { EdgeCreationHandles } from "../../components/edge-creation-handles/EdgeCreationHandles";
+import { Edit3 } from "lucide-react";
 import "./CanvasPage.css";
+
+interface ToggleEditorProps {
+  isOpen: boolean;
+  onToggle: () => void;
+}
+
+const ToggleEditor = ({ onToggle }: ToggleEditorProps) => {
+  const handleClick = (e: React.PointerEvent | React.TouchEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    onToggle();
+  };
+
+  return (
+    <button 
+      className="mobile-toggle-editor-button"
+      onPointerDown={handleClick}
+    >
+      <Edit3/>
+    </button>
+  )
+}
 
 export default function CanvasPage() {
   const selectedNodeId = useFlowStore((state) => state.selectedNodeId);
   const selectedEdgeId = useFlowStore((state) => state.selectedEdgeId);
   const viewport = useFlowStore((state) => state.viewport);
+  const isNarrow = useFlowStore((state) => state.isMobile);
+  const showPanel = useFlowStore((state) => state.showPanel);
+  const setShowPanel = useFlowStore((state) => state.setShowPanel);
+
 
   // Subscribe to nodes and edges from store
   const nodes = useFlowStore((state) => state.nodes);
@@ -25,8 +52,8 @@ export default function CanvasPage() {
   const [translateY, setTranslateY] = useState(viewport.y);
   const [scale, setScale] = useState(viewport.zoom);
   const [isPanning, setIsPanning] = useState(false);
-
-  const { handleMouseDown, handleTouchStart, handleWheel } = useCanvasPan(
+  
+  const { handlePointerDown, handleWheel } = useCanvasPan(
     translateX,
     translateY,
     scale,
@@ -54,19 +81,24 @@ export default function CanvasPage() {
   return (
     <div
       className="canvas"
-      onMouseDown={handleMouseDown}
+      onPointerDown={handlePointerDown}
       onWheel={handleWheel}
-      onTouchStart={handleTouchStart}
       style={{
         touchAction: 'none',
       }}
     >
       <Toolbar />
-      {selectedNodeId && (
+      {selectedNodeId && (!isNarrow || showPanel) && (
         <StylePanel id={selectedNodeId} type="Node"/>
       )}
-      {selectedEdgeId && (
+      {selectedEdgeId && (!isNarrow || showPanel) && (
         <StylePanel id={selectedEdgeId} type="Edge" />
+      )}
+      {isNarrow && (selectedNodeId || selectedEdgeId) && (
+        <ToggleEditor 
+          isOpen={showPanel}
+          onToggle={() => setShowPanel(!showPanel)}
+        />
       )}
       <ZoomControls
         zoomFactor={scale}
@@ -96,18 +128,6 @@ export default function CanvasPage() {
             overflow: "visible",
           }}
         >
-          <defs>
-            <marker
-              id="arrowhead"
-              markerWidth="10"
-              markerHeight="10"
-              refX="9"
-              refY="3"
-              orient="auto"
-            >
-              <polygon points="0 0, 10 3, 0 6" fill="black" />
-            </marker>
-          </defs>
           {edges.map((edge) => (
             <Edge key={edge.id} edge={edge} nodes={nodes} />
           ))}

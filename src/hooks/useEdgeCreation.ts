@@ -25,7 +25,6 @@ export function useEdgeCreation(
 
       // get the free endpoint position 50px away from the node edge
       let toPosition: position;
-      
       switch (handle) {
         case "n":
           toPosition = {
@@ -66,8 +65,8 @@ export function useEdgeCreation(
     };
   }, [nodeId, nodePosition, width, height, addEdge, selectEdge, selectNode]);
 
-  const onHandleMouseDown = useCallback(
-    (e: React.MouseEvent, handle: EdgeHandle) => {
+  const onHandlePointerDown = useCallback(
+    (e: React.PointerEvent, handle: EdgeHandle) => {
       e.stopPropagation();
       e.preventDefault();
       createEdgeRef.current?.(handle);
@@ -75,14 +74,5 @@ export function useEdgeCreation(
     []
   );
 
-  const onHandleTouchStart = useCallback(
-    (e: React.TouchEvent, handle: EdgeHandle) => {
-      e.stopPropagation();
-      e.preventDefault();
-      createEdgeRef.current?.(handle);
-    },
-    []
-  );
-
-  return { onHandleMouseDown, onHandleTouchStart };
+  return { onHandlePointerDown };
 }
