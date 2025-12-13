@@ -8,8 +8,8 @@ A web-based flowchart editor built with Vite, React, and TypeScript. Users can c
 
 ## Project Status
 
-The core canvas features are implemented: dragging, resizing, text editing, panning, zooming, and rendering nodes and edges from mock data. Styling tools for nodes are functional.
-Creation, deletion, and duplication of nodes are implemented but edge actions are not. Additional toolbar actions are present as placeholders for upcoming features. Rectangle and diamond node shapes are currently supported. 
+The core canvas features are implemented: dragging, resizing, text editing, panning, zooming, and rendering nodes and edges from mock data. Styling tools for nodes and edges such as for editing font size, fill color, border color, and etc.
+Creation, deletion, and duplication of nodes and edges are implemented. Rectangle and diamond node shapes are currently supported. The flowchart data gets persisted to local storage.
 
 ## Features
 
@@ -24,14 +24,15 @@ Creation, deletion, and duplication of nodes are implemented but edge actions ar
   * Zoom using the scroll wheel or on-screen controls 
 * **Edges**
   * Connect nodes with directed edges
+  * Create new edges using the arrow handles when a node is selected
   * Connected edges automatically update when nodes move
-  * Optional labels for edges
+  * Edges snap to the nearest anchor point
 
 ### Styling
 
 * Background color
 * Border color and width
-* Border radius
+* Rounded or square border
 * Text color, font size, and font weight
 * Supports rectangle and diamond shapes
 
@@ -46,11 +47,14 @@ Creation, deletion, and duplication of nodes are implemented but edge actions ar
 
 ## To do
 
-* Edge actions and styling options
+* User testing and bugfixes
+* Optional text labels for edges
 * Additional shapes (circles, ellipses, parallelograms)
 * Undo/redo system
 * Node grouping
+* Overall improvement of UI/UX for mobile users
 * Orthogonal edge routing (Manhattan routing)
+* Automated Tests
 
 ## Install
 
