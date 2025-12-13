@@ -8,9 +8,10 @@ export function useCanvasPan(
   setTranslateX: (value: number | ((prev: number) => number)) => void,
   setTranslateY: (value: number | ((prev: number) => number)) => void,
   setScale: (value: number | ((prev: number) => number)) => void,
-  isPanning: boolean,
+  _isPanning: boolean,
   setIsPanning: (value: boolean) => void
 ) {
+  
   const lastPointerPos = useRef({ x: 0, y: 0 });
   const activePointerId = useRef<number | null>(null);
   const handlersRef = useRef<{
