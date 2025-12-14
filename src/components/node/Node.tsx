@@ -14,7 +14,6 @@ export const Node = ({ node }: NodeProps) => {
 
   //states from store
   const storeNode = useFlowStore((state) => state.nodes.find((n) => n.id === node.id));
-  const updateNodeEditing = useFlowStore((state) => state.updateNodeEditing);
 
   //extraction with defaults
   const position = storeNode?.position || { x: 0, y: 0 };
@@ -47,7 +46,6 @@ export const Node = ({ node }: NodeProps) => {
         touchAction: "none"
       }}
       onPointerDown={onPointerDown}
-      onDoubleClick={() => updateNodeEditing(node.id, true)}
     >
       <svg
         width={width + pad}
