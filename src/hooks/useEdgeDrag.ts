@@ -62,8 +62,8 @@ export function useEdgeDrag(
 
   const onMove = useCallback(
     (clientX: number, clientY: number) => {
-      const dx = clientX - pointerPosRef.current.x;
-      const dy = clientY - pointerPosRef.current.y;
+      const dx = (clientX - pointerPosRef.current.x) / useFlowStore.getState().viewport.zoom;
+      const dy = (clientY - pointerPosRef.current.y) / useFlowStore.getState().viewport.zoom;
 
       const newX = startPosRef.current.x + dx;
       const newY = startPosRef.current.y + dy;

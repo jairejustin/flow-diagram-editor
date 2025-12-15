@@ -50,8 +50,8 @@ export function useNodeDrag(
 
   const onMove = useCallback(
     (clientX: number, clientY: number) => {
-      const dx = clientX - pointerPosRef.current.x;
-      const dy = clientY - pointerPosRef.current.y;
+      const dx = (clientX - pointerPosRef.current.x) / useFlowStore.getState().viewport.zoom;
+      const dy = (clientY - pointerPosRef.current.y) / useFlowStore.getState().viewport.zoom;
 
       updateNodePosition(nodeId, {
         x: startPosRef.current.x + dx,
