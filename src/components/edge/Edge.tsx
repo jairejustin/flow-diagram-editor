@@ -46,7 +46,7 @@ export function Edge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
   );
 
   const handleEdgeClick = useCallback(
-    (e: React.MouseEvent) => {
+    (e: React.PointerEvent) => {
       e.stopPropagation();
       selectNode(null);
       
@@ -98,8 +98,8 @@ export function Edge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
   let labelY = 0;
   if (storeEdge.label) {
     const t = storeEdge.label.t || 0.5;
-    labelX = p1.x + (p2.x - p1.x) * t + (storeEdge.label.offset?.x || 0);
-    labelY = p1.y + (p2.y - p1.y) * t + (storeEdge.label.offset?.y || 0);
+    labelX = p1.x + (p2.x - p1.x) * t;
+    labelY = p1.y + (p2.y - p1.y) * t;
   }
   
   return (
@@ -124,7 +124,7 @@ export function Edge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
         stroke={color}
         strokeWidth={storeEdge.style?.width || 2}
         strokeDasharray={storeEdge.style?.dashed ? "5,5" : undefined}
-        onMouseDown={handleEdgeClick}
+        onPointerDown={handleEdgeClick}
         markerEnd={`url(#arrowhead-${edge.id})`}
         style={{ 
           cursor: "pointer", 
@@ -164,7 +164,8 @@ export function Edge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
             textAnchor="middle"
             dominantBaseline="middle"
             fill={color}
-            fontSize={12}
+            fontSize={14}
+            //fontSize={storeEdge.label?.fontSize || 14}
             fontWeight="500"
           >
             {storeEdge.label.text}

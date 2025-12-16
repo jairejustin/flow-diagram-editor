@@ -21,7 +21,7 @@ export interface EdgeAnchor {
 export interface EdgeLabel {
   text: string
   t: number  
-  offset?: position
+  fontSize?: number
 }
 
 export interface EdgeStyle {

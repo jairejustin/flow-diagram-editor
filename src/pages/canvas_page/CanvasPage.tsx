@@ -4,7 +4,8 @@ import { Edge } from "../../components/edge/Edge";
 import Toolbar from "../../components/toolbar/Toolbar";
 import ZoomControls from "../../components/zoom-controls/ZoomControls";
 import { useFlowStore } from "../../store/flowStore";
-import StylePanel from "../../components/style-panel/StylePanel";
+import NodeStylePanel from "../../components/style-panel/NodeStylePanel";
+import EdgeStylePanel from "../../components/style-panel/EdgeStylePanel";
 import { ResizeHandles } from "../../components/resize-handles/ResizeHandles";
 import { useCanvasPan } from "../../hooks/useCanvasPan";
 import { getAnchorPoint } from "../../lib/utils";
@@ -89,10 +90,10 @@ export default function CanvasPage() {
     >
       <Toolbar />
       {selectedNodeId && (!isNarrow || showPanel) && (
-        <StylePanel id={selectedNodeId} type="Node"/>
+        <NodeStylePanel id={selectedNodeId}/>
       )}
       {selectedEdgeId && (!isNarrow || showPanel) && (
-        <StylePanel id={selectedEdgeId} type="Edge" />
+        <EdgeStylePanel id={selectedEdgeId}/>
       )}
       {isNarrow && (selectedNodeId || selectedEdgeId) && (
         <ToggleEditor 

@@ -2,14 +2,15 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { v4 as uuidv4 } from "uuid";
 import type { 
-  NodeData, 
-  position, 
-  NodeStyle, 
+  NodeData,
+  position,
+  NodeStyle,
   EdgeStyle,
-  EdgeData, 
+  EdgeData,
   EdgeAnchor,
+  EdgeLabel,
   Viewport,
-  FlowDocument 
+  FlowDocument
 } from "../lib/types";
 import { createDefaultNode, createDefaultEdge } from "../lib/defaults";
 
@@ -47,6 +48,7 @@ interface FlowState {
   // Edge operations
   selectEdge: (id: string | null) => void;
   addEdge: (edgeData?: Partial<EdgeData>) => string;
+  updateEdgeLabel: (id: string, label: EdgeLabel | undefined) => void;
   deleteEdge: (id: string) => void;
   updateEdgeHead: (id: string, to: string | position, toAnchor?: EdgeAnchor) => void;
   updateEdgeTail: (id: string, from: string | position, fromAnchor?: EdgeAnchor) => void;
@@ -232,6 +234,14 @@ export const useFlowStore = create<FlowState>()(
             edge.id === id
               ? { ...edge, style: { ...edge.style, ...style } }
               : edge
+          ),
+        }));
+      },
+
+      updateEdgeLabel: (id, label) => {
+        set((state) => ({
+          edges: state.edges.map((edge) =>
+            edge.id === id ? { ...edge, label } : edge
           ),
         }));
       },
