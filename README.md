@@ -1,15 +1,10 @@
 # Flowchart Maker
 [![Tech used](https://skillicons.dev/icons?i=react,typescript,vite&theme=dark)](https://skillicons.dev)
 
-A web-based flowchart editor built with Vite, React, and TypeScript. Users can create, manipulate, style, and connect nodes on an interactive canvas.
+A web-based flowchart editor built with Vite, React, and TypeScript. Users can create, manipulate, style, and connect nodes on a canvas.
 
 ## Snapshot
 <img src="image.png" alt="snapshot" width="800" />
-
-## Project Status
-
-The core canvas features are implemented: dragging, resizing, text editing, panning, zooming, and rendering nodes and edges from mock data. Styling tools for nodes and edges such as for editing font size, fill color, border color, and etc.
-Creation, deletion, and duplication of nodes and edges are implemented. Rectangle and diamond node shapes are currently supported. The flowchart data gets persisted to local storage.
 
 ## Features
 
@@ -34,27 +29,6 @@ Creation, deletion, and duplication of nodes and edges are implemented. Rectangl
 * Border color and width
 * Rounded or square border
 * Text color, font size, and font weight
-* Supports rectangle and diamond shapes
-
-## Technologies Used
-
-* React
-* TypeScript
-* Vite
-* Zustand for state management
-* Lucide React for SVG icons
-* React Colorful for color-picker
-
-## To do
-
-* User testing and bugfixes
-* Optional text labels for edges
-* Additional shapes (circles, ellipses, parallelograms)
-* Undo/redo system
-* Node grouping
-* Overall improvement of UI/UX for mobile users
-* Orthogonal edge routing (Manhattan routing)
-* Automated Tests
 
 ## Install
 
