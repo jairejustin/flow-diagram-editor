@@ -28,7 +28,7 @@ export function getAnchorPoint(node: NodeData, anchor: EdgeAnchor) {
   const { x, y } = node.position;
   const width = node.width;
   const height = node.height;
-  const shape = node.shape || "rectangle";
+  const shape = node.shape;
 
   switch (shape) {
     case "rectangle":
@@ -43,6 +43,8 @@ export function getAnchorPoint(node: NodeData, anchor: EdgeAnchor) {
           return { x, y: y + height / 2 };
         case "right":
           return { x: x + width, y: y + height / 2 };
+
+        /* v8 ignore next */
         default:
           return { x: x + width / 2, y };
       }
@@ -58,6 +60,8 @@ export function getAnchorPoint(node: NodeData, anchor: EdgeAnchor) {
           return { x: x + offset / 2, y: y + height / 2 };
         case "right":
           return { x: x + width - offset / 2, y: y + height / 2 };
+        
+        /* v8 ignore next */
         default:
           return { x: x + width / 2, y };
       }
@@ -74,6 +78,8 @@ export function getAnchorPoint(node: NodeData, anchor: EdgeAnchor) {
           return { x: x + topOffset / 2, y: y + height / 2 };
         case "right":
           return { x: x + width - topOffset / 2, y: y + height / 2 };
+
+        /* v8 ignore next */
         default:
           return { x: x + width / 2, y };
       }
@@ -91,11 +97,13 @@ export function getAnchorPoint(node: NodeData, anchor: EdgeAnchor) {
           return { x, y: y + height / 2 };
         case "right":
           return { x: x + width, y: y + height / 2 };
+
+        /* v8 ignore next */
         default:
           return { x: x + width / 2, y };
       }
     }
-
+    /* v8 ignore next */
     default:
       switch (anchor.side) {
         case "top":

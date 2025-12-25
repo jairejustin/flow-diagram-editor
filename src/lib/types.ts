@@ -51,7 +51,9 @@ export type NodeShape =
   | "rectangle"
   | "diamond"
   | "ellipse"
-  | string;
+  | "parallelogram"
+  | "trapezoid"
+  | "document";
 
 export interface NodeStyle {
   backgroundColor?: string
