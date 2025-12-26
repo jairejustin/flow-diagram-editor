@@ -1,0 +1,1 @@
+export const ALIGNMENT_THRESHOLD = 10;

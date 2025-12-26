@@ -2,6 +2,7 @@ import { useRef, useCallback, useEffect } from "react";
 import type { NodeData, EdgeAnchor, position } from "../lib/types";
 import { useFlowStore } from "../store/flowStore";
 import { getAnchorPoint } from "../lib/utils";
+import { ALIGNMENT_THRESHOLD } from "../lib/constants";
 
 export function useEdgeDrag(
   edgeId: string,
@@ -17,6 +18,7 @@ export function useEdgeDrag(
   const startPosRef = useRef({ x: 0, y: 0 });
   const draggingEndRef = useRef<"from" | "to" | null>(null);
   const activePointerId = useRef<number | null>(null);
+  const isAlignedRef = useRef<{ x: boolean; y: boolean }>({ x: false, y: false });
   const handlersRef = useRef<{
     onPointerMove: ((e: PointerEvent) => void) | null;
     onPointerUp: ((e: PointerEvent) => void) | null;
@@ -62,7 +64,7 @@ export function useEdgeDrag(
     };
   }, [cleanupListeners]);
 
-    const onEdgeClick = useCallback(
+  const onEdgeClick = useCallback(
     (e: React.PointerEvent) => {
       e.stopPropagation();
       selectNode(null);
@@ -76,18 +78,77 @@ export function useEdgeDrag(
     [edgeId, selectedEdgeId, selectNode]
   );
 
+  // Get the opposite endpoint position
+  const getOppositePoint = useCallback((draggingEnd: "from" | "to"): position | null => {
+    if (draggingEnd === "to") {
+      // We're dragging the head, so get the tail position
+      if (typeof storeEdgeFrom === "string") {
+        const fromNode = nodes.find((n) => n.id === storeEdgeFrom);
+        if (!fromNode) return null;
+        return getAnchorPoint(fromNode, storeEdgeFromAnchor);
+      } else {
+        return storeEdgeFrom;
+      }
+    } else {
+      // We're dragging the tail, so get the head position
+      if (typeof storeEdgeTo === "string") {
+        const toNode = nodes.find((n) => n.id === storeEdgeTo);
+        if (!toNode) return null;
+        return getAnchorPoint(toNode, storeEdgeToAnchor);
+      } else {
+        return storeEdgeTo;
+      }
+    }
+  }, [nodes, storeEdgeFrom, storeEdgeFromAnchor, storeEdgeTo, storeEdgeToAnchor]);
+
   const onMove = useCallback(
     (clientX: number, clientY: number) => {
       const dx = (clientX - pointerPosRef.current.x) / useFlowStore.getState().viewport.zoom;
       const dy = (clientY - pointerPosRef.current.y) / useFlowStore.getState().viewport.zoom;
 
-      const newX = startPosRef.current.x + dx;
-      const newY = startPosRef.current.y + dy;
+      let newX = startPosRef.current.x + dx;
+      let newY = startPosRef.current.y + dy;
 
       const draggingEnd = draggingEndRef.current;
       if (!draggingEnd) return;
 
-      // collision detection and snapping
+      // alignment checking
+      const oppositePoint = getOppositePoint(draggingEnd);
+
+      if (oppositePoint) {
+        const deltaX = Math.abs(newX - oppositePoint.x);
+        const deltaY = Math.abs(newY - oppositePoint.y);
+
+        // X alignment
+        if (isAlignedRef.current.x) {
+          if (deltaX > ALIGNMENT_THRESHOLD * 2) {
+            isAlignedRef.current.x = false;
+          } else {
+            newX = oppositePoint.x;
+          }
+        } else {
+          if (deltaX < ALIGNMENT_THRESHOLD) {
+            isAlignedRef.current.x = true;
+            newX = oppositePoint.x;
+          }
+        }
+
+        // Y alignment
+        if (isAlignedRef.current.y) {
+          if (deltaY > ALIGNMENT_THRESHOLD * 2) {
+            isAlignedRef.current.y = false;
+          } else {
+            newY = oppositePoint.y;
+          }
+        } else {
+          if (deltaY < ALIGNMENT_THRESHOLD) {
+            isAlignedRef.current.y = true;
+            newY = oppositePoint.y;
+          }
+        }
+      }
+
+      // collision detection and snapping to nodes
       let snappedToNode = false;
       for (const node of allNodes) {
         // prevent snapping to the opposite point's node
@@ -125,6 +186,8 @@ export function useEdgeDrag(
             updateEdgeTail(edgeId, node.id, { side: anchorSide });
           }
           snappedToNode = true;
+          // clean up
+          isAlignedRef.current = { x: false, y: false };
           break;
         }
       }
@@ -137,13 +200,15 @@ export function useEdgeDrag(
         }
       }
     },
-    [allNodes, edgeId, fromNodeId, toNodeId, updateEdgeHead, updateEdgeTail]
+    [allNodes, edgeId, fromNodeId, toNodeId, updateEdgeHead, updateEdgeTail, getOppositePoint]
   );
 
   const onEnd = useCallback(() => {
     cleanupListeners();
     setIsDraggingEdge(false);
     draggingEndRef.current = null;
+    // clean up
+    isAlignedRef.current = { x: false, y: false };
   }, [setIsDraggingEdge, cleanupListeners]);
 
   // head endpoint
