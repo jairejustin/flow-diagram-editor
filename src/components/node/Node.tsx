@@ -1,9 +1,8 @@
 import { useRef } from "react";
 import type { NodeData } from "../../lib/types";
 import { wrapText } from "../../lib/utils";
-import { useFlowStore } from "../../store/flowStore";
 import "./Node.css";
-import { useNodeDrag } from "../../hooks/useNodeDrag";
+import { useNode } from "../../hooks/useNode";
 
 interface NodeProps {
   node: NodeData;
@@ -12,28 +11,18 @@ interface NodeProps {
 export const Node = ({ node }: NodeProps) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  //states from store
-  const storeNode = useFlowStore((state) => state.nodes.find((n) => n.id === node.id));
+  const {
+    storeNode,
+    position,
+    height,
+    width,
+    text,
+    pad,
+    onPointerDown
+  } = useNode(node);
 
-  //extraction with defaults
-  const position = storeNode?.position || { x: 0, y: 0 };
-  const height = storeNode?.height || 100;
-  const width = storeNode?.width || 150;
-  const editing = storeNode?.editing || false;
-  const text = storeNode?.content || "";
+  if (!storeNode) return null;
 
-  //drag hook
-  const { onPointerDown } = useNodeDrag(node.id, position, editing);
-
-  //check
-  if (!storeNode) {
-    console.error(`Node ${node.id} not found in store`);
-    return null;
-  }
-
-  //style offsets
-  const border = node.style?.borderWidth || 2;
-  const pad = border * 2;
 
   return (
     <div
