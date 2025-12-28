@@ -1,4 +1,4 @@
-import { useNodeResize } from "../../hooks/useNodeResize";
+import { useNodeResize } from "../../hooks/node-hooks/useNodeResize";
 import { useFlowStore } from "../../store/flowStore";
 
 type ResizeHandle = "nw" | "ne" | "sw" | "se" | "n" | "s" | "e" | "w";

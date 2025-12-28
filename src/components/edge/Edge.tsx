@@ -1,118 +1,57 @@
-import type { NodeData, EdgeData, position, EdgeAnchor } from "../../lib/types"
-import { useFlowStore } from "../../store/flowStore"
+import type { NodeData, EdgeData } from "../../lib/types"
 import "./Edge.css"
-import { useEdgeDrag } from "../../hooks/useEdgeDrag"
-import { getAnchorPoint } from "../../lib/utils"
+import { useEdgeDrag } from "../../hooks/edge-hooks/useEdgeDrag"
+import { useStraightEdge } from "../../hooks/edge-hooks/useStraightEdge"
 
 export function Edge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
-  const storeEdge = useFlowStore((state) => state.edges.find((e) => e.id === edge.id));
-  const selectedEdgeId = useFlowStore((state) => state.selectedEdgeId);
-
-  // initialize variables for hooks with defaults to ensure unconditional hook calls
-  let fromNodeIdForHook: string = "";
-  let toNodeIdForHook: string | undefined = undefined;
-  let storeEdgeToForHook: EdgeData['to'] = { x: 0, y: 0 }; 
-  let storeEdgeFromForHook: EdgeData['from'] = { x: 0, y: 0 };
-  let storeEdgeToAnchorForHook: EdgeAnchor = { side: "top" as const };
-  let storeEdgeFromAnchorForHook: EdgeAnchor = { side: "bottom" as const };
-
-  // define fromNode here to be accessible later in the component and for conditional logic
-  let fromNode: NodeData | undefined;
-
-  // get values for hooks if storeEdge exists
-  if (storeEdge) {
-    if (typeof storeEdge.from === "string") {
-      fromNode = nodes.find(n => n.id === storeEdge.from);
-      fromNodeIdForHook = fromNode?.id || "";
-    }
-    storeEdgeToForHook = storeEdge.to;
-    storeEdgeToAnchorForHook = storeEdge.toAnchor || { side: "top" as const };
-    storeEdgeFromForHook = storeEdge.from;
-    storeEdgeFromAnchorForHook = storeEdge.fromAnchor || { side: "bottom" as const };
-    toNodeIdForHook = typeof storeEdge.to === "string" ? storeEdge.to : undefined;
-  }
+  const { 
+    p1, 
+    p2, 
+    color, 
+    isSelected, 
+    labelX, 
+    labelY, 
+    labelFontSize, 
+    labelWidth, 
+    labelHeight, 
+    storeEdge,
+    fromNodeId, 
+    toNodeId, 
+    to, 
+    from, 
+    toAnchor, 
+    fromAnchor
+  } = useStraightEdge(edge, nodes);
 
   const { onPointerDownHead, onPointerDownTail, onEdgeClick } = useEdgeDrag(
     edge.id,
-    fromNodeIdForHook,
-    toNodeIdForHook,
-    storeEdgeToForHook,
-    storeEdgeToAnchorForHook,
-    storeEdgeFromForHook,
-    storeEdgeFromAnchorForHook,
+    fromNodeId,
+    toNodeId,
+    to,
+    toAnchor,
+    from,
+    fromAnchor,
     nodes
   );
 
-  // safety check
-  if (!storeEdge) return null;
+  if (!storeEdge || !p1 || !p2) {
+    return null;
+  }
 
-  // conditional logic will safely proceed since storeEdge is guaranteed to exist
-  // rechecking fromNode in case it was not found earlier when storeEdge.from was a string
-  if (typeof storeEdge.from === "string") {
-    // If from is a string but node not found, edge is invalid
-    if (!fromNode) return null;
-  }
-  // if from is a position object, fromNode stays undefined
-
-  // calculate p1, handle both node and position
-  let p1: position;
-  if (typeof storeEdge.from === "string" && fromNode) {
-    p1 = getAnchorPoint(fromNode, storeEdge.fromAnchor);
-  } else if (typeof storeEdge.from === "object") {
-    p1 = storeEdge.from; // It's already a position
-  } else {
-    return null; // Invalid state
-  }
-  
-  // calculate p2, handle both node and position
-  let p2: position;
-  if (typeof storeEdge.to === "string") {
-    const toNode = nodes.find(n => n.id === storeEdge.to);
-    if (!toNode) return null;
-    p2 = getAnchorPoint(toNode, storeEdge.toAnchor);
-  } else {
-    p2 = storeEdge.to; // already a position
-  }
-  
-  const color = storeEdge.style?.color || "black";
-  const isSelected = selectedEdgeId === edge.id;
-  
-  // get label position if label exists
-  let labelX = 0;
-  let labelY = 0;
-  let labelFontSize = 14;
-  let labelWidth = 40;
-  let labelHeight = 20;
-  if (storeEdge.label) {
-    const t = storeEdge.label.t || 0.5;
-    labelX = p1.x + (p2.x - p1.x) * t;
-    labelY = p1.y + (p2.y - p1.y) * t;
-    labelFontSize = storeEdge.label.fontSize || 14;
-    
-    // Calculate dimensions based on text length and font size
-    const textLength = storeEdge.label.text.length;
-    const charWidth = labelFontSize * 0.6; // Approximate character width
-    const padding = labelFontSize * 0.8; // Horizontal padding based on font size
-    const verticalPadding = labelFontSize * 0.4;
-    
-    labelWidth = Math.max(textLength * charWidth + padding * 2, labelFontSize * 2);
-    labelHeight = labelFontSize + verticalPadding * 2;
-  }
-  
   return (
     <g>
-        <defs>
-          <marker
-            id={`arrowhead-${edge.id}`}
-            markerWidth="10"
-            markerHeight="10"
-            refX="9"
-            refY="3"
-            orient="auto"
-          >
-            <polygon points="0 0, 10 3, 0 6" fill={color}/>
-          </marker>
-        </defs>
+      <defs>
+        <marker
+          id={`arrowhead-${edge.id}`}
+          markerWidth="10"
+          markerHeight="10"
+          refX="9"
+          refY="3"
+          orient="auto"
+        >
+          <polygon points="0 0, 10 3, 0 6" fill={color}/>
+        </marker>
+      </defs>
       <line
         x1={p1.x}
         y1={p1.y}
@@ -139,7 +78,6 @@ export function Edge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
         style={{ cursor: "pointer", pointerEvents: "auto" }}
         onPointerDown={onEdgeClick}
       />
-      
       {isSelected && (
         <line
           x1={p1.x}
@@ -152,7 +90,6 @@ export function Edge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
           pointerEvents="none"
         />
       )}
-      
       {storeEdge.label && (
         <g>
           <rect
@@ -178,8 +115,6 @@ export function Edge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
           </text>
         </g>
       )}
-      
-      {/* to endpoint */}
       <circle
         className="hover-indicator"
         cx={p2.x}
@@ -189,8 +124,6 @@ export function Edge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
         style={{ cursor: "grab", touchAction: "none", pointerEvents: "auto" }}
         onPointerDown={onPointerDownHead}
       />
-      
-      {/* from endpoint */}
       <circle
         className="hover-indicator"
         cx={p1.x}

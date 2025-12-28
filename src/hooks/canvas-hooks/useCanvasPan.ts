@@ -1,5 +1,5 @@
 import { useRef, useCallback, useEffect } from "react";
-import { useFlowStore } from "../store/flowStore";
+import { useFlowStore } from "../../store/flowStore";
 
 export function useCanvasPan(
   translateX: number,

@@ -1,6 +1,6 @@
 import { useRef, useCallback, useEffect } from "react";
-import { useFlowStore } from "../store/flowStore";
-import type { position } from "../lib/types";
+import { useFlowStore } from "../../store/flowStore";
+import type { position } from "../../lib/types";
 
 export type ResizeHandle = "nw" | "ne" | "sw" | "se" | "n" | "s" | "e" | "w";
 

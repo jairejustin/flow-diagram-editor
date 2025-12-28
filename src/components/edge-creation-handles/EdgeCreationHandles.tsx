@@ -1,6 +1,5 @@
 import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from "lucide-react";
-import { useEdgeCreation } from "../../hooks/useEdgeCreation";
-
+import { useEdgeCreation } from "../../hooks/edge-hooks/useEdgeCreation";
 type EdgeHandle = "n" | "s" | "e" | "w";
 
 interface EdgeCreationHandlesProps {

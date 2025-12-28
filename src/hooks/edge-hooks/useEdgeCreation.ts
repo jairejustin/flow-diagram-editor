@@ -1,6 +1,6 @@
 import { useRef, useCallback, useEffect } from "react";
-import { useFlowStore } from "../store/flowStore";
-import type { position } from "../lib/types";
+import { useFlowStore } from "../../store/flowStore";
+import type { position } from "../../lib/types";
 
 type EdgeHandle = "n" | "s" | "e" | "w";
 
