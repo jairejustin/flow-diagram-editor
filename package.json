@@ -11,6 +11,7 @@
     "test": "vitest --coverage"
   },
   "dependencies": {
+    "html-to-image": "^1.11.13",
     "lucide-react": "^0.554.0",
     "react": "^19.2.1",
     "react-colorful": "^5.6.1",
