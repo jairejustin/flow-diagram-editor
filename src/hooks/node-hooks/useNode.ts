@@ -1,5 +1,5 @@
-import type { NodeData, position } from "../lib/types";
-import { useFlowStore } from "../store/flowStore";
+import type { NodeData, position } from "../../lib/types";
+import { useFlowStore } from "../../store/flowStore";
 import { useNodeDrag } from "./useNodeDrag";
 
 interface UseNodeResult {

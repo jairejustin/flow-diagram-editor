@@ -2,7 +2,7 @@ import { useRef } from "react";
 import type { NodeData } from "../../lib/types";
 import { wrapText } from "../../lib/utils";
 import "./Node.css";
-import { useNode } from "../../hooks/useNode";
+import { useNode } from "../../hooks/node-hooks/useNode";
 
 interface NodeProps {
   node: NodeData;

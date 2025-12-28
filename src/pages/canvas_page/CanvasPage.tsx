@@ -7,7 +7,7 @@ import { useFlowStore } from "../../store/flowStore";
 import NodeStylePanel from "../../components/style-panel/NodeStylePanel";
 import EdgeStylePanel from "../../components/style-panel/EdgeStylePanel";
 import { ResizeHandles } from "../../components/resize-handles/ResizeHandles";
-import { useCanvasPan } from "../../hooks/useCanvasPan";
+import { useCanvasPan } from "../../hooks/canvas-hooks/useCanvasPan";
 import { getAnchorPoint } from "../../lib/utils";
 import { EdgeCreationHandles } from "../../components/edge-creation-handles/EdgeCreationHandles";
 import { Edit3 } from "lucide-react";

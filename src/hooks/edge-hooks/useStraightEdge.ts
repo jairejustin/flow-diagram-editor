@@ -1,6 +1,6 @@
-import type { NodeData, EdgeData, position, EdgeAnchor } from "../lib/types";
-import { useFlowStore } from "../store/flowStore";
-import { getAnchorPoint } from "../lib/utils";
+import type { NodeData, EdgeData, position, EdgeAnchor } from "../../lib/types";
+import { useFlowStore } from "../../store/flowStore";
+import { getAnchorPoint } from "../../lib/utils";
 
 interface UseStraightEdgeResult {
   p1: position | null;

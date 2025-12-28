@@ -1,7 +1,7 @@
 import type { NodeData, EdgeData } from "../../lib/types"
 import "./Edge.css"
-import { useEdgeDrag } from "../../hooks/useEdgeDrag"
-import { useStraightEdge } from "../../hooks/useStraightEdge"
+import { useEdgeDrag } from "../../hooks/edge-hooks/useEdgeDrag"
+import { useStraightEdge } from "../../hooks/edge-hooks/useStraightEdge"
 
 export function Edge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
   const { 

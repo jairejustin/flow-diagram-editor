@@ -1,8 +1,8 @@
 import { useRef, useCallback, useEffect } from "react";
-import type { NodeData, EdgeAnchor, position } from "../lib/types";
-import { useFlowStore } from "../store/flowStore";
-import { getAnchorPoint } from "../lib/utils";
-import { ALIGNMENT_THRESHOLD } from "../lib/constants";
+import type { NodeData, EdgeAnchor, position } from "../../lib/types";
+import { useFlowStore } from "../../store/flowStore";
+import { getAnchorPoint } from "../../lib/utils";
+import { ALIGNMENT_THRESHOLD } from "../../lib/constants";
 
 export function useEdgeDrag(
   edgeId: string,
