@@ -26,6 +26,7 @@ interface FlowState {
   isDraggingNode: boolean;
   isResizingNode: boolean;
   isDraggingEdge: boolean;
+  isExporting: boolean;
   isMobile: boolean;
   showPanel: boolean;
   viewMode: boolean;
@@ -65,6 +66,7 @@ interface FlowState {
   setIsDraggingEdge: (isDragging: boolean) => void;
   setShowPanel: (showPanel: boolean) => void;
   setViewMode: (viewMode: boolean) => void;
+  setIsExporting: (isExporting: boolean) => void;
 }
 
 export const useFlowStore = create<FlowState>()(
@@ -79,6 +81,7 @@ export const useFlowStore = create<FlowState>()(
       isDraggingNode: false,
       isResizingNode: false,
       isDraggingEdge: false,
+      isExporting: false,
       isMobile:window.matchMedia("(max-width: 500px)").matches,
       showPanel: false,
       viewMode: false,
@@ -259,7 +262,8 @@ export const useFlowStore = create<FlowState>()(
       setIsResizingNode: (isResizingNode) => set({ isResizingNode }),
       setIsDraggingEdge: (isDraggingEdge) => set({ isDraggingEdge }),
       setShowPanel: (showPanel) => set({ showPanel }),
-      setViewMode: (viewMode) => set({ viewMode })
+      setViewMode: (viewMode) => set({ viewMode }),
+      setIsExporting: (isExporting) => set({ isExporting }),
     }),
     {
       name: "flow-storage",

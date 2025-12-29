@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { ShapesIcon, Diamond, Square, Eye, EyeOff } from "lucide-react";
+import { ShapesIcon, Diamond, Square, Eye, EyeOff, ImageDownIcon} from "lucide-react";
 import { ParallelogramIcon, EllipseIcon, TrapezoidIcon, DocumentIcon } from "../../assets/CustomSVGIcons";
-
+import { exportCanvas } from "../../lib/exportUtils";
 import "./Toolbar.css";
 import { useFlowStore } from "../../store/flowStore";
 
@@ -9,7 +9,21 @@ export default function Toolbar() {
   const [openCreateNode, setOpenCreateNode] = useState(false);
   const viewMode = useFlowStore((state) => state.viewMode);
   const setViewMode = useFlowStore((state) => state.setViewMode)
+  const setIsExporting = useFlowStore((state) => state.setIsExporting);
   const { addNode } = useFlowStore();
+
+  const handleExport = async () => {
+  const { exportAsPng } = exportCanvas();
+  setIsExporting(true);
+  
+  try {
+    await exportAsPng();
+  } catch (error) {
+    console.error('Export failed:', error);
+  } finally {
+    setIsExporting(false);
+  }
+};
 
   const handleAddRectangle = () => {
     addNode({ shape: "rectangle" });
@@ -76,7 +90,11 @@ export default function Toolbar() {
               <ShapesIcon />
             </button>
             )}
-
+            {!viewMode && (
+              <button className="toolbar__button" onClick={handleExport}>
+                <ImageDownIcon/>
+              </button>
+            )}
           </div>
           { openCreateNode &&
           <div className="toolbar__shapes-option"> 

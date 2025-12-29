@@ -41,8 +41,8 @@
 
 .toolbar__shapes-option {
     position: fixed;
-    top: 8rem;
-    left: 1rem;
+    top: 1rem;
+    left: 4rem;
     display: flex;
     flex-direction: column;
     width: 1.5rem;

@@ -41,6 +41,7 @@ export default function CanvasPage() {
   const viewport = useFlowStore((state) => state.viewport);
   const isNarrow = useFlowStore((state) => state.isMobile);
   const showPanel = useFlowStore((state) => state.showPanel);
+  const isExporting = useFlowStore((state) => state.isExporting);
   const setShowPanel = useFlowStore((state) => state.setShowPanel);
 
 
@@ -81,6 +82,7 @@ export default function CanvasPage() {
 
   return (
     <div
+      id="canvas-container"
       className="canvas"
       onPointerDown={handlePointerDown}
       onWheel={handleWheel}
@@ -88,24 +90,28 @@ export default function CanvasPage() {
         touchAction: 'none',
       }}
     >
-      <Toolbar />
-      {selectedNodeId && (!isNarrow || showPanel) && (
-        <NodeStylePanel id={selectedNodeId}/>
+      {!isExporting && (
+        <>
+          <Toolbar />
+          {selectedNodeId && (!isNarrow || showPanel) && (
+            <NodeStylePanel id={selectedNodeId}/>
+          )}
+          {selectedEdgeId && (!isNarrow || showPanel) && (
+            <EdgeStylePanel id={selectedEdgeId}/>
+          )}
+          {isNarrow && (selectedNodeId || selectedEdgeId) && (
+            <ToggleEditor 
+              isOpen={showPanel}
+              onToggle={() => setShowPanel(!showPanel)}
+            />
+          )}
+          <ZoomControls
+            zoomFactor={scale}
+            onZoomIn={onZoomIn}
+            onZoomOut={onZoomOut}
+          />
+        </>
       )}
-      {selectedEdgeId && (!isNarrow || showPanel) && (
-        <EdgeStylePanel id={selectedEdgeId}/>
-      )}
-      {isNarrow && (selectedNodeId || selectedEdgeId) && (
-        <ToggleEditor 
-          isOpen={showPanel}
-          onToggle={() => setShowPanel(!showPanel)}
-        />
-      )}
-      <ZoomControls
-        zoomFactor={scale}
-        onZoomIn={onZoomIn}
-        onZoomOut={onZoomOut}
-      />
       <div
         style={{
           transform: `translate(${translateX}px, ${translateY}px) scale(${scale})`,
