@@ -11,6 +11,7 @@ import { useCanvasPan } from "../../hooks/canvas-hooks/useCanvasPan";
 import { getAnchorPoint } from "../../lib/utils";
 import { EdgeCreationHandles } from "../../components/edge-creation-handles/EdgeCreationHandles";
 import { Edit3 } from "lucide-react";
+import { ExportModal } from "../../components/export-modal/ExportModal";
 import "./CanvasPage.css";
 
 interface ToggleEditorProps {
@@ -81,6 +82,7 @@ export default function CanvasPage() {
   };
 
   return (
+    <>
     <div
       id="canvas-container"
       className="canvas"
@@ -225,5 +227,7 @@ export default function CanvasPage() {
         })()}
       </div>
     </div>
+    {isExporting && <ExportModal />}
+    </>
   );
 }
