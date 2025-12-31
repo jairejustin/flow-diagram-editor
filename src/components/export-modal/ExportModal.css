@@ -9,42 +9,19 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  animation: fadeIn 0.2s ease-in-out;
 }
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
 .export-modal {
   background-color: #ffffff;
   border-radius: 4px;
   width: 90vw;
   height: 85vh;
-  max-width: 1400px;
-  max-height: 900px;
+  max-width: 1600px;
+  max-height: 1000px;
   display: flex;
   flex-direction: column;
   box-shadow: 
     0 20px 60px rgba(0, 0, 0, 0.3),
     0 0 0 1px rgba(0, 0, 0, 0.1);
-  animation: slideUp 0.3s ease-out;
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
 }
 
 .export-modal__header {
@@ -103,7 +80,6 @@
   height: 100%;
   background-color: #ffffff;
   border: 2px dashed #d0d0d0;
-  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -126,6 +102,12 @@
   color: #bbb;
 }
 
+.export-modal__preview-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
 .export-modal__crop-overlay {
   position: absolute;
   top: 0;
@@ -133,7 +115,6 @@
   right: 0;
   bottom: 0;
   pointer-events: none;
-  /* Future: Add crop handles and selection styling */
 }
 
 .export-modal__controls {
@@ -144,10 +125,10 @@
   display: flex;
   flex-direction: column;
   gap: 32px;
+  overflow-y: auto;
 }
 
-.export-modal__format-selector label,
-.export-modal__crop-controls label {
+.export-modal__format-selector label {
   display: block;
   font-size: 14px;
   font-weight: 600;
@@ -171,6 +152,7 @@
   color: #666;
   cursor: pointer;
   transition: all 0.2s;
+  text-transform: uppercase;
 }
 
 .export-modal__format-btn:hover {
@@ -182,6 +164,14 @@
   border-color: #0066cc;
   background-color: #e6f2ff;
   color: #0066cc;
+}
+
+.export-modal__crop-controls label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1A1A1A;
+  margin-bottom: 12px;
 }
 
 .export-modal__crop-buttons {
@@ -200,11 +190,13 @@
   cursor: not-allowed;
   transition: all 0.2s;
   opacity: 0.5;
+  text-align: left;
 }
 
 .export-modal__crop-btn:not(:disabled) {
   cursor: pointer;
   opacity: 1;
+  color: #1A1A1A;
 }
 
 .export-modal__crop-btn:not(:disabled):hover {
@@ -212,43 +204,116 @@
   background-color: #f8f8f8;
 }
 
-.export-modal__export-btn {
+.export-modal__crop-btn.active {
+  border-color: #0066cc;
+  background-color: #e6f2ff;
+  color: #0066cc;
+}
+
+.export-modal__quality-control label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1A1A1A;
+  margin-bottom: 12px;
+}
+
+.export-modal__quality-slider {
+  width: 100%;
+}
+
+.export-modal__quality-value {
+  display: block;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #666;
+  text-align: right;
+}
+
+.export-modal__action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   margin-top: auto;
-  padding: 16px 24px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.export-modal__copy-btn,
+.export-modal__export-btn {
+  width: 100%;
+  padding: 14px 20px;
   border: none;
-  background-color: #0066cc;
-  color: #ffffff;
-  border-radius: 10px;
-  font-size: 16px;
+  border-radius: 8px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: all 0.2s;
+}
+
+.export-modal__copy-btn {
+  background-color: #f5f5f5;
+  color: #1A1A1A;
+  border: 1px solid #e0e0e0;
+}
+
+.export-modal__copy-btn:hover:not(:disabled) {
+  background-color: #e8e8e8;
+  border-color: #d0d0d0;
+}
+
+.export-modal__copy-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.export-modal__export-btn {
+  background-color: #0066cc;
+  color: #ffffff;
   box-shadow: 0 2px 8px rgba(0, 102, 204, 0.2);
 }
 
 .export-modal__export-btn:hover:not(:disabled) {
   background-color: #0052a3;
   box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+  transform: translateY(-1px);
+}
+
+.export-modal__export-btn:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .export-modal__export-btn:disabled {
-  background-color: #b0b0b0;
+  opacity: 0.5;
   cursor: not-allowed;
-  box-shadow: none;
 }
 
 @media (max-width: 768px) {
   .export-modal {
     width: 95vw;
     height: 90vh;
+    border-radius: 0;
+  }
+
+  .export-modal__header {
+    padding: 20px;
+  }
+
+  .export-modal__header h2 {
+    font-size: 20px;
   }
 
   .export-modal__content {
     flex-direction: column;
+  }
+
+  .export-modal__preview {
+    padding: 20px;
+    min-height: 300px;
   }
 
   .export-modal__controls {
@@ -257,9 +322,49 @@
     border-top: 1px solid rgba(0, 0, 0, 0.1);
     padding: 20px;
     gap: 20px;
+    max-height: 50vh;
+  }
+
+  .export-modal__format-options {
+    flex-wrap: wrap;
+  }
+
+  .export-modal__format-btn {
+    flex: 1 1 calc(50% - 4px);
+    min-width: 120px;
+  }
+}
+
+@media (max-width: 480px) {
+  .export-modal__header {
+    padding: 16px;
+  }
+
+  .export-modal__header h2 {
+    font-size: 18px;
   }
 
   .export-modal__preview {
-    padding: 20px;
+    padding: 16px;
+  }
+
+  .export-modal__controls {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .export-modal__format-btn {
+    font-size: 13px;
+    padding: 10px 12px;
+  }
+
+  .export-modal__action-buttons {
+    gap: 8px;
+  }
+
+  .export-modal__copy-btn,
+  .export-modal__export-btn {
+    padding: 12px 16px;
+    font-size: 14px;
   }
 }

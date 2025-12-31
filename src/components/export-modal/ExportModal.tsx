@@ -1,57 +1,34 @@
-import { useState, useEffect } from 'react';
-import { X, Download } from 'lucide-react';
-import { useFlowStore } from '../../store/flowStore';
-import { exportCanvas } from '../../lib/exportUtils';
+import { X, Download, Copy } from 'lucide-react';
+import Cropper from 'react-easy-crop';
+import { useExportModal } from '../../hooks/useExportModal';
 import './ExportModal.css';
 
 export function ExportModal() {
-  const [previewSrc, setPreviewSrc] = useState<string | null>(null);
-  const [, setLoading] = useState(false);
+  const {
+    previewSrc,
+    loading,
+    crop,
+    zoom,
+    rotation,
+    exportFormat,
+    isExporting,
+    isCopying,
+    isCropEnabled,
+    copySuccess,
+    showExportModal,
+    setCrop,
+    setZoom,
+    setRotation,
+    setExportFormat,
+    setIsCropEnabled,
+    onCropComplete,
+    handleExport,
+    handleCopyToClipboard,
+    handleResetCrop,
+    handleClose,
+  } = useExportModal();
 
-  const [exportFormat, setExportFormat] = useState("png");
-  const showExportModal = useFlowStore((state) => state.isExporting);
-  const setShowExportModal = useFlowStore((state) => state.setIsExporting);
-  const [isExporting, setIsExporting] = useState(false);
-
-  useEffect(() => {
-  if (!showExportModal) return;
-  
-  setPreviewSrc(null);
-  
-  const handleGeneratePreview = async () => {
-    setLoading(true);
-    try {
-      const dataUrl = await exportCanvas().generatePreview();
-      setPreviewSrc(dataUrl);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  handleGeneratePreview();
-}, [showExportModal]);
-
-  const handleExport = async () => {
-    const { exportAsPng } = exportCanvas();
-    setIsExporting(true);
-    
-    try {
-      if (exportFormat === 'png') {
-        await exportAsPng();
-      } else {
-        throw new Error('This export format is still not supported.');
-      }
-      setShowExportModal(false);
-    } catch (error) {
-      console.error('Export failed:', error);
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  const handleClose = () => {
-    setShowExportModal(false);
-  };
+  if (!showExportModal) return null;
 
   return (
     <div className="export-modal-overlay" onClick={handleClose}>
@@ -66,7 +43,13 @@ export function ExportModal() {
         <div className="export-modal__content">
           <div className="export-modal__preview">
             <div className="export-modal__preview-container">
-              {previewSrc ? (
+              {loading && (
+                <div className="export-modal__preview-placeholder">
+                  <p>Loading preview...</p>
+                </div>
+              )}
+
+              {!loading && previewSrc && !isCropEnabled &&(
                 <img
                   src={previewSrc}
                   alt="Export preview"
@@ -76,17 +59,27 @@ export function ExportModal() {
                     objectFit: 'contain',
                   }}
                 />
-              ) : (
-              <div className="export-modal__preview-placeholder">
-                <p>Preview</p>
-                <small>To be implemented</small>
-              </div>
               )}
               
-              {/* Crop overlay shell - to be implemented */}
-              <div className="export-modal__crop-overlay">
-                {/* Crop handles and selection area */}
-              </div>
+              {!loading && previewSrc && isCropEnabled && (
+                <Cropper
+                  image={previewSrc}
+                  crop={crop}
+                  zoom={zoom}
+                  rotation={rotation}
+                  aspect={4 / 3}
+                  onCropChange={setCrop}
+                  onZoomChange={setZoom}
+                  onRotationChange={setRotation}
+                  onCropComplete={onCropComplete}
+                />
+              )}
+              
+              {!loading && !previewSrc && (
+                <div className="export-modal__preview-placeholder">
+                  <p>Preview unavailable</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -101,12 +94,6 @@ export function ExportModal() {
                   PNG
                 </button>
                 <button
-                  className={`export-modal__format-btn ${exportFormat === 'svg' ? 'active' : ''}`}
-                  onClick={() => setExportFormat('svg')}
-                >
-                  SVG
-                </button>
-                <button
                   className={`export-modal__format-btn ${exportFormat === 'jpeg' ? 'active' : ''}`}
                   onClick={() => setExportFormat('jpeg')}
                 >
@@ -118,23 +105,40 @@ export function ExportModal() {
             <div className="export-modal__crop-controls">
               <label>Crop:</label>
               <div className="export-modal__crop-buttons">
-                <button className="export-modal__crop-btn" disabled>
+                <button 
+                  className="export-modal__crop-btn"
+                  onClick={handleResetCrop}
+                >
                   Reset Crop
                 </button>
-                <button className="export-modal__crop-btn" disabled>
-                  Fit to Content
+                <button 
+                  className={`export-modal__crop-btn ${isCropEnabled ? 'active' : ''}`}
+                  onClick={() => setIsCropEnabled(!isCropEnabled)}
+                >
+                  {isCropEnabled ? 'Disable Crop' : 'Enable Crop'}
                 </button>
               </div>
             </div>
 
-            <button
-              className="export-modal__export-btn"
-              onClick={handleExport}
-              disabled={isExporting}
-            >
-              <Download size={20} />
-              {isExporting ? 'Exporting...' : `Export as ${exportFormat.toUpperCase()}`}
-            </button>
+            <div className="export-modal__action-buttons">
+              <button
+                className="export-modal__copy-btn"
+                onClick={handleCopyToClipboard}
+                disabled={isCopying || !previewSrc }
+              >
+                <Copy />
+                {isCopying ? 'Copying...' : copySuccess ? 'Copied!' : ''}
+              </button>
+
+              <button
+                className="export-modal__export-btn"
+                onClick={handleExport}
+                disabled={isExporting || !previewSrc }
+              >
+                <Download />
+                {isExporting ? 'Exporting...' : `${exportFormat.toUpperCase()}`}
+              </button>
+            </div>
           </div>
         </div>
       </div>
