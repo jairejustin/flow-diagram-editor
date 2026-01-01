@@ -148,7 +148,6 @@ export const exportCanvas = () => {
     }
   };
 
-  // Export processed image (with crop applied)
   const exportProcessedImage = async (
     imageDataURL: string,
     format: 'png' | 'jpeg',
@@ -167,7 +166,6 @@ export const exportCanvas = () => {
     URL.revokeObjectURL(url);
   };
 
-  // Copy to clipboard
   const copyToClipboard = async (
     imageDataURL: string,
     format: 'png' | 'jpeg'

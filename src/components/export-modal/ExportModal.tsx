@@ -31,11 +31,17 @@ export function ExportModal() {
   if (!showExportModal) return null;
 
   return (
-    <div className="export-modal-overlay" onClick={handleClose}>
-      <div className="export-modal" onClick={(e) => e.stopPropagation()}>
+    <div 
+    className="export-modal-overlay"
+    onClick={handleClose}>
+      <div 
+      className="export-modal" 
+      onClick={(e) => e.stopPropagation()}>
         <div className="export-modal__header">
           <h2>Export Diagram</h2>
-          <button className="export-modal__close" onClick={handleClose}>
+          <button 
+          className="export-modal__close" 
+          onClick={handleClose}>
             <X size={24} />
           </button>
         </div>
