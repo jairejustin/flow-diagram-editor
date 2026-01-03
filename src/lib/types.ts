@@ -9,6 +9,16 @@ export type position = {
   y: number
 }
 
+export type Rectangle = {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+export type ResizeHandle = 'nw' | 'ne' | 'sw' | 'se' | 'n' | 's' | 'e' | 'w' | null | undefined;
+export type ExportFormat = 'png' | 'jpeg';
+
 // Edge related types
 
 export type EdgePathType = "straight" | "elbow" | string; // add more types as needed
