@@ -53,6 +53,11 @@ export default function Toolbar() {
     setViewMode(viewMode ? false : true);
   };
 
+  const toggleExportMode = () => {
+    useFlowStore.setState({ selectedNodeId: null, selectedEdgeId: null });
+    setIsExporting(true);
+  };
+
   return (
     <>
       <div className="toolbar">
@@ -80,7 +85,7 @@ export default function Toolbar() {
             )}
             {!viewMode && (
               <button className="toolbar__button"
-                onClick={() => setIsExporting(true)}>
+                onClick={toggleExportMode}>
                 <ImageDownIcon />
               </button>
             )}
