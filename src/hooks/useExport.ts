@@ -1,15 +1,7 @@
 import { useState } from 'react';
 import { toPng, toJpeg } from 'html-to-image';
-import { useFlowStore } from '../../store/flowStore';
-
-type Rectangle = {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-};
-
-export type ExportFormat = 'png' | 'jpeg';
+import { useFlowStore } from '../store/flowStore';
+import type { Rectangle, ExportFormat } from '../lib/types';
 
 export const useExport = (canvasId: string = 'canvas-container') => {
   const [exportFormat, setExportFormat] = useState<ExportFormat>('png');
@@ -17,9 +9,44 @@ export const useExport = (canvasId: string = 'canvas-container') => {
   const [isCopying, setIsCopying] = useState(false);
   const setShowExportOverlay = useFlowStore((state) => state.setIsExporting);
 
-  /**
-   * Crops an image using canvas API
-   */
+  const getScaledSelection = async (
+    selection: Rectangle,
+    imageDataUrl: string,
+    canvasElement: HTMLElement
+  ): Promise<Rectangle> => {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.src = imageDataUrl;
+
+      image.onload = () => {
+        const rect = canvasElement.getBoundingClientRect();
+        
+        const scaleX = image.width / rect.width;
+        const scaleY = image.height / rect.height;
+
+        console.log('Scale factors:', { scaleX, scaleY });
+        console.log('Screen selection:', selection);
+        console.log('Image dimensions:', { width: image.width, height: image.height });
+        console.log('Screen dimensions:', { width: rect.width, height: rect.height });
+
+        const scaledSelection = {
+          x: selection.x * scaleX,
+          y: selection.y * scaleY,
+          width: selection.width * scaleX,
+          height: selection.height * scaleY,
+        };
+
+        console.log('Scaled selection:', scaledSelection);
+
+        resolve(scaledSelection);
+      };
+
+      image.onerror = () => {
+        reject(new Error('Failed to load image for scaling'));
+      };
+    });
+  };
+
   const cropImage = async (
     dataUrl: string,
     cropArea: Rectangle
@@ -37,36 +64,30 @@ export const useExport = (canvasId: string = 'canvas-container') => {
           return;
         }
 
-        // Set canvas size to crop dimensions
         canvas.width = cropArea.width;
         canvas.height = cropArea.height;
 
-        // Draw the cropped portion
         ctx.drawImage(
           image,
-          cropArea.x,
-          cropArea.y,
-          cropArea.width,
-          cropArea.height,
-          0,
-          0,
-          cropArea.width,
-          cropArea.height
+          cropArea.x,      // Source X
+          cropArea.y,      // Source Y
+          cropArea.width,  // Source Width
+          cropArea.height, // Source Height
+          0,               // Destination X
+          0,               // Destination Y
+          cropArea.width,  // Destination Width
+          cropArea.height  // Destination Height
         );
 
-        // Convert to data URL
         resolve(canvas.toDataURL('image/png'));
       };
 
       image.onerror = () => {
-        reject(new Error('Failed to load image'));
+        reject(new Error('Failed to load image for cropping'));
       };
     });
   };
 
-  /**
-   * Converts data URL to Blob
-   */
   const dataURLtoBlob = async (
     dataURL: string,
     mimeType: string
@@ -74,7 +95,6 @@ export const useExport = (canvasId: string = 'canvas-container') => {
     const response = await fetch(dataURL);
     let blob = await response.blob();
 
-    // Convert to JPEG if needed
     if (mimeType === 'image/jpeg' && blob.type !== 'image/jpeg') {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
@@ -97,9 +117,6 @@ export const useExport = (canvasId: string = 'canvas-container') => {
     return blob;
   };
 
-  /**
-   * Captures the canvas as an image
-   */
   const captureCanvas = async (format: ExportFormat): Promise<string> => {
     const canvas = document.getElementById(canvasId);
     if (!canvas) {
@@ -119,21 +136,19 @@ export const useExport = (canvasId: string = 'canvas-container') => {
     return toPng(canvas, options);
   };
 
-  /**
-   * Exports the selected area
-   */
   const handleExport = async (selection: Rectangle): Promise<void> => {
     if (isExporting) return;
 
     setIsExporting(true);
     try {
-      // Capture full canvas
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) {
+        throw new Error('Canvas element not found');
+      }
+      // Capture and convert
       const fullImage = await captureCanvas(exportFormat);
-
-      // Crop to selection
-      const croppedImage = await cropImage(fullImage, selection);
-
-      // Convert to blob with correct format
+      const scaledSelection = await getScaledSelection(selection, fullImage, canvas);
+      const croppedImage = await cropImage(fullImage, scaledSelection);
       const mimeType = exportFormat === 'jpeg' ? 'image/jpeg' : 'image/png';
       const blob = await dataURLtoBlob(croppedImage, mimeType);
 
@@ -147,7 +162,7 @@ export const useExport = (canvasId: string = 'canvas-container') => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      // Close overlay on success
+      // Clean up
       setShowExportOverlay(false);
     } catch (error) {
       console.error('Export failed:', error);
@@ -157,9 +172,6 @@ export const useExport = (canvasId: string = 'canvas-container') => {
     }
   };
 
-  /**
-   * Copies the selected area to clipboard
-   */
   const handleCopy = async (selection: Rectangle): Promise<void> => {
     if (!navigator.clipboard || !navigator.clipboard.write) {
       throw new Error('Clipboard API not supported');
@@ -169,13 +181,15 @@ export const useExport = (canvasId: string = 'canvas-container') => {
 
     setIsCopying(true);
     try {
-      // Capture full canvas
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) {
+        throw new Error('Canvas element not found');
+      }
+      
+      // Capture and convert
       const fullImage = await captureCanvas(exportFormat);
-
-      // Crop to selection
-      const croppedImage = await cropImage(fullImage, selection);
-
-      // Convert to blob
+      const scaledSelection = await getScaledSelection(selection, fullImage, canvas);
+      const croppedImage = await cropImage(fullImage, scaledSelection);
       const mimeType = exportFormat === 'jpeg' ? 'image/jpeg' : 'image/png';
       const blob = await dataURLtoBlob(croppedImage, mimeType);
 
@@ -186,7 +200,6 @@ export const useExport = (canvasId: string = 'canvas-container') => {
         }),
       ]);
 
-      // Keep success state for brief moment
       setTimeout(() => {
         setIsCopying(false);
       }, 1500);
@@ -197,9 +210,6 @@ export const useExport = (canvasId: string = 'canvas-container') => {
     }
   };
 
-  /**
-   * Close the export overlay
-   */
   const handleClose = () => {
     setShowExportOverlay(false);
   };
