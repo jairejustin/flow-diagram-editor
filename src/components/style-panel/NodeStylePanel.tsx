@@ -17,8 +17,6 @@ export default function NodeStylePanel({ id }: NodeStylePanelProps) {
     handleStyleChange,
     handleDeleteNode,
     handleDuplicateNode,
-    commitFontSize,
-    commitBorderWidth,
     openColorPicker,
     updateNodeEditing,
     handleFontSizeChange,
@@ -62,15 +60,6 @@ export default function NodeStylePanel({ id }: NodeStylePanelProps) {
             className="style-input-small"
             value={fontSize}
             onChange={(e) => handleFontSizeChange(e.target.value)}
-            onBlur={commitFontSize}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                commitFontSize();
-                e.currentTarget.blur();
-              }
-            }}
-            min="8"
-            max="72"
           />
         </div>
       </div>
@@ -101,13 +90,6 @@ export default function NodeStylePanel({ id }: NodeStylePanelProps) {
             className="style-input-small"
             value={borderWidth}
             onChange={(e) => handleBorderWidthChange(e.target.value)}
-            onBlur={commitBorderWidth}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                commitBorderWidth();
-                e.currentTarget.blur();
-              }
-            }}
             min="0"
             max="10"
           />

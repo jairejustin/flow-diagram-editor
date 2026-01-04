@@ -14,10 +14,6 @@ export default function EdgeStylePanel({ id }: EdgeStylePanelProps) {
     labelText,
     labelPosition,
     labelFontSize,
-    setIsEdgeWidthFocused,
-    setIsLabelTextFocused,
-    setIsLabelPositionFocused,
-    setIsLabelFontSizeFocused,
     openPicker,
     openColorPicker,
     handleEdgeStyleChange,
@@ -28,8 +24,6 @@ export default function EdgeStylePanel({ id }: EdgeStylePanelProps) {
     handleDeleteEdge,
     handleFlipEdge,
     handleEdgeWidthChange,
-    commitEdgeWidth,
-    commitLabelFontSize
   } = useEdgeStylePanel(id);
 
   if (!edge) {
@@ -59,18 +53,7 @@ export default function EdgeStylePanel({ id }: EdgeStylePanelProps) {
             type="number"
             className="style-input-small"
             value={edgeWidth}
-            onFocus={() => setIsEdgeWidthFocused(true)}
-            onChange={(e) => handleEdgeWidthChange(e.target.value)}
-            onBlur={() => {
-              setIsEdgeWidthFocused(false);
-              commitEdgeWidth();
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                commitEdgeWidth();
-                e.currentTarget.blur();
-              }
-            }}
+            onChange={(e) => handleEdgeWidthChange(Number(e.target.value))}
             min="1"
             max="10"
           />
@@ -100,9 +83,7 @@ export default function EdgeStylePanel({ id }: EdgeStylePanelProps) {
             placeholder="Enter label text"
             value={labelText}
             rows={2}
-            onFocus={() => setIsLabelTextFocused(true)}
             onChange={handleLabelTextChange}
-            onBlur={() => setIsLabelTextFocused(false)}
           />
 
           {/* Label Font Size */}
@@ -113,18 +94,7 @@ export default function EdgeStylePanel({ id }: EdgeStylePanelProps) {
                 type="number"
                 className="style-input-small"
                 value={labelFontSize}
-                onFocus={() => setIsLabelFontSizeFocused(true)}
-                onChange={(e) => handleLabelFontSizeChange(e.target.value)}
-                onBlur={() => {
-                  setIsLabelFontSizeFocused(false);
-                  commitLabelFontSize();
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    commitLabelFontSize();
-                    e.currentTarget.blur();
-                  }
-                }}
+                onChange={(e) => handleLabelFontSizeChange(Number(e.target.value))}
                 min="8"
                 max="72"
               />
@@ -141,9 +111,7 @@ export default function EdgeStylePanel({ id }: EdgeStylePanelProps) {
                 max="1"
                 step="0.01"
                 value={labelPosition}
-                onFocus={() => setIsLabelPositionFocused(true)}
                 onChange={handleLabelPositionChange}
-                onBlur={() => setIsLabelPositionFocused(false)}
                 className="label-position-slider"
               />
               <span className="label-position-value">
