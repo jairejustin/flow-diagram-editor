@@ -1,6 +1,7 @@
 import type { NodeData, EdgeData, position, EdgeAnchor } from "../../lib/types";
 import { useFlowStore } from "../../store/flowStore";
 import { getAnchorPoint } from "../../lib/utils";
+import { getArrowheadDimensions} from "../../lib/utils"
 
 interface UseStraightEdgeResult {
   p1: position | null;
@@ -19,11 +20,16 @@ interface UseStraightEdgeResult {
   from: EdgeData['from'];
   toAnchor: EdgeAnchor;
   fromAnchor: EdgeAnchor;
+  arrowheadDimensions: { width: number; height: number; refX: number; refY: number };
+  edgeWidth: number;
+
 }
 
 export function useStraightEdge(edge: EdgeData, nodes: NodeData[]): UseStraightEdgeResult {
   const storeEdge = useFlowStore((state) => state.edges.find((e) => e.id === edge.id));
   const selectedEdgeId = useFlowStore((state) => state.selectedEdgeId);
+  const edgeWidth: number = storeEdge?.style?.width || 2;
+  const arrowheadDimensions = getArrowheadDimensions(edgeWidth);
 
   let p1: position | null = null;
   let p2: position | null = null;
@@ -59,7 +65,9 @@ export function useStraightEdge(edge: EdgeData, nodes: NodeData[]): UseStraightE
       to, 
       from, 
       toAnchor, 
-      fromAnchor
+      fromAnchor,
+      edgeWidth,
+      arrowheadDimensions
     };
   }
 
@@ -95,7 +103,9 @@ export function useStraightEdge(edge: EdgeData, nodes: NodeData[]): UseStraightE
       to, 
       from, 
       toAnchor, 
-      fromAnchor
+      fromAnchor,
+      edgeWidth,
+      arrowheadDimensions
     };
   }
   
@@ -120,7 +130,9 @@ export function useStraightEdge(edge: EdgeData, nodes: NodeData[]): UseStraightE
         to, 
         from, 
         toAnchor, 
-        fromAnchor
+        fromAnchor,
+        edgeWidth,
+        arrowheadDimensions
       };
     }
   } else {
@@ -161,6 +173,8 @@ export function useStraightEdge(edge: EdgeData, nodes: NodeData[]): UseStraightE
     to, 
     from, 
     toAnchor, 
-    fromAnchor
+    fromAnchor,
+    edgeWidth,
+    arrowheadDimensions
   };
 }

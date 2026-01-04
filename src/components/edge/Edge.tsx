@@ -20,7 +20,9 @@ export function Edge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
     to, 
     from, 
     toAnchor, 
-    fromAnchor
+    fromAnchor,
+    edgeWidth,
+    arrowheadDimensions
   } = useStraightEdge(edge, nodes);
 
   const { onPointerDownHead, onPointerDownTail, onEdgeClick } = useEdgeDrag(
@@ -43,13 +45,17 @@ export function Edge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
       <defs>
         <marker
           id={`arrowhead-${edge.id}`}
-          markerWidth="10"
-          markerHeight="10"
-          refX="9"
-          refY="3"
+          markerWidth={arrowheadDimensions.width}
+          markerHeight={arrowheadDimensions.height}
+          refX={arrowheadDimensions.refX}
+          refY={arrowheadDimensions.refY}
           orient="auto"
+          markerUnits="userSpaceOnUse"
         >
-          <polygon points="0 0, 10 3, 0 6" fill={color}/>
+          <polygon
+            points={`0,0 ${arrowheadDimensions.width},${arrowheadDimensions.height / 2} 0,${arrowheadDimensions.height}`}
+            fill={color}
+          />
         </marker>
       </defs>
       <line
@@ -58,9 +64,9 @@ export function Edge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
         x2={p2.x}
         y2={p2.y}
         stroke={color}
-        strokeWidth={storeEdge.style?.width || 2}
-        strokeDasharray={storeEdge.style?.dashed ? "5,5" : undefined}
-        onPointerDown={onEdgeClick}
+        strokeWidth={edgeWidth}
+        strokeDasharray={`${(Math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2)) - edgeWidth} ${edgeWidth}`}
+        strokeLinecap="round"
         markerEnd={`url(#arrowhead-${edge.id})`}
         style={{ 
           cursor: "pointer", 
@@ -74,7 +80,7 @@ export function Edge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
         x2={p2.x} 
         y2={p2.y}
         stroke="transparent"
-        strokeWidth={Math.max(20, (storeEdge.style?.width || 2) + 16)}
+        strokeWidth={Math.max(20, edgeWidth + 16)}
         style={{ cursor: "pointer", pointerEvents: "auto" }}
         onPointerDown={onEdgeClick}
       />
@@ -85,7 +91,7 @@ export function Edge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
           x2={p2.x}
           y2={p2.y}
           stroke={color}
-          strokeWidth={(storeEdge.style?.width || 2) + 4}
+          strokeWidth={edgeWidth + 4}
           opacity={0.2}
           pointerEvents="none"
         />

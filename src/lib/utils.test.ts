@@ -1,6 +1,25 @@
-import { hexToRgb, rgbToHex, wrapText, getAnchorPoint } from "./utils";
+import { hexToRgb, rgbToHex, wrapText, getAnchorPoint, getArrowheadDimensions } from "./utils";
 import type { NodeData, EdgeAnchor } from "./types";
 import { describe, expect, it } from "vitest";
+
+describe("Arrowhead Dimensions Utility", () => {
+  describe("getArrowheadDimensions", () => {
+    it("calculates correct dimensions for various edge widths", () => {
+      const testCases = [
+        { edgeWidth: 1, expected: { width: 12, height: 12, refX: 11.5, refY: 6 } },
+        { edgeWidth: 2, expected: { width: 12, height: 12, refX: 11.5, refY: 6 } },
+        { edgeWidth: 5, expected: { width: 13.5, height: 13.5, refX: 13, refY: 6.75 } },
+        { edgeWidth: 10, expected: { width: 17, height: 17, refX: 16.5, refY: 8.5 } },
+        { edgeWidth: 15, expected: { width: 17, height: 17, refX: 16.5, refY: 8.5 } },
+      ];
+
+      testCases.forEach(({ edgeWidth, expected }) => {
+        const result = getArrowheadDimensions(edgeWidth);
+        expect(result).toEqual(expected);
+      });
+    });
+  });
+});
 
 describe("Color Picker Utilities", () => {
   describe("hexToRgb", () => {

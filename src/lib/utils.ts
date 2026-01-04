@@ -2,6 +2,23 @@ import type { NodeData, EdgeAnchor } from "./types";
 
 // NODES AND EDGES
 
+export function getArrowheadDimensions (edgeWidth: number) : { width: number; height: number; refX: number; refY: number } {
+  const clampedWidth = Math.max(1, Math.min(10, edgeWidth));
+  
+  const baseSize = 12; 
+  const scaleFactor = 1; 
+  const size = baseSize + (clampedWidth - 2) * scaleFactor;
+  
+  return {
+    width: size,
+    height: size,
+    refX: size - 0.5,
+    refY: size / 2,
+  };
+};
+
+// TEXT WRAPPING
+
 export function wrapText(text: string, maxWidth: number, fontSize: number): string[] {
   const words = text.split(' ');
   const lines: string[] = [];
@@ -30,23 +47,34 @@ export function getAnchorPoint(node: NodeData, anchor: EdgeAnchor) {
   const height = node.height;
   const shape = node.shape;
 
+  /* 
+    The x and y points of these anchor points take the first pixel of 
+  the node shape as the origin (top-left corner).
+  To account for the visual misalignment caused by border width, we temporarily apply small offsets.
+  Incorporating the border width in width and height calculations here 
+  and on node dimensions would fix this, but for simplicity,
+  we use fixed offsets here.
+  */
+  const verticalOffset = 2;
+  const horizontalOffset = 2;
+
   switch (shape) {
     case "rectangle":
     case "ellipse":
     case "diamond":
       switch (anchor.side) {
         case "top":
-          return { x: x + width / 2, y };
+          return { x: (x + width / 2) + horizontalOffset , y };
         case "bottom":
-          return { x: x + width / 2, y: y + height };
+          return { x: (x + width / 2) + horizontalOffset, y: y + height };
         case "left":
-          return { x, y: y + height / 2 };
+          return { x, y: (y + height / 2) + verticalOffset };
         case "right":
-          return { x: x + width, y: y + height / 2 };
+          return { x: x + width, y: (y + height / 2) + verticalOffset };
 
         /* v8 ignore next */
         default:
-          return { x: x + width / 2, y };
+          return { x: x + width, y: (y + height / 2) + verticalOffset };
       }
 
     case "parallelogram": {
