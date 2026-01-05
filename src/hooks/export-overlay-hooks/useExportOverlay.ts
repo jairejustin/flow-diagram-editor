@@ -21,6 +21,7 @@ export function useExportOverlay() {
   });
 
   const overlayRef = useRef<HTMLDivElement | null>(null);
+  const activePointerIdRef = useRef<number | null>(null);
 
   const isMobile = useFlowStore((s) => s.isMobile);
 
@@ -83,6 +84,11 @@ export function useExportOverlay() {
   }, [selection, calculateButtonPlacement]);
 
   const handlePointerDown = (e: React.PointerEvent) => {
+    const target = e.target as HTMLElement;
+    target.setPointerCapture(e.pointerId);
+    activePointerIdRef.current = e.pointerId;
+
+    if (target !== overlayRef.current) return;
     if (overlayRef.current === null) return;
 
     e.stopPropagation();
@@ -156,6 +162,7 @@ export function useExportOverlay() {
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
+    (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
     if (!overlayRef.current) return;
 
     const rect = overlayRef.current.getBoundingClientRect();

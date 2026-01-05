@@ -7,6 +7,7 @@
   z-index: 9999;
   cursor: crosshair;
   user-select: none;
+  touch-action: none;
 }
 
 .export-overlay__mask {
