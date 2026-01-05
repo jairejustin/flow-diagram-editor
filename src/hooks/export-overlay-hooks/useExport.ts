@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { toPng, toJpeg } from 'html-to-image';
-import { useFlowStore } from '../store/flowStore';
-import type { Rectangle, ExportFormat } from '../lib/types';
+import { useFlowStore } from '../../store/flowStore';
+import type { Rectangle, ExportFormat } from '../../lib/types';
 
 export const useExport = (canvasId: string = 'canvas-container') => {
   const [exportFormat, setExportFormat] = useState<ExportFormat>('png');
