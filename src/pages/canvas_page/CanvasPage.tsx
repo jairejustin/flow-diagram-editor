@@ -81,6 +81,13 @@ export default function CanvasPage() {
     if (next >= 0.1) setScale(next);
   };
 
+  const onReset = () => {
+    setScale(1);
+    setTranslateX(0);
+    setTranslateY(0);
+    useFlowStore.getState().setViewport({ x: 0, y: 0, zoom: 1 });
+  }
+
   return (
     <>
     <div
@@ -111,6 +118,7 @@ export default function CanvasPage() {
             zoomFactor={scale}
             onZoomIn={onZoomIn}
             onZoomOut={onZoomOut}
+            onReset={onReset}
           />
         </>
       )}

@@ -1,17 +1,19 @@
-import { Plus, Minus } from "lucide-react";
+import { Plus, Minus, RefreshCcw } from "lucide-react";
 import "./ZoomControls.css";
 
 interface ZoomControlsProps {
   onZoomIn?: () => void;
   onZoomOut?: () => void;
   zoomFactor: number;
+  onReset?: () => void;
 }
 
 export default function ZoomControls(ZoomControlsProps: ZoomControlsProps) {
   const { 
     onZoomIn, 
     onZoomOut, 
-    zoomFactor 
+    zoomFactor,
+    onReset 
   } = ZoomControlsProps;
   
   return (
@@ -22,6 +24,9 @@ export default function ZoomControls(ZoomControlsProps: ZoomControlsProps) {
       </button>
       <button className="zoom-controls__button" onClick={onZoomOut}>
         <Minus />
+      </button>
+      <button className="zoom-controls__button" onClick={onReset}>
+        <RefreshCcw />
       </button>
     </div>
   );
