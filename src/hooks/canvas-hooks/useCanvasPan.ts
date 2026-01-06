@@ -24,10 +24,7 @@ export function useCanvasPan(
     onPointerCancel: null,
   });
 
-  const isDraggingNode = useFlowStore((state) => state.isDraggingNode);
-  const isResizingNode = useFlowStore((state) => state.isResizingNode);
   const setViewport = useFlowStore((state) => state.setViewport);
-  const setShowPanel = useFlowStore((state) => state.setShowPanel);
 
   const cleanupListeners = useCallback(() => {
     if (handlersRef.current.onPointerMove) {
@@ -73,8 +70,6 @@ export function useCanvasPan(
 
       const target = event.target as HTMLElement;
       if (
-        isDraggingNode ||
-        isResizingNode ||
         target.closest('.style-panel') ||
         target.closest('.toolbar') ||
         target.closest('.zoom-controls') ||
@@ -96,8 +91,6 @@ export function useCanvasPan(
       (event.target as HTMLElement).setPointerCapture(event.pointerId);
       activePointerId.current = event.pointerId;
 
-      useFlowStore.setState({ selectedNodeId: null, selectedEdgeId: null });
-      setShowPanel(false);
       setIsPanning(true);
       lastPointerPos.current = { x: event.clientX, y: event.clientY };
 
@@ -136,7 +129,7 @@ export function useCanvasPan(
       document.addEventListener("pointerup", onPointerUp);
       document.addEventListener("pointercancel", onPointerCancel);
     },
-    [isDraggingNode, isResizingNode, setShowPanel, setIsPanning, setTranslateX, setTranslateY, onPanEnd, cleanupListeners]
+    [setIsPanning, setTranslateX, setTranslateY, onPanEnd, cleanupListeners]
   );
 
   const handleWheel = useCallback(

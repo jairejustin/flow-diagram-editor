@@ -9,6 +9,8 @@ export default function Toolbar() {
   const viewMode = useFlowStore((state) => state.viewMode);
   const setViewMode = useFlowStore((state) => state.setViewMode);
   const setIsExporting = useFlowStore((state) => state.setIsExporting);
+  const setSelectedNodeId = useFlowStore((state) => state.selectNode);
+  const setSelectedEdgeId = useFlowStore((state) => state.selectEdge);
   const { addNode } = useFlowStore();
 
   const handleAddRectangle = () => {
@@ -48,13 +50,15 @@ export default function Toolbar() {
   const toggleViewMode = () => {
     if (!viewMode) {
       setOpenCreateNode(false);
-      useFlowStore.setState({ selectedNodeId: null, selectedEdgeId: null });
+      setSelectedEdgeId(null);
+      setSelectedNodeId(null);
     }
     setViewMode(viewMode ? false : true);
   };
 
   const toggleExportMode = () => {
-    useFlowStore.setState({ selectedNodeId: null, selectedEdgeId: null });
+    setSelectedEdgeId(null);
+    setSelectedNodeId(null);
     setIsExporting(true);
   };
 

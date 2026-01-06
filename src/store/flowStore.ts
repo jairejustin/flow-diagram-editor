@@ -156,13 +156,28 @@ export const useFlowStore = create<FlowState>()(
       },
 
       updateNodeStyles: (id, style) => {
-        set((state) => ({
-          nodes: state.nodes.map((node) =>
-            node.id === id
-              ? { ...node, style: { ...node.style, ...style } }
-              : node
-          ),
-        }));
+        set((state) => {
+          const node = state.nodes.find(n => n.id === id);
+          if (!node) return state;
+          
+          const oldBorderWidth = node.style?.borderWidth || 2;
+          const newBorderWidth = style.borderWidth !== undefined ? style.borderWidth : oldBorderWidth;
+          const borderDiff = newBorderWidth - oldBorderWidth;
+          
+          return {
+            nodes: state.nodes.map((n) =>
+              n.id === id
+                ? { 
+                    ...n, 
+                    style: { ...n.style, ...style },
+                    // Expand/contract dimensions when border changes
+                    width: n.width + borderDiff,
+                    height: n.height + borderDiff
+                  }
+                : n
+            ),
+          };
+        });
       },
 
       setNodes: (newNodes) => {
