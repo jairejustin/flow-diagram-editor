@@ -113,7 +113,6 @@ export const useFlowStore = create<FlowState>()(
 
       selectNode: (id) => set({ selectedNodeId: id }),
 
-      // --- 1. UPDATE NODE POSITION (With Full Auto-Routing) ---
       updateNodePosition: (id, newPosition) => {
         set((state) => {
           // A. Update the Node
@@ -222,18 +221,46 @@ export const useFlowStore = create<FlowState>()(
           const oldBorderWidth = node.style?.borderWidth || 2;
           const newBorderWidth = style.borderWidth !== undefined ? style.borderWidth : oldBorderWidth;
           const borderDiff = newBorderWidth - oldBorderWidth;
-          
+        
+          const updatedNodes = state.nodes.map((n) =>
+            n.id === id
+              ? { 
+                  ...n, 
+                  style: { ...n.style, ...style },
+                  width: n.width + borderDiff,
+                  height: n.height + borderDiff
+                }
+              : n
+          );
+
+          const updatedNode = updatedNodes.find(n => n.id === id);
+          if (!updatedNode) return { nodes: updatedNodes };
+
+          const updatedEdges = state.edges.map((edge) => {
+            if (edge.path !== "elbow") return edge;
+            if (edge.from !== id && edge.to !== id) return edge;
+
+            const startNode = edge.from === id ? updatedNode : state.nodes.find(n => n.id === edge.from);
+            const endNode = edge.to === id ? updatedNode : state.nodes.find(n => n.id === edge.to);
+            
+            if (!startNode || !endNode || typeof edge.from !== 'string' || typeof edge.to !== 'string') return edge;
+
+            const start = getAnchorPoint(startNode, edge.fromAnchor || { side: "bottom" });
+            const end = getAnchorPoint(endNode, edge.toAnchor || { side: "top" });
+
+            const newPoints = createElbowPath(
+              start, 
+              end, 
+              edge.fromAnchor?.side || "bottom", 
+              edge.toAnchor?.side || "top"
+            );
+
+            return { ...edge, points: newPoints };
+          });
+
           return {
-            nodes: state.nodes.map((n) =>
-              n.id === id
-                ? { 
-                    ...n, 
-                    style: { ...n.style, ...style },
-                    width: n.width + borderDiff,
-                    height: n.height + borderDiff
-                  }
-                : n
-            ),
+            nodes: updatedNodes,
+            edges: updatedEdges
           };
         });
       },
