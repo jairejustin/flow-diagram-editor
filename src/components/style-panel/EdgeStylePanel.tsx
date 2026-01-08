@@ -1,4 +1,5 @@
 import { Trash2, RefreshCw } from "lucide-react";
+import { PathElbowIcon, PathStraightIcon } from "../../assets/CustomSVGIcons";
 import "./StylePanel.css";
 import ColorPicker from "../color-picker/ColorPicker";
 import { useEdgeStylePanel } from "../../hooks/style-panel-hooks/useEdgeStylePanel";
@@ -15,6 +16,7 @@ export default function EdgeStylePanel({ id }: EdgeStylePanelProps) {
     labelPosition,
     labelFontSize,
     openPicker,
+    isElbow,
     openColorPicker,
     handleEdgeStyleChange,
     handleLabelToggle,
@@ -24,6 +26,7 @@ export default function EdgeStylePanel({ id }: EdgeStylePanelProps) {
     handleDeleteEdge,
     handleFlipEdge,
     handleEdgeWidthChange,
+    handlePathTypeChange,
   } = useEdgeStylePanel(id);
 
   if (!edge) {
@@ -35,6 +38,25 @@ export default function EdgeStylePanel({ id }: EdgeStylePanelProps) {
 
   return (
     <div className="style-panel">
+      {/* Path Type Selector */}
+      <div className="style-row-compact">
+        <label>Path Type</label>
+        <div className="path-type-buttons">
+          <button
+            className={`path-type-button ${!isElbow ? "active" : ""}`}
+            onClick={() => handlePathTypeChange("straight")}
+          >
+            <PathStraightIcon/>
+          </button>
+          <button
+            className={`path-type-button ${isElbow ? "active" : ""}`}
+            onClick={() => handlePathTypeChange("elbow")}
+          >
+            <PathElbowIcon/>
+          </button>
+        </div>
+      </div>
+
       <div className="style-row-compact">
         <label>Color</label>
         <div className="style-row-compact__controls">

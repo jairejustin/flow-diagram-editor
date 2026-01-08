@@ -268,3 +268,46 @@ input:checked + .slider:before {
   font-size: 14px;
 }
 }
+
+.path-type-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.path-type-button {
+  padding: 6px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: #666;
+  background-color: #FAFAFA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.path-type-button:hover {
+  background: #f5f5f5;
+  border-color: #ccc;
+}
+
+.path-type-button.active {
+  border-color: #0066cc;
+  background-color: #e6f2ff;
+}
+
+.path-type-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.path-type-button:active {
+  transform: translateY(1px);
+}
+
+.style-row-compact .path-type-buttons {
+  margin-top: 4px;
+}
