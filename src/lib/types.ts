@@ -24,7 +24,7 @@ export type ExportFormat = 'png' | 'jpeg';
 export type EdgePathType = "straight" | "elbow" | string; // add more types as needed
 
 export interface EdgeAnchor {
-  side: "top" | "bottom" | "left" | "right"
+  side: "top" | "bottom" | "left" | "right" | undefined
   offset?: position
 }
 
