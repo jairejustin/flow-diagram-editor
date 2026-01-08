@@ -14,7 +14,11 @@ import type {
   EdgePathType
 } from "../lib/types";
 import { createDefaultNode, createDefaultEdge } from "../lib/defaults";
-import { getAnchorPoint, createElbowPath } from "../lib/utils";
+import { 
+  getAnchorPoint, 
+  createElbowPath, 
+  refreshConnectedEdges
+} from "../lib/utils";
 
 interface FlowState {
   nodes: NodeData[];
@@ -115,83 +119,23 @@ export const useFlowStore = create<FlowState>()(
 
       updateNodePosition: (id, newPosition) => {
         set((state) => {
-          // A. Update the Node
           const updatedNodes = state.nodes.map((node) =>
             node.id === id ? { ...node, position: newPosition } : node
           );
 
-          // Get the node *after* update so we have the new position
-          const movingNode = updatedNodes.find((n) => n.id === id);
-          if (!movingNode) return { nodes: updatedNodes };
-
-          // B. Regenerate paths for connected edges
-          const updatedEdges = state.edges.map((edge) => {
-            // Skip straight edges
-            if (edge.path !== "elbow") return edge;
-            // Skip unconnected edges
-            if (edge.from !== id && edge.to !== id) return edge;
-
-            // Resolve Source Position
-            let start = { x: 0, y: 0 };
-            const startNode = edge.from === id ? movingNode : state.nodes.find(n => n.id === edge.from);
-            if (!startNode || typeof edge.from !== 'string') return edge; // Safety
-            start = getAnchorPoint(startNode, edge.fromAnchor || { side: "bottom" });
-
-            // Resolve Target Position
-            let end = { x: 0, y: 0 };
-            const endNode = edge.to === id ? movingNode : state.nodes.find(n => n.id === edge.to);
-            if (!endNode || typeof edge.to !== 'string') return edge; // Safety
-            end = getAnchorPoint(endNode, edge.toAnchor || { side: "top" });
-
-            // C. FRESH PATH GENERATION
-            // We do not care about the old points. We calculate the "Ideal" path now.
-            const newPoints = createElbowPath(
-              start, 
-              end, 
-              edge.fromAnchor?.side || "bottom", 
-              edge.toAnchor?.side || "top"
-            );
-
-            return { ...edge, points: newPoints };
-          });
+          const updatedEdges = refreshConnectedEdges(id, updatedNodes, state.edges);
 
           return { nodes: updatedNodes, edges: updatedEdges };
         });
       },
 
-      // --- 2. UPDATE NODE DIMENSIONS (With Full Auto-Routing) ---
       updateNodeDimensions: (id, width, height) => {
         set((state) => {
           const updatedNodes = state.nodes.map((node) =>
             node.id === id ? { ...node, width, height } : node
           );
 
-          const movingNode = updatedNodes.find(n => n.id === id);
-          if (!movingNode) return { nodes: updatedNodes };
-
-          const updatedEdges = state.edges.map((edge) => {
-            if (edge.path !== "elbow") return edge;
-            if (edge.from !== id && edge.to !== id) return edge;
-
-            // Resolve Positions
-            const startNode = edge.from === id ? movingNode : state.nodes.find(n => n.id === edge.from);
-            const endNode = edge.to === id ? movingNode : state.nodes.find(n => n.id === edge.to);
-            
-            if (!startNode || !endNode || typeof edge.from !== 'string' || typeof edge.to !== 'string') return edge;
-
-            const start = getAnchorPoint(startNode, edge.fromAnchor || { side: "bottom" });
-            const end = getAnchorPoint(endNode, edge.toAnchor || { side: "top" });
-
-            // Regenerate Path
-            const newPoints = createElbowPath(
-              start, 
-              end, 
-              edge.fromAnchor?.side || "bottom", 
-              edge.toAnchor?.side || "top"
-            );
-
-            return { ...edge, points: newPoints };
-          });
+          const updatedEdges = refreshConnectedEdges(id, updatedNodes, state.edges);
 
           return { nodes: updatedNodes, edges: updatedEdges };
         });
@@ -221,7 +165,7 @@ export const useFlowStore = create<FlowState>()(
           const oldBorderWidth = node.style?.borderWidth || 2;
           const newBorderWidth = style.borderWidth !== undefined ? style.borderWidth : oldBorderWidth;
           const borderDiff = newBorderWidth - oldBorderWidth;
-        
+          
           const updatedNodes = state.nodes.map((n) =>
             n.id === id
               ? { 
@@ -233,35 +177,9 @@ export const useFlowStore = create<FlowState>()(
               : n
           );
 
-          const updatedNode = updatedNodes.find(n => n.id === id);
-          if (!updatedNode) return { nodes: updatedNodes };
+          const updatedEdges = refreshConnectedEdges(id, updatedNodes, state.edges);
 
-          const updatedEdges = state.edges.map((edge) => {
-            if (edge.path !== "elbow") return edge;
-            if (edge.from !== id && edge.to !== id) return edge;
-
-            const startNode = edge.from === id ? updatedNode : state.nodes.find(n => n.id === edge.from);
-            const endNode = edge.to === id ? updatedNode : state.nodes.find(n => n.id === edge.to);
-            
-            if (!startNode || !endNode || typeof edge.from !== 'string' || typeof edge.to !== 'string') return edge;
-
-            const start = getAnchorPoint(startNode, edge.fromAnchor || { side: "bottom" });
-            const end = getAnchorPoint(endNode, edge.toAnchor || { side: "top" });
-
-            const newPoints = createElbowPath(
-              start, 
-              end, 
-              edge.fromAnchor?.side || "bottom", 
-              edge.toAnchor?.side || "top"
-            );
-
-            return { ...edge, points: newPoints };
-          });
-
-          return {
-            nodes: updatedNodes,
-            edges: updatedEdges
-          };
+          return { nodes: updatedNodes, edges: updatedEdges };
         });
       },
 
@@ -289,7 +207,6 @@ export const useFlowStore = create<FlowState>()(
 
       selectEdge: (id) => set({ selectedEdgeId: id }),
 
-      // --- 3. UPDATE EDGE HEAD (Target) ---
       updateEdgeHead: (id, to, toAnchor) => {
         set((state) => ({
           edges: state.edges.map((edge) => {
@@ -297,7 +214,6 @@ export const useFlowStore = create<FlowState>()(
             
             const newEdge = { ...edge, to, toAnchor: toAnchor || edge.toAnchor };
 
-            // If we have an elbow path, regenerate it to fit the new connection
             if (newEdge.path === "elbow") {
               const startNode = state.nodes.find(n => n.id === newEdge.from);
               
@@ -306,13 +222,11 @@ export const useFlowStore = create<FlowState>()(
                 const node = state.nodes.find(n => n.id === to);
                 if (node) endPos = getAnchorPoint(node, newEdge.toAnchor || { side: 'top' });
               } else {
-                endPos = to; // Dragging to free space
+                endPos = to;
               }
 
               if (startNode && endPos && typeof newEdge.from === 'string') {
                 const startPos = getAnchorPoint(startNode, newEdge.fromAnchor || { side: "bottom" });
-                
-                // Regenerate
                 newEdge.points = createElbowPath(
                   startPos, 
                   endPos, 
@@ -326,7 +240,6 @@ export const useFlowStore = create<FlowState>()(
         }));
       },
 
-      // --- 4. UPDATE EDGE TAIL (Source) ---
       updateEdgeTail: (id, from, fromAnchor) => {
         set((state) => ({
           edges: state.edges.map((edge) => {
@@ -347,8 +260,6 @@ export const useFlowStore = create<FlowState>()(
 
               if (endNode && startPos && typeof newEdge.to === 'string') {
                  const endPos = getAnchorPoint(endNode, newEdge.toAnchor || { side: "top" });
-                 
-                 // Regenerate
                  newEdge.points = createElbowPath(
                    startPos, 
                    endPos, 
@@ -366,14 +277,11 @@ export const useFlowStore = create<FlowState>()(
         set((state) => ({
           edges: state.edges.map((edge) => {
             if (edge.id !== id) return edge;
-            // Flip Data
             const from = edge.to as string;
             const to = edge.from as string;
             const fromAnchor = edge.toAnchor;
             const toAnchor = edge.fromAnchor;
             
-            // We must regenerate the path because flipping might change the logic 
-            // (e.g. Left->Right becomes Right->Left)
             let newPoints = edge.points || [];
             if (edge.path === 'elbow') {
                const startNode = state.nodes.find(n => n.id === from);
@@ -465,7 +373,6 @@ export const useFlowStore = create<FlowState>()(
               const start = getAnchorPoint(sourceNode, { side: startSide });
               const end = getAnchorPoint(targetNode, { side: endSide });
 
-              // Generate the strict path
               const newPoints = createElbowPath(start, end, startSide, endSide);
 
               return { ...edge, path: "elbow", points: newPoints };
