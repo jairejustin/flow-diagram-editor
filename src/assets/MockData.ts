@@ -5,87 +5,129 @@ export const mockFlowDocument: FlowDocument = {
   title: "Sample Flowchart",
   createdAt: 1732600000000,
   updatedAt: 1732600500000,
-  viewport: { "x": 0, "y": 0, "zoom": 1 },
+  viewport: { x: 0, y: 0, zoom: 1 },
   nodes: [
-    {
-      id: "node_start",
-      shape: "rectangle",
-      position: { x: 86.0118577075099, y: 111.08300395256917 },
-      width: 140,
-      height: 50,
-      content: "Start",
-      style: { borderRadius: 0, fontSize: 15 },
-      editing: false
-    },
     {
       id: "node_input",
       shape: "rectangle",
-      position: { x: 66, y: 190 },
-      width: 180,
-      height: 60,
+      position: { x: 149.26853374350878, y: 147.8206021218894 },
+      width: 98.84510797120768,
+      height: 50,
       content: "Get User Input",
-      style: { borderRadius: 10 },
+      style: {
+        borderRadius: 10,
+        textColor: "#000000",
+        backgroundColor: "#ffffff",
+        borderColor: "#000000",
+        borderWidth: 2,
+        fontSize: 15
+      },
       editing: false
     },
     {
       id: "node_decision",
       shape: "diamond",
-      position: { x: 85.88142292490119, y: 277.905138339921 },
-      width: 140.23715415019763,
-      height: 83.20158102766798,
+      position: { x: 136.82217740954565, y: 223.38459556965705 },
+      width: 123.73782063913393,
+      height: 75.53402570908628,
       content: "Is Input Valid?",
-      style: { borderRadius: 10 },
+      style: {
+        borderRadius: 10,
+        textColor: "#000000",
+        fontSize: 14,
+        backgroundColor: "#ffffff",
+        borderWidth: 2
+      },
       editing: false
     },
     {
       id: "node_process",
       shape: "rectangle",
-      position: { x: 244.2490118577075, y: 368.07114624505925 },
-      width: 170,
-      height: 60,
+      position: { x: 139.6910877291126, y: 358.91862127874333 },
+      width: 118,
+      height: 50,
       content: "Process Input",
-      style: { borderRadius: 10 },
+      style: {
+        borderRadius: 10,
+        textColor: "#000000",
+        borderWidth: 2
+      },
       editing: false
     },
     {
-      id: "node_end",
+      id: "babdc460-5ef3-4184-8c4d-e08c5b529ac8",
+      position: { x: 258.3636363636364, y: 290.85172942863034 },
+      width: 87,
+      height: 42,
+      content: "END",
       shape: "rectangle",
-      position: { x: 356.9644268774704, y: 293.0355731225296 },
-      width: 124.23715415019763,
-      height: 53,
-      content: "End",
-      style: {},
-      editing: false
+      editing: false,
+      style: {
+        backgroundColor: "#ffffff",
+        borderColor: "#000",
+        borderWidth: 2,
+        borderRadius: 0,
+        textColor: "#000",
+        fontSize: 14,
+        fontWeight: "normal"
+      }
     },
     {
-      id: "73fc4e75-5d44-46d4-a8d4-ff8c27abb728",
-      position: { x: 447.36758893280637, y: 372.5 },
-      width: 138,
+      id: "7abe7646-1ee6-4c5a-920b-92a92381297e",
+      position: { x: 139.6910877291126, y: 428.0335476104485 },
+      width: 117,
       height: 50,
       content: "Print Output",
       shape: "rectangle",
       editing: false,
       style: {
         backgroundColor: "#ffffff",
-        borderColor: "#000000",
+        borderColor: "#000",
         borderWidth: 2,
         borderRadius: 10,
-        textColor: "#000000",
+        textColor: "#000",
+        fontSize: 14,
+        fontWeight: "normal"
+      }
+    },
+    {
+      id: "b932f0ad-dccb-482a-8b49-f23d353b688b",
+      position: { x: 157.6910877291126, y: 42.5 },
+      width: 82,
+      height: 50,
+      content: "START",
+      shape: "rectangle",
+      editing: false,
+      style: {
+        backgroundColor: "#ffffff",
+        borderColor: "#000",
+        borderWidth: 2,
+        borderRadius: 0,
+        textColor: "#000",
+        fontSize: 14,
+        fontWeight: "normal"
+      }
+    },
+    {
+      id: "3137ce6b-a516-4db6-9ccc-79af2f196048",
+      position: { x: 343, y: 54.5 },
+      width: 191,
+      height: 100,
+      content: "HELLO WORLD!",
+      shape: "ellipse",
+      editing: false,
+      style: {
+        backgroundColor: "#95b9ff",
+        borderColor: "#001aa5",
+        borderWidth: 2,
+        borderRadius: 0,
+        textColor: "#002abe",
         fontSize: 14,
         fontWeight: "normal"
       }
     }
   ],
   edges: [
-    {
-      id: "edge_1",
-      from: "node_start",
-      to: "node_input",
-      path: "straight",
-      fromAnchor: { side: "bottom" },
-      toAnchor: { side: "top" },
-      points: []
-    },
     {
       id: "edge_2",
       from: "node_input",
@@ -101,49 +143,80 @@ export const mockFlowDocument: FlowDocument = {
       to: "node_process",
       path: "straight",
       fromAnchor: { side: "bottom" },
-      toAnchor: { side: "left" },
+      toAnchor: { side: "top" },
       points: [],
-      label: { text: "True", t: 0.5, fontSize: 11 }
+      label: { text: "True", t: 0.41, fontSize: 11 },
+      style: { color: "#0fb600", width: 2 }
     },
     {
-      id: "edge_4",
-      from: "73fc4e75-5d44-46d4-a8d4-ff8c27abb728",
-      to: "node_end",
-      path: "straight",
-      fromAnchor: { side: "top" },
-      toAnchor: { side: "right" },
-      points: [{ x: 450, y: 480 }, { x: 450, y: 560 }, { x: 270, y: 560 }],
-      style: { width: 2 }
-    },
-    {
-      id: "edge_5",
+      id: "3d493838-77a1-4cdd-a53a-323a289261c5",
       from: "node_decision",
-      to: "node_end",
-      path: "straight",
-      fromAnchor: { side: "right" },
+      to: "node_input",
+      path: "elbow",
+      fromAnchor: { side: "left" },
       toAnchor: { side: "left" },
-      points: [{ x: 420, y: 350 }, { x: 420, y: 605 }, { x: 200, y: 605 }],
-      style: { width: 2 },
-      label: { text: "False", t: 0.5, fontSize: 11 }
+      style: { color: "#d20000", width: 2, dashed: false },
+      points: [
+        { x: 116.82217740954565, y: 263.15160842420016 },
+        { x: 116.82217740954565, y: 263.15160842420016 },
+        { x: 116.82217740954565, y: 174.8206021218894 },
+        { x: 129.26853374350878, y: 174.8206021218894 }
+      ],
+      label: { text: "False", t: 0.45, fontSize: 12 }
     },
     {
-      id: "3193edaa-350a-4adf-800a-e8dba13c4cc1",
+      id: "dca30373-bddd-4b7d-ab8b-56b3cefb42cc",
+      from: "7abe7646-1ee6-4c5a-920b-92a92381297e",
+      to: "babdc460-5ef3-4184-8c4d-e08c5b529ac8",
+      path: "elbow",
+      fromAnchor: { side: "right" },
+      toAnchor: { side: "bottom" },
+      style: { color: "#000", width: 2, dashed: false },
+      points: [
+        { x: 276.6910877291126, y: 455.0335476104485 },
+        { x: 303.8636363636364, y: 455.0335476104485 },
+        { x: 303.8636363636364, y: 352.85172942863034 }
+      ]
+    },
+    {
+      id: "fec60a2e-2302-4ffe-9f7b-6ff356fe2b1c",
       from: "node_process",
-      to: "73fc4e75-5d44-46d4-a8d4-ff8c27abb728",
-      path: "straight",
-      fromAnchor: { side: "right" },
+      to: "7abe7646-1ee6-4c5a-920b-92a92381297e",
+      path: "elbow",
+      fromAnchor: { side: "left" },
       toAnchor: { side: "left" },
-      style: { color: "#000", width: 2, dashed: false }
+      style: { color: "#000", width: 2, dashed: false },
+      points: [
+        { x: 119.69108772911261, y: 385.91862127874333 },
+        { x: 119.69108772911261, y: 385.91862127874333 },
+        { x: 119.69108772911261, y: 455.0335476104485 },
+        { x: 119.69108772911261, y: 455.0335476104485 }
+      ]
     },
     {
-      id: "c83e685f-3514-467f-8e60-73bc99081587",
-      from: "node_input",
-      to: "node_end",
+      id: "b40130b2-c38a-4966-8df7-39c7bee205c4",
+      from: "b932f0ad-dccb-482a-8b49-f23d353b688b",
+      to: "node_input",
       path: "straight",
+      fromAnchor: { side: "bottom" },
+      toAnchor: { side: "top" },
+      style: { color: "#000", width: 2, dashed: false },
+      points: []
+    },
+    {
+      id: "b1b0cb8d-3d0e-480f-8b99-0d4d62239604",
+      from: "node_input",
+      to: "babdc460-5ef3-4184-8c4d-e08c5b529ac8",
+      path: "elbow",
       fromAnchor: { side: "right" },
       toAnchor: { side: "top" },
-      style: { color: "#ff0000", width: 2, dashed: false },
-      label: { text: "Ctrl-D", t: 0.3, fontSize: 14 }
+      style: { color: "#de9300", width: 2, dashed: false },
+      points: [
+        { x: 268.11364171471644, y: 174.8206021218894 },
+        { x: 303.8636363636364, y: 174.8206021218894 },
+        { x: 303.8636363636364, y: 270.85172942863034 }
+      ],
+      label: { text: "Exit", t: 0.56, fontSize: 12 }
     }
   ]
 };
