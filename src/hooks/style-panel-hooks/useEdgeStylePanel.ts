@@ -3,22 +3,23 @@ import { useFlowStore } from "../../store/flowStore";
 
 export function useEdgeStylePanel(id: string) {
   const edge = useFlowStore((state) => state.edges.find((e) => e.id === id));
-
   const edgeWidthFromStore = edge?.style?.width || 2;
   const edgeLabelTextFromStore = edge?.label?.text || "";
   const edgeLabelTFromStore = edge?.label?.t || 0.5;
   const edgeLabelFontSizeFromStore = edge?.label?.fontSize || 14;
-
+  const edgePathFromStore = edge?.path || "straight";
+  
   const [edgeWidth, setEdgeWidth] = useState(edgeWidthFromStore);
   const [labelText, setLabelText] = useState<string>(edgeLabelTextFromStore);
   const [labelPosition, setLabelPosition] = useState(edgeLabelTFromStore);
   const [labelFontSize, setLabelFontSize] = useState(edgeLabelFontSizeFromStore);
-
   const [openPicker, setOpenPicker] = useState<string | null>(null);
 
   const updateEdgeStyles = useFlowStore((state) => state.updateEdgeStyles);
   const updateEdgeLabel = useFlowStore((state) => state.updateEdgeLabel);
   const selectEdge = useFlowStore((state) => state.selectEdge);
+  const convertEdgeToStraight = useFlowStore((state) => state.convertToStraight);
+  const convertEdgeToElbow = useFlowStore((state) => state.convertToElbow);
   const { deleteEdge, flipEdge } = useFlowStore();
 
   const openColorPicker = (pickerType: string) => {
@@ -42,7 +43,6 @@ export function useEdgeStylePanel(id: string) {
   const handleLabelTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
     setLabelText(newText);
-
     const currentLabel = edge?.label;
     if (currentLabel) {
       updateEdgeLabel(id, { ...currentLabel, text: newText });
@@ -54,7 +54,6 @@ export function useEdgeStylePanel(id: string) {
   const handleLabelPositionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = Number(e.target.value);
     setLabelPosition(newValue);
-
     const numValue = Number(newValue);
     const currentLabel = edge?.label;
     if (!isNaN(numValue) && currentLabel) {
@@ -87,7 +86,6 @@ export function useEdgeStylePanel(id: string) {
         fontSize: numValue,
       });
     }
-
   };
 
   const handleDeleteEdge = () => {
@@ -104,6 +102,17 @@ export function useEdgeStylePanel(id: string) {
     handleEdgeStyleChange("width", Math.max(1, Math.min(10, value)));
   };
 
+  const handlePathTypeChange = (pathType: "straight" | "elbow") => {
+    if (pathType === "straight") {
+      convertEdgeToStraight(id);
+    } else {
+      convertEdgeToElbow(id);
+    }
+  };
+
+  // Determine if edge is elbow type
+  const isElbow = edgePathFromStore === "elbow" || (edge?.points && edge.points.length > 0);
+
   return {
     edge,
     edgeWidth,
@@ -111,6 +120,7 @@ export function useEdgeStylePanel(id: string) {
     labelPosition,
     labelFontSize,
     openPicker,
+    isElbow,
     openColorPicker,
     handleEdgeStyleChange,
     handleLabelToggle,
@@ -120,5 +130,6 @@ export function useEdgeStylePanel(id: string) {
     handleDeleteEdge,
     handleFlipEdge,
     handleEdgeWidthChange,
+    handlePathTypeChange,
   };
 }

@@ -10,19 +10,23 @@ import type {
   EdgeAnchor,
   EdgeLabel,
   Viewport,
-  FlowDocument
+  FlowDocument,
+  EdgePathType
 } from "../lib/types";
 import { createDefaultNode, createDefaultEdge } from "../lib/defaults";
+import { 
+  getAnchorPoint, 
+  createElbowPath, 
+  refreshConnectedEdges
+} from "../lib/utils";
 
 interface FlowState {
-  // Current flow state
   nodes: NodeData[];
   edges: EdgeData[];
   viewport: Viewport;
   selectedNodeId: string | null;
   selectedEdgeId: string | null;
   
-  // UI state
   isDraggingNode: boolean;
   isResizingNode: boolean;
   isDraggingEdge: boolean;
@@ -31,10 +35,8 @@ interface FlowState {
   showPanel: boolean;
   viewMode: boolean;
   
-  // Simple init
   loadMockData: (mockDoc: FlowDocument) => void;
   
-  // Node operations
   addNode: (nodeData?: Partial<NodeData>) => string;
   deleteNode: (id: string) => void;
   selectNode: (id: string | null) => void;
@@ -43,11 +45,9 @@ interface FlowState {
   updateNodeContent: (id: string, content: string) => void;
   updateNodeEditing: (id: string, editing: boolean) => void;
   updateNodeStyles: (id: string, style: Partial<NodeStyle>) => void;
-  updateEdgeStyles: (id: string, style: Partial<EdgeStyle>) => void;
-  setNodes: (nodes: NodeData[]) => void;
   resetEditingStates: () => void;
+  setNodes: (nodes: NodeData[]) => void;
   
-  // Edge operations
   selectEdge: (id: string | null) => void;
   addEdge: (edgeData?: Partial<EdgeData>) => string;
   updateEdgeLabel: (id: string, label: EdgeLabel | undefined) => void;
@@ -56,11 +56,14 @@ interface FlowState {
   updateEdgeTail: (id: string, from: string | position, fromAnchor?: EdgeAnchor) => void;
   flipEdge: (id: string) => void;
   setEdges: (edges: EdgeData[]) => void;
-
-  // Viewport operations
-  setViewport: (viewport: Viewport) => void;
+  updateEdgeStyles: (id: string, style: Partial<EdgeStyle>) => void;
   
-  // UI state setters
+  updateEdgeSegmentPosition: (id: string, segmentIndex: number, change: { axis: 'x' | 'y', value: number }) => void;
+  convertToStraight: (id: string) => void;
+  convertToElbow: (id: string) => void;
+  updateEdgePath: (id: string, path: EdgePathType) => void;
+
+  setViewport: (viewport: Viewport) => void;
   setIsDraggingNode: (isDragging: boolean) => void;
   setIsResizingNode: (isResizing: boolean) => void;
   setIsDraggingEdge: (isDragging: boolean) => void;
@@ -72,7 +75,6 @@ interface FlowState {
 export const useFlowStore = create<FlowState>()(
   persist(
     (set, get) => ({
-      // Initial state
       nodes: [],
       edges: [],
       viewport: { x: 0, y: 0, zoom: 1 },
@@ -82,15 +84,12 @@ export const useFlowStore = create<FlowState>()(
       isResizingNode: false,
       isDraggingEdge: false,
       isExporting: false,
-      isMobile:window.matchMedia("(max-width: 500px)").matches,
+      isMobile: window.matchMedia("(max-width: 500px)").matches,
       showPanel: false,
       viewMode: false,
 
-      // Load mock data (only if store is empty)
       loadMockData: (mockDoc: FlowDocument) => {
         const { nodes } = get();
-        
-        // Only load if we have no nodes
         if (nodes.length === 0) {
           set({
             nodes: mockDoc.nodes.map(node => ({ ...node, editing: false })),
@@ -100,16 +99,11 @@ export const useFlowStore = create<FlowState>()(
         }
       },
 
-      // Node operations
       addNode: (nodeData) => {
         const id = uuidv4();
         const { viewport } = get();
         const newNode = createDefaultNode(id, viewport, nodeData);
-
-        set((state) => ({
-          nodes: [...state.nodes, newNode],
-        }));
-
+        set((state) => ({ nodes: [...state.nodes, newNode] }));
         return id;
       },
 
@@ -124,19 +118,27 @@ export const useFlowStore = create<FlowState>()(
       selectNode: (id) => set({ selectedNodeId: id }),
 
       updateNodePosition: (id, newPosition) => {
-        set((state) => ({
-          nodes: state.nodes.map((node) =>
+        set((state) => {
+          const updatedNodes = state.nodes.map((node) =>
             node.id === id ? { ...node, position: newPosition } : node
-          ),
-        }));
+          );
+
+          const updatedEdges = refreshConnectedEdges(id, updatedNodes, state.edges);
+
+          return { nodes: updatedNodes, edges: updatedEdges };
+        });
       },
 
       updateNodeDimensions: (id, width, height) => {
-        set((state) => ({
-          nodes: state.nodes.map((node) =>
+        set((state) => {
+          const updatedNodes = state.nodes.map((node) =>
             node.id === id ? { ...node, width, height } : node
-          ),
-        }));
+          );
+
+          const updatedEdges = refreshConnectedEdges(id, updatedNodes, state.edges);
+
+          return { nodes: updatedNodes, edges: updatedEdges };
+        });
       },
 
       updateNodeContent: (id, content) => {
@@ -164,25 +166,24 @@ export const useFlowStore = create<FlowState>()(
           const newBorderWidth = style.borderWidth !== undefined ? style.borderWidth : oldBorderWidth;
           const borderDiff = newBorderWidth - oldBorderWidth;
           
-          return {
-            nodes: state.nodes.map((n) =>
-              n.id === id
-                ? { 
-                    ...n, 
-                    style: { ...n.style, ...style },
-                    // Expand/contract dimensions when border changes
-                    width: n.width + borderDiff,
-                    height: n.height + borderDiff
-                  }
-                : n
-            ),
-          };
+          const updatedNodes = state.nodes.map((n) =>
+            n.id === id
+              ? { 
+                  ...n, 
+                  style: { ...n.style, ...style },
+                  width: n.width + borderDiff,
+                  height: n.height + borderDiff
+                }
+              : n
+          );
+
+          const updatedEdges = refreshConnectedEdges(id, updatedNodes, state.edges);
+
+          return { nodes: updatedNodes, edges: updatedEdges };
         });
       },
 
-      setNodes: (newNodes) => {
-        set({ nodes: newNodes });
-      },
+      setNodes: (newNodes) => set({ nodes: newNodes }),
 
       resetEditingStates: () => {
         set((state) => ({
@@ -190,15 +191,10 @@ export const useFlowStore = create<FlowState>()(
         }));
       },
 
-      // Edge operations
       addEdge: (edgeData) => {
         const id = uuidv4();
         const newEdge = createDefaultEdge(id, edgeData);
-
-        set((state) => ({
-          edges: [...state.edges, newEdge],
-        }));
-
+        set((state) => ({ edges: [...state.edges, newEdge] }));
         return id;
       },
 
@@ -209,23 +205,71 @@ export const useFlowStore = create<FlowState>()(
         }));
       },
 
-      selectEdge: (id) => {
-        set({ selectedEdgeId: id });
-      },
+      selectEdge: (id) => set({ selectedEdgeId: id }),
 
       updateEdgeHead: (id, to, toAnchor) => {
         set((state) => ({
-          edges: state.edges.map((edge) =>
-            edge.id === id ? { ...edge, to, toAnchor: toAnchor || edge.toAnchor } : edge
-          ),
+          edges: state.edges.map((edge) => {
+            if (edge.id !== id) return edge;
+            
+            const newEdge = { ...edge, to, toAnchor: toAnchor || edge.toAnchor };
+
+            if (newEdge.path === "elbow") {
+              const startNode = state.nodes.find(n => n.id === newEdge.from);
+              
+              let endPos: position | null = null;
+              if (typeof to === 'string') {
+                const node = state.nodes.find(n => n.id === to);
+                if (node) endPos = getAnchorPoint(node, newEdge.toAnchor || { side: 'top' });
+              } else {
+                endPos = to;
+              }
+
+              if (startNode && endPos && typeof newEdge.from === 'string') {
+                const startPos = getAnchorPoint(startNode, newEdge.fromAnchor || { side: "bottom" });
+                newEdge.points = createElbowPath(
+                  startPos, 
+                  endPos, 
+                  newEdge.fromAnchor?.side || "bottom", 
+                  newEdge.toAnchor?.side || "top"
+                );
+              }
+            }
+            return newEdge;
+          }),
         }));
       },
 
       updateEdgeTail: (id, from, fromAnchor) => {
         set((state) => ({
-          edges: state.edges.map((edge) =>
-            edge.id === id ? { ...edge, from, fromAnchor: fromAnchor || edge.fromAnchor } : edge
-          ),
+          edges: state.edges.map((edge) => {
+            if (edge.id !== id) return edge;
+            
+            const newEdge = { ...edge, from, fromAnchor: fromAnchor || edge.fromAnchor };
+
+            if (newEdge.path === "elbow") {
+              const endNode = state.nodes.find(n => n.id === newEdge.to);
+              
+              let startPos: position | null = null;
+              if (typeof from === 'string') {
+                const node = state.nodes.find(n => n.id === from);
+                if (node) startPos = getAnchorPoint(node, newEdge.fromAnchor || { side: 'bottom' });
+              } else {
+                startPos = from;
+              }
+
+              if (endNode && startPos && typeof newEdge.to === 'string') {
+                 const endPos = getAnchorPoint(endNode, newEdge.toAnchor || { side: "top" });
+                 newEdge.points = createElbowPath(
+                   startPos, 
+                   endPos, 
+                   newEdge.fromAnchor?.side || "bottom", 
+                   newEdge.toAnchor?.side || "top"
+                 );
+              }
+            }
+            return newEdge;
+          }),
         }));
       },
 
@@ -233,28 +277,39 @@ export const useFlowStore = create<FlowState>()(
         set((state) => ({
           edges: state.edges.map((edge) => {
             if (edge.id !== id) return edge;
+            const from = edge.to as string;
+            const to = edge.from as string;
+            const fromAnchor = edge.toAnchor;
+            const toAnchor = edge.fromAnchor;
             
+            let newPoints = edge.points || [];
+            if (edge.path === 'elbow') {
+               const startNode = state.nodes.find(n => n.id === from);
+               const endNode = state.nodes.find(n => n.id === to);
+               if(startNode && endNode) {
+                  const s = getAnchorPoint(startNode, fromAnchor || {side:'bottom'});
+                  const e = getAnchorPoint(endNode, toAnchor || {side:'top'});
+                  newPoints = createElbowPath(s, e, fromAnchor?.side || 'bottom', toAnchor?.side || 'top');
+               }
+            } else {
+               newPoints = newPoints.reverse();
+            }
+
             return {
               ...edge,
-              from: edge.to as string | position,
-              to: edge.from as string | position,
-              fromAnchor: edge.toAnchor,
-              toAnchor: edge.fromAnchor,
+              from, to, fromAnchor, toAnchor,
+              points: newPoints, 
             };
           }),
         }));
       },
 
-      setEdges: (newEdges) => {
-        set({ edges: newEdges });
-      },
+      setEdges: (newEdges) => set({ edges: newEdges }),
 
       updateEdgeStyles: (id, style) => {
         set((state) => ({
           edges: state.edges.map((edge) =>
-            edge.id === id
-              ? { ...edge, style: { ...edge.style, ...style } }
-              : edge
+            edge.id === id ? { ...edge, style: { ...edge.style, ...style } } : edge
           ),
         }));
       },
@@ -267,12 +322,73 @@ export const useFlowStore = create<FlowState>()(
         }));
       },
 
-      // Viewport operations
-      setViewport: (viewport) => {
-        set({ viewport });
+      updateEdgeSegmentPosition: (id, segmentIndex, change) => {
+        set((state) => ({
+          edges: state.edges.map((edge) => {
+            if (edge.id !== id || !edge.points) return edge;
+            const newPoints = [...edge.points];
+            const p1Index = segmentIndex;
+            const p2Index = segmentIndex + 1;
+
+            if (p2Index >= newPoints.length) return edge;
+
+            if (change.axis === 'x') {
+              newPoints[p1Index] = { ...newPoints[p1Index], x: change.value };
+              newPoints[p2Index] = { ...newPoints[p2Index], x: change.value };
+            } else {
+              newPoints[p1Index] = { ...newPoints[p1Index], y: change.value };
+              newPoints[p2Index] = { ...newPoints[p2Index], y: change.value };
+            }
+
+            return { ...edge, points: newPoints };
+          }),
+        }));
       },
 
-      // UI state setters
+      convertToStraight: (id) => {
+        set((state) => ({
+          edges: state.edges.map((edge) =>
+            edge.id === id ? { ...edge, path: "straight", points: [] } : edge
+          ),
+        }));
+      },
+
+      convertToElbow: (id) => {
+        set((state) => ({
+          edges: state.edges.map((edge) => {
+            if (edge.id !== id || edge.path === "elbow") return edge;
+
+            const sourceNode = state.nodes.find((n) => n.id === edge.from);
+            const targetNode = state.nodes.find((n) => n.id === edge.to);
+
+            if (
+              sourceNode &&
+              targetNode &&
+              typeof edge.from === "string" &&
+              typeof edge.to === "string"
+            ) {
+              const startSide = edge.fromAnchor?.side || "bottom";
+              const endSide = edge.toAnchor?.side || "top";
+
+              const start = getAnchorPoint(sourceNode, { side: startSide });
+              const end = getAnchorPoint(targetNode, { side: endSide });
+
+              const newPoints = createElbowPath(start, end, startSide, endSide);
+
+              return { ...edge, path: "elbow", points: newPoints };
+            }
+            return { ...edge, path: "elbow", points: [] };
+          }),
+        }));
+      },
+      
+      updateEdgePath: (id, path) => {
+         const { convertToStraight, convertToElbow } = get();
+         if(path === 'straight') convertToStraight(id);
+         if(path === 'elbow') convertToElbow(id);
+      },
+
+      setViewport: (viewport) => set({ viewport }),
       setIsDraggingNode: (isDraggingNode) => set({ isDraggingNode }),
       setIsResizingNode: (isResizingNode) => set({ isResizingNode }),
       setIsDraggingEdge: (isDraggingEdge) => set({ isDraggingEdge }),
