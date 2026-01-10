@@ -19,6 +19,11 @@ export type Rectangle = {
 export type ResizeHandle = 'nw' | 'ne' | 'sw' | 'se' | 'n' | 's' | 'e' | 'w' | null | undefined;
 export type ExportFormat = 'png' | 'jpeg';
 
+export type AlignmentCandidate = {
+  endpoint: position;
+  myAnchor: EdgeAnchor;
+};
+
 // Edge related types
 
 export type EdgePathType = "straight" | "elbow" | string; // add more types as needed
