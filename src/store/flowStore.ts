@@ -211,26 +211,35 @@ export const useFlowStore = create<FlowState>()(
         set((state) => ({
           edges: state.edges.map((edge) => {
             if (edge.id !== id) return edge;
-            
+
             const newEdge = { ...edge, to, toAnchor: toAnchor || edge.toAnchor };
 
             if (newEdge.path === "elbow") {
-              const startNode = state.nodes.find(n => n.id === newEdge.from);
-              
-              let endPos: position | null = null;
+              let startPos = null;
+              if (typeof newEdge.from === 'string') {
+                const node = state.nodes.find((n) => n.id === newEdge.from);
+                if (node) {
+                  startPos = getAnchorPoint(node, newEdge.fromAnchor || { side: "bottom" });
+                }
+              } else {
+                startPos = newEdge.from;
+              }
+
+              let endPos = null;
               if (typeof to === 'string') {
-                const node = state.nodes.find(n => n.id === to);
-                if (node) endPos = getAnchorPoint(node, newEdge.toAnchor || { side: 'top' });
+                const node = state.nodes.find((n) => n.id === to);
+                if (node) {
+                  endPos = getAnchorPoint(node, newEdge.toAnchor || { side: 'top' });
+                }
               } else {
                 endPos = to;
               }
 
-              if (startNode && endPos && typeof newEdge.from === 'string') {
-                const startPos = getAnchorPoint(startNode, newEdge.fromAnchor || { side: "bottom" });
+              if (startPos && endPos) {
                 newEdge.points = createElbowPath(
-                  startPos, 
-                  endPos, 
-                  newEdge.fromAnchor?.side || "bottom", 
+                  startPos,
+                  endPos,
+                  newEdge.fromAnchor?.side || "bottom",
                   newEdge.toAnchor?.side || "top"
                 );
               }
@@ -244,28 +253,37 @@ export const useFlowStore = create<FlowState>()(
         set((state) => ({
           edges: state.edges.map((edge) => {
             if (edge.id !== id) return edge;
-            
+
             const newEdge = { ...edge, from, fromAnchor: fromAnchor || edge.fromAnchor };
 
             if (newEdge.path === "elbow") {
-              const endNode = state.nodes.find(n => n.id === newEdge.to);
-              
-              let startPos: position | null = null;
+              let startPos = null;
               if (typeof from === 'string') {
-                const node = state.nodes.find(n => n.id === from);
-                if (node) startPos = getAnchorPoint(node, newEdge.fromAnchor || { side: 'bottom' });
+                const node = state.nodes.find((n) => n.id === from);
+                if (node) {
+                  startPos = getAnchorPoint(node, newEdge.fromAnchor || { side: 'bottom' });
+                }
               } else {
                 startPos = from;
               }
 
-              if (endNode && startPos && typeof newEdge.to === 'string') {
-                 const endPos = getAnchorPoint(endNode, newEdge.toAnchor || { side: "top" });
-                 newEdge.points = createElbowPath(
-                   startPos, 
-                   endPos, 
-                   newEdge.fromAnchor?.side || "bottom", 
-                   newEdge.toAnchor?.side || "top"
-                 );
+              let endPos = null;
+              if (typeof newEdge.to === 'string') {
+                const node = state.nodes.find((n) => n.id === newEdge.to);
+                if (node) {
+                  endPos = getAnchorPoint(node, newEdge.toAnchor || { side: "top" });
+                }
+              } else {
+                endPos = newEdge.to;
+              }
+
+              if (startPos && endPos) {
+                newEdge.points = createElbowPath(
+                  startPos,
+                  endPos,
+                  newEdge.fromAnchor?.side || "bottom",
+                  newEdge.toAnchor?.side || "top"
+                );
               }
             }
             return newEdge;
@@ -358,30 +376,39 @@ export const useFlowStore = create<FlowState>()(
           edges: state.edges.map((edge) => {
             if (edge.id !== id || edge.path === "elbow") return edge;
 
-            const sourceNode = state.nodes.find((n) => n.id === edge.from);
-            const targetNode = state.nodes.find((n) => n.id === edge.to);
+            let start = null;
+            const startSide = edge.fromAnchor?.side || "bottom";
 
-            if (
-              sourceNode &&
-              targetNode &&
-              typeof edge.from === "string" &&
-              typeof edge.to === "string"
-            ) {
-              const startSide = edge.fromAnchor?.side || "bottom";
-              const endSide = edge.toAnchor?.side || "top";
+            if (typeof edge.from === "string") {
+              const sourceNode = state.nodes.find((n) => n.id === edge.from);
+              if (sourceNode) {
+                start = getAnchorPoint(sourceNode, { side: startSide });
+              }
+            } else if (edge.from && typeof edge.from === "object") {
+              start = edge.from;
+            }
 
-              const start = getAnchorPoint(sourceNode, { side: startSide });
-              const end = getAnchorPoint(targetNode, { side: endSide });
+            let end = null;
+            const endSide = edge.toAnchor?.side || "top";
 
+            if (typeof edge.to === "string") {
+              const targetNode = state.nodes.find((n) => n.id === edge.to);
+              if (targetNode) {
+                end = getAnchorPoint(targetNode, { side: endSide });
+              }
+            } else if (edge.to && typeof edge.to === "object") {
+              end = edge.to;
+            }
+
+            if (start && end) {
               const newPoints = createElbowPath(start, end, startSide, endSide);
-
               return { ...edge, path: "elbow", points: newPoints };
             }
+
             return { ...edge, path: "elbow", points: [] };
           }),
         }));
       },
-      
       updateEdgePath: (id, path) => {
          const { convertToStraight, convertToElbow } = get();
          if(path === 'straight') convertToStraight(id);

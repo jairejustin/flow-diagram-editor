@@ -118,31 +118,30 @@ export const refreshConnectedEdges = (
   currentEdges: EdgeData[]
 ): EdgeData[] => {
   return currentEdges.map((edge) => {
-    // 1. Filter irrelevant edges (not elbow, or not connected to changed node)
     if (edge.path !== "elbow") return edge;
     if (edge.from !== changedNodeId && edge.to !== changedNodeId) return edge;
 
-    // 2. Resolve Source/Target Nodes from the FRESH node list
-    const startNode = currentNodes.find((n) => n.id === edge.from);
-    const endNode = currentNodes.find((n) => n.id === edge.to);
-
-    // 3. Safety Checks
-    if (
-      !startNode || 
-      !endNode || 
-      typeof edge.from !== 'string' || 
-      typeof edge.to !== 'string'
-    ) {
-      return edge;
+    let startPos: position | null = null;
+    if (typeof edge.from === "string") {
+      const node = currentNodes.find((n) => n.id === edge.from);
+      if (node) startPos = getAnchorPoint(node, edge.fromAnchor || { side: "bottom" });
+    } else {
+      startPos = edge.from;
     }
 
-    // 4. Calculate Anchors & Regenerate Path
-    const startAnchor = getAnchorPoint(startNode, edge.fromAnchor || { side: "bottom" });
-    const endAnchor = getAnchorPoint(endNode, edge.toAnchor || { side: "top" });
+    let endPos: position | null = null;
+    if (typeof edge.to === "string") {
+      const node = currentNodes.find((n) => n.id === edge.to);
+      if (node) endPos = getAnchorPoint(node, edge.toAnchor || { side: "top" });
+    } else {
+      endPos = edge.to;
+    }
+
+    if (!startPos || !endPos) return edge;
 
     const newPoints = createElbowPath(
-      startAnchor,
-      endAnchor,
+      startPos,
+      endPos,
       edge.fromAnchor?.side || "bottom",
       edge.toAnchor?.side || "top"
     );
@@ -150,7 +149,6 @@ export const refreshConnectedEdges = (
     return { ...edge, points: newPoints };
   });
 };
-
 // --- ARROWHEADS ---
 
 export function getArrowheadDimensions (edgeWidth: number) : { width: number; height: number; refX: number; refY: number } {
