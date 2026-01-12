@@ -66,22 +66,18 @@ function PolylineEdge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
             index={storeIndex}
             p1={p1}
             p2={p2}
-            prevPoint={prevPoint} // NEW: Pass Previous Point
-            nextPoint={nextPoint} // NEW: Pass Next Point
+            prevPoint={prevPoint}
+            nextPoint={nextPoint} 
             edgeId={edge.id}
             color={color}
             edgeWidth={edgeWidth}
             isSelected={isSelected && !isDockingSegment} 
             onEdgeClick={onEdgeClick}
+            isLast={i===points.length-2}
           />
         );
       })}
 
-      {/* Optional: Add Arrowhead to last segment manually if needed, 
-          but usually we attach markerEnd to a path. Since we use lines, 
-          we attach it to the LAST line segment. */}
-      
-      {/* Re-render just the last line segment with the markerEnd for the arrow */}
       <line
         x1={points[points.length-2].x} y1={points[points.length-2].y}
         x2={points[points.length-1].x} y2={points[points.length-1].y}
@@ -176,7 +172,7 @@ function StraightEdge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
         x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y}
         stroke={color}
         strokeWidth={edgeWidth}
-        strokeDasharray={storeEdge.style?.dashed ? "5,5" : "none"}
+        strokeDasharray={`${(Math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2)) - edgeWidth} ${edgeWidth}`}
         strokeLinecap="round"
         markerEnd={`url(#arrowhead-${edge.id})`}
         style={{ 

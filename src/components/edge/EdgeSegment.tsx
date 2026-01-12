@@ -13,6 +13,7 @@ interface EdgeSegmentProps {
   color: string;
   edgeWidth: number;
   isSelected: boolean;
+  isLast: boolean;
   onEdgeClick: (e: React.PointerEvent) => void;
 }
 
@@ -26,7 +27,8 @@ export function EdgeSegment({
   color,
   edgeWidth,
   isSelected,
-  onEdgeClick
+  onEdgeClick,
+  isLast
 }: EdgeSegmentProps) {
   const [isDragging, setIsDragging] = useState(false);
   const startMousePos = useRef({ x: 0, y: 0 });
@@ -103,19 +105,27 @@ export function EdgeSegment({
     }
   };
 
-  // Update cursor: if locked, show pointer instead of resize
   const cursor = !canDrag ? "pointer" : isVertical ? "col-resize" : "row-resize";
 
-  return (
-    <g>
-      {/* Visual Line */}
-      <line
-        x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y}
-        stroke={color}
-        strokeWidth={edgeWidth}
-        style={{ opacity: isSelected ? 1 : 0.8 }}
-      />
+  const dx = p2.x - p1.x;
+  const dy = p2.y - p1.y;
+  const totalLength = Math.sqrt(dx * dx + dy * dy);
 
+const dashLength = totalLength > edgeWidth ? totalLength - edgeWidth : 0;
+
+return (
+  <g>
+    <line
+      x1={p1.x}
+      y1={p1.y}
+      x2={p2.x}
+      y2={p2.y}
+      stroke={color}
+      strokeWidth={edgeWidth}
+      strokeDasharray={isLast ? `${dashLength} ${totalLength}` : ''}
+      strokeLinecap="round"
+      style={{ opacity: isSelected ? 1 : 0.8 }}
+    />
       {/* Hit Area */}
       <line
         x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y}
