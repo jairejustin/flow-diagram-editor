@@ -27,14 +27,11 @@ const ToggleEditor = ({ onToggle }: ToggleEditorProps) => {
   };
 
   return (
-    <button 
-      className="mobile-toggle-editor-button"
-      onPointerDown={handleClick}
-    >
-      <Edit3/>
+    <button className="mobile-toggle-editor-button" onPointerDown={handleClick}>
+      <Edit3 />
     </button>
-  )
-}
+  );
+};
 
 export default function CanvasPage() {
   const selectedNodeId = useFlowStore((state) => state.selectedNodeId);
@@ -45,7 +42,6 @@ export default function CanvasPage() {
   const isExporting = useFlowStore((state) => state.isExporting);
   const setShowPanel = useFlowStore((state) => state.setShowPanel);
 
-
   // Subscribe to nodes and edges from store
   const nodes = useFlowStore((state) => state.nodes);
   const edges = useFlowStore((state) => state.edges);
@@ -55,7 +51,7 @@ export default function CanvasPage() {
   const [translateY, setTranslateY] = useState(viewport.y);
   const [scale, setScale] = useState(viewport.zoom);
   const [isPanning, setIsPanning] = useState(false);
-  
+
   const { handlePointerDown, handleWheel } = useCanvasPan(
     translateX,
     translateY,
@@ -86,156 +82,157 @@ export default function CanvasPage() {
     setTranslateX(0);
     setTranslateY(0);
     useFlowStore.getState().setViewport({ x: 0, y: 0, zoom: 1 });
-  }
+  };
 
   return (
     <>
-    <div
-      id="canvas-container"
-      className="canvas"
-      onPointerDown={handlePointerDown}
-      onWheel={handleWheel}
-      style={{
-        touchAction: 'none',
-      }}
-    >
-      {!isExporting && (
-        <>
-          <Toolbar />
-          {selectedNodeId && (!isNarrow || showPanel) && (
-            <NodeStylePanel id={selectedNodeId}/>
-          )}
-          {selectedEdgeId && (!isNarrow || showPanel) && (
-            <EdgeStylePanel id={selectedEdgeId}/>
-          )}
-          {isNarrow && (selectedNodeId || selectedEdgeId) && (
-            <ToggleEditor 
-              isOpen={showPanel}
-              onToggle={() => setShowPanel(!showPanel)}
-            />
-          )}
-          <ZoomControls
-            zoomFactor={scale}
-            onZoomIn={onZoomIn}
-            onZoomOut={onZoomOut}
-            onReset={onReset}
-          />
-        </>
-      )}
       <div
+        id="canvas-container"
+        className="canvas"
+        onPointerDown={handlePointerDown}
+        onWheel={handleWheel}
         style={{
-          transform: `translate(${translateX}px, ${translateY}px) scale(${scale})`,
-          transformOrigin: "0 0",
-          position: "absolute",
-          left: 0,
-          top: 0,
-          width: "100%",
-          height: "100%",
-          pointerEvents: "auto",
+          touchAction: "none",
         }}
       >
-        <svg
+        {!isExporting && (
+          <>
+            <Toolbar />
+            {selectedNodeId && (!isNarrow || showPanel) && (
+              <NodeStylePanel id={selectedNodeId} />
+            )}
+            {selectedEdgeId && (!isNarrow || showPanel) && (
+              <EdgeStylePanel id={selectedEdgeId} />
+            )}
+            {isNarrow && (selectedNodeId || selectedEdgeId) && (
+              <ToggleEditor
+                isOpen={showPanel}
+                onToggle={() => setShowPanel(!showPanel)}
+              />
+            )}
+            <ZoomControls
+              zoomFactor={scale}
+              onZoomIn={onZoomIn}
+              onZoomOut={onZoomOut}
+              onReset={onReset}
+            />
+          </>
+        )}
+        <div
           style={{
+            transform: `translate(${translateX}px, ${translateY}px) scale(${scale})`,
+            transformOrigin: "0 0",
             position: "absolute",
             left: 0,
             top: 0,
             width: "100%",
             height: "100%",
-            pointerEvents: "none",
-            overflow: "visible",
+            pointerEvents: "auto",
           }}
         >
-          {edges.map((edge) => (
-            <Edge key={edge.id} edge={edge} nodes={nodes} />
+          <svg
+            style={{
+              position: "absolute",
+              left: 0,
+              top: 0,
+              width: "100%",
+              height: "100%",
+              pointerEvents: "none",
+              overflow: "visible",
+            }}
+          >
+            {edges.map((edge) => (
+              <Edge key={edge.id} edge={edge} nodes={nodes} />
+            ))}
+          </svg>
+          {nodes.map((node) => (
+            <React.Fragment key={node.id}>
+              <Node node={node} />
+              {selectedNodeId === node.id && !node.editing && (
+                <>
+                  <ResizeHandles
+                    nodeId={node.id}
+                    position={node.position}
+                    width={node.width}
+                    height={node.height}
+                    scale={scale}
+                  />
+                  <EdgeCreationHandles
+                    nodeId={node.id}
+                    position={node.position}
+                    width={node.width}
+                    height={node.height}
+                    isMobile={isNarrow}
+                  />
+                </>
+              )}
+            </React.Fragment>
           ))}
-        </svg>
-        {nodes.map((node) => (
-          <React.Fragment key={node.id}>
-            <Node node={node} />
-            {selectedNodeId === node.id && !node.editing && (
-              <>
-                <ResizeHandles
-                  nodeId={node.id}
-                  position={node.position}
-                  width={node.width}
-                  height={node.height}
-                  scale={scale}
-                />
-                <EdgeCreationHandles
-                  nodeId={node.id}
-                  position={node.position}
-                  width={node.width}
-                  height={node.height}
-                  scale={scale}
-                />
-              </>
-            )}
-          </React.Fragment>
-        ))}
 
-        {/* temporary solution to put the dots above nodes in z-index */}
-        {selectedEdgeId && (() => {
-          const edge = edges.find(e => e.id === selectedEdgeId);
-          if (!edge) return null;
-          
-          const fromNode = nodes.find(n => n.id === edge.from);
-          if (!fromNode) return null;
-          
-          const p1 = getAnchorPoint(fromNode, edge.fromAnchor);
-          let p2;
-          
-          if (typeof edge.to === "string") {
-            const toNode = nodes.find(n => n.id === edge.to);
-            if (!toNode) return null;
-            p2 = getAnchorPoint(toNode, edge.toAnchor);
-          } else {
-            p2 = edge.to;
-          }
-          
-          const color = edge.style?.color || "black";
-          
-          return (
-            <>
-              <div
-                style={{
-                  position: 'absolute',
-                  left: p1.x,
-                  top: p1.y,
-                  width: 10,
-                  height: 10,
-                  marginLeft: -8,
-                  marginTop: -8,
-                  borderRadius: '50%',
-                  backgroundColor: color,
-                  border: '2px solid white',
-                  pointerEvents: 'auto',
-                  cursor: 'grab',
-                  zIndex: 1000,
-                }}
-              />
-              <div
-                style={{
-                  position: 'absolute',
-                  left: p2.x,
-                  top: p2.y,
-                  width: 10,
-                  height: 10,
-                  marginLeft: -8,
-                  marginTop: -8,
-                  borderRadius: '50%',
-                  backgroundColor: color,
-                  border: '2px solid white',
-                  pointerEvents: 'auto',
-                  cursor: 'grab',
-                  zIndex: 1000,
-                }}
-              />
-            </>
-          );
-        })()}
+          {/* temporary solution to put the dots above nodes in z-index */}
+          {selectedEdgeId &&
+            (() => {
+              const edge = edges.find((e) => e.id === selectedEdgeId);
+              if (!edge) return null;
+
+              const fromNode = nodes.find((n) => n.id === edge.from);
+              if (!fromNode) return null;
+
+              const p1 = getAnchorPoint(fromNode, edge.fromAnchor);
+              let p2;
+
+              if (typeof edge.to === "string") {
+                const toNode = nodes.find((n) => n.id === edge.to);
+                if (!toNode) return null;
+                p2 = getAnchorPoint(toNode, edge.toAnchor);
+              } else {
+                p2 = edge.to;
+              }
+
+              const color = edge.style?.color || "black";
+
+              return (
+                <>
+                  <div
+                    style={{
+                      position: "absolute",
+                      left: p1.x,
+                      top: p1.y,
+                      width: 10,
+                      height: 10,
+                      marginLeft: -8,
+                      marginTop: -8,
+                      borderRadius: "50%",
+                      backgroundColor: color,
+                      border: "2px solid white",
+                      pointerEvents: "auto",
+                      cursor: "grab",
+                      zIndex: 1000,
+                    }}
+                  />
+                  <div
+                    style={{
+                      position: "absolute",
+                      left: p2.x,
+                      top: p2.y,
+                      width: 10,
+                      height: 10,
+                      marginLeft: -8,
+                      marginTop: -8,
+                      borderRadius: "50%",
+                      backgroundColor: color,
+                      border: "2px solid white",
+                      pointerEvents: "auto",
+                      cursor: "grab",
+                      zIndex: 1000,
+                    }}
+                  />
+                </>
+              );
+            })()}
+        </div>
       </div>
-    </div>
-    {isExporting && <ExportOverlay/>}
+      {isExporting && <ExportOverlay />}
     </>
   );
 }

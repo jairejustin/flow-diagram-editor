@@ -7,7 +7,7 @@ interface EdgeCreationHandlesProps {
   position: { x: number; y: number };
   width: number;
   height: number;
-  scale: number;
+  isMobile: boolean;
 }
 
 export const EdgeCreationHandles = ({
@@ -15,6 +15,7 @@ export const EdgeCreationHandles = ({
   position,
   width,
   height,
+  isMobile,
 }: EdgeCreationHandlesProps) => {
   const { onHandlePointerDown } = useEdgeCreation(
     nodeId,
@@ -23,19 +24,39 @@ export const EdgeCreationHandles = ({
     height
   );
 
-  const handleSize = 20;
-  const offset = 20; 
+  const handleSize = isMobile ? 30 : 20;
+  const offset = isMobile ? 30 : 20;
 
-  const edgeHandles: { 
-    handle: EdgeHandle; 
-    x: number; 
-    y: number; 
+  const edgeHandles: {
+    handle: EdgeHandle;
+    x: number;
+    y: number;
     Icon: typeof ArrowUp;
   }[] = [
-    { handle: "n", x: width / 2 - handleSize / 2, y: -offset - handleSize / 2, Icon: ArrowUp },
-    { handle: "s", x: width / 2 - handleSize / 2, y: height + offset - handleSize / 2, Icon: ArrowDown },
-    { handle: "e", x: width + offset - handleSize / 2, y: height / 2 - handleSize / 2, Icon: ArrowRight },
-    { handle: "w", x: -offset - handleSize / 2, y: height / 2 - handleSize / 2, Icon: ArrowLeft },
+    {
+      handle: "n",
+      x: width / 2 - handleSize / 2,
+      y: -offset - handleSize / 2,
+      Icon: ArrowUp,
+    },
+    {
+      handle: "s",
+      x: width / 2 - handleSize / 2,
+      y: height + offset - handleSize / 2,
+      Icon: ArrowDown,
+    },
+    {
+      handle: "e",
+      x: width + offset - handleSize / 2,
+      y: height / 2 - handleSize / 2,
+      Icon: ArrowRight,
+    },
+    {
+      handle: "w",
+      x: -offset - handleSize / 2,
+      y: height / 2 - handleSize / 2,
+      Icon: ArrowLeft,
+    },
   ];
 
   return (
@@ -46,6 +67,7 @@ export const EdgeCreationHandles = ({
         width: width,
         height: height,
         pointerEvents: "none",
+        zIndex: 999,
       }}
     >
       {edgeHandles.map(({ handle, x, y, Icon }) => (
