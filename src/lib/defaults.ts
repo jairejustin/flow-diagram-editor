@@ -1,4 +1,10 @@
-import type { NodeData, EdgeData, NodeStyle, EdgeStyle, Viewport } from "./types";
+import type {
+  NodeData,
+  EdgeData,
+  NodeStyle,
+  EdgeStyle,
+  Viewport,
+} from "./types";
 
 export const DEFAULT_NODE_CONFIG = {
   width: 200,

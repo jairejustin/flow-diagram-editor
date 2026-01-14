@@ -1,23 +1,33 @@
 export type Viewport = {
-  x: number 
-  y: number
-  zoom: number
-}
+  x: number;
+  y: number;
+  zoom: number;
+};
 
 export type position = {
-  x: number
-  y: number
-}
+  x: number;
+  y: number;
+};
 
 export type Rectangle = {
-  x: number
-  y: number
-  width: number
-  height: number
-}
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
 
-export type ResizeHandle = 'nw' | 'ne' | 'sw' | 'se' | 'n' | 's' | 'e' | 'w' | null | undefined;
-export type ExportFormat = 'png' | 'jpeg';
+export type ResizeHandle =
+  | "nw"
+  | "ne"
+  | "sw"
+  | "se"
+  | "n"
+  | "s"
+  | "e"
+  | "w"
+  | null
+  | undefined;
+export type ExportFormat = "png" | "jpeg";
 
 export type AlignmentCandidate = {
   endpoint: position;
@@ -29,35 +39,34 @@ export type AlignmentCandidate = {
 export type EdgePathType = "straight" | "elbow" | string; // add more types as needed
 
 export interface EdgeAnchor {
-  side: "top" | "bottom" | "left" | "right" | undefined
-  offset?: position
+  side: "top" | "bottom" | "left" | "right" | undefined;
+  offset?: position;
 }
 
 export interface EdgeLabel {
-  text: string
-  t: number  
-  fontSize?: number
+  text: string;
+  t: number;
+  fontSize?: number;
 }
 
 export interface EdgeStyle {
-  color?: string
-  width?: number
-  dashed?: boolean
+  color?: string;
+  width?: number;
+  dashed?: boolean;
 }
 
-
 export interface EdgeData {
-  id: string
-  from: string | position
-  to: string | position
-  path: EdgePathType
-  fromAnchor: EdgeAnchor
-  toAnchor: EdgeAnchor
-  label?: EdgeLabel
-  style?: EdgeStyle
+  id: string;
+  from: string | position;
+  to: string | position;
+  path: EdgePathType;
+  fromAnchor: EdgeAnchor;
+  toAnchor: EdgeAnchor;
+  label?: EdgeLabel;
+  style?: EdgeStyle;
 
   // transient
-  points?: position[]
+  points?: position[];
 }
 
 // Node related types
@@ -71,13 +80,13 @@ export type NodeShape =
   | "document";
 
 export interface NodeStyle {
-  backgroundColor?: string
-  borderColor?: string
-  borderWidth?: number
-  borderRadius?: number
-  textColor?: string
-  fontSize?: number
-  fontWeight?: string
+  backgroundColor?: string;
+  borderColor?: string;
+  borderWidth?: number;
+  borderRadius?: number;
+  textColor?: string;
+  fontSize?: number;
+  fontWeight?: string;
 }
 
 export interface NodeData {
@@ -94,13 +103,11 @@ export interface NodeData {
 // FlowDocument type
 
 export type FlowDocument = {
-  id: string
-  title: string
-  createdAt: number
-  updatedAt: number
-  nodes: NodeData[]
-  edges: EdgeData[]
-  viewport: Viewport
-}
-
-
+  id: string;
+  title: string;
+  createdAt: number;
+  updatedAt: number;
+  nodes: NodeData[];
+  edges: EdgeData[];
+  viewport: Viewport;
+};

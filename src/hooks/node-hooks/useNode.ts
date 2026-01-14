@@ -15,7 +15,9 @@ interface UseNodeResult {
 }
 
 export function useNode(node: NodeData): UseNodeResult {
-  const storeNode = useFlowStore((state) => state.nodes.find((n) => n.id === node.id));
+  const storeNode = useFlowStore((state) =>
+    state.nodes.find((n) => n.id === node.id)
+  );
 
   const position = storeNode?.position || { x: 0, y: 0 };
   const height = storeNode?.height || 100;
@@ -26,7 +28,7 @@ export function useNode(node: NodeData): UseNodeResult {
   const { onPointerDown } = useNodeDrag(node.id, position, editing);
 
   const border = node.style?.borderWidth || 2;
-  const pad = (border < 3) ? (border / 2) + 2 : (border / 5) + 3;
+  const pad = border < 3 ? border / 2 + 2 : border / 5 + 3;
 
   return {
     storeNode,
@@ -37,6 +39,6 @@ export function useNode(node: NodeData): UseNodeResult {
     text,
     border,
     pad,
-    onPointerDown
+    onPointerDown,
   };
 }

@@ -9,18 +9,13 @@ interface ZoomControlsProps {
 }
 
 export default function ZoomControls(ZoomControlsProps: ZoomControlsProps) {
-  const { 
-    onZoomIn, 
-    onZoomOut, 
-    zoomFactor,
-    onReset 
-  } = ZoomControlsProps;
-  
+  const { onZoomIn, onZoomOut, zoomFactor, onReset } = ZoomControlsProps;
+
   return (
     <div className="zoom-controls">
-        <p>{Math.round(zoomFactor*100)}%</p>
+      <p>{Math.round(zoomFactor * 100)}%</p>
       <button className="zoom-controls__button" onClick={onZoomIn}>
-        <Plus/>
+        <Plus />
       </button>
       <button className="zoom-controls__button" onClick={onZoomOut}>
         <Minus />

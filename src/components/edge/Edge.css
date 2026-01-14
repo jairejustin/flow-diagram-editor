@@ -1,9 +1,9 @@
 .hover-indicator:hover {
-    fill: rgba(0,0,0,0.1);
+  fill: rgba(0, 0, 0, 0.1);
 }
 
 .dot {
-    cursor: grab;
-    touch-action: none;
-    pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+  pointer-events: auto;
 }

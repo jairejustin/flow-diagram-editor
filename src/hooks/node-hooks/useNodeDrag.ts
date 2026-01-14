@@ -1,7 +1,12 @@
 import { useRef, useCallback, useEffect } from "react";
 import { useFlowStore } from "../../store/flowStore";
 import { getAnchorPoint } from "../../lib/utils";
-import type { position, NodeData, NodeShape, AlignmentCandidate } from "../../lib/types";
+import type {
+  position,
+  NodeData,
+  NodeShape,
+  AlignmentCandidate,
+} from "../../lib/types";
 import { ALIGNMENT_THRESHOLD } from "../../lib/constants";
 
 export function useNodeDrag(
@@ -14,8 +19,8 @@ export function useNodeDrag(
   const activePointerId = useRef<number | null>(null);
   const alignmentCandidatesRef = useRef<AlignmentCandidate[]>([]);
 
-  const isAlignedRef = useRef<{ 
-    x: boolean; 
+  const isAlignedRef = useRef<{
+    x: boolean;
     y: boolean;
     targetX?: number;
     targetY?: number;
@@ -32,27 +37,37 @@ export function useNodeDrag(
   });
 
   const selectNode = useCallback(
-    (id: string | null) => useFlowStore.setState({ selectedNodeId: id, selectedEdgeId: null }),
+    (id: string | null) =>
+      useFlowStore.setState({ selectedNodeId: id, selectedEdgeId: null }),
     []
   );
   const updateNodePosition = useFlowStore((state) => state.updateNodePosition);
   const setIsDraggingNode = useFlowStore((state) => state.setIsDraggingNode);
   const viewMode = useFlowStore((state) => state.viewMode);
-  
+
   const allEdges = useFlowStore((state) => state.edges);
   const allNodes = useFlowStore((state) => state.nodes);
 
   const cleanupListeners = useCallback(() => {
     if (handlersRef.current.onPointerMove) {
-      document.removeEventListener("pointermove", handlersRef.current.onPointerMove);
+      document.removeEventListener(
+        "pointermove",
+        handlersRef.current.onPointerMove
+      );
       handlersRef.current.onPointerMove = null;
     }
     if (handlersRef.current.onPointerUp) {
-      document.removeEventListener("pointerup", handlersRef.current.onPointerUp);
+      document.removeEventListener(
+        "pointerup",
+        handlersRef.current.onPointerUp
+      );
       handlersRef.current.onPointerUp = null;
     }
     if (handlersRef.current.onPointerCancel) {
-      document.removeEventListener("pointercancel", handlersRef.current.onPointerCancel);
+      document.removeEventListener(
+        "pointercancel",
+        handlersRef.current.onPointerCancel
+      );
       handlersRef.current.onPointerCancel = null;
     }
     activePointerId.current = null;
@@ -67,7 +82,7 @@ export function useNodeDrag(
 
   const calculateConnectedEndpoints = useCallback(() => {
     const endpoints: AlignmentCandidate[] = [];
-    
+
     const connectedEdges = allEdges.filter(
       (edge) => edge.from === nodeId || edge.to === nodeId
     );
@@ -129,7 +144,7 @@ export function useNodeDrag(
 
       for (const { endpoint, myAnchor } of candidates) {
         const myAnchorPoint = getAnchorPoint(currentNodeData, myAnchor);
-        
+
         const deltaX = Math.abs(myAnchorPoint.x - endpoint.x);
         const deltaY = Math.abs(myAnchorPoint.y - endpoint.y);
 
@@ -153,8 +168,12 @@ export function useNodeDrag(
 
   const onMove = useCallback(
     (clientX: number, clientY: number) => {
-      const dx = (clientX - pointerPosRef.current.x) / useFlowStore.getState().viewport.zoom;
-      const dy = (clientY - pointerPosRef.current.y) / useFlowStore.getState().viewport.zoom;
+      const dx =
+        (clientX - pointerPosRef.current.x) /
+        useFlowStore.getState().viewport.zoom;
+      const dy =
+        (clientY - pointerPosRef.current.y) /
+        useFlowStore.getState().viewport.zoom;
 
       let newX = startPosRef.current.x + dx;
       let newY = startPosRef.current.y + dy;
@@ -167,7 +186,10 @@ export function useNodeDrag(
       const endpointsWithAnchors = alignmentCandidatesRef.current;
 
       if (endpointsWithAnchors.length > 0) {
-        if (isAlignedRef.current.x && isAlignedRef.current.targetX !== undefined) {
+        if (
+          isAlignedRef.current.x &&
+          isAlignedRef.current.targetX !== undefined
+        ) {
           const deltaX = Math.abs(newX - isAlignedRef.current.targetX);
           if (deltaX > ALIGNMENT_THRESHOLD * 2) {
             isAlignedRef.current.x = false;
@@ -178,7 +200,9 @@ export function useNodeDrag(
         } else {
           const alignmentTarget = findAlignmentTarget(
             { x: newX, y: newY },
-            width, height, shape,
+            width,
+            height,
+            shape,
             endpointsWithAnchors
           );
           if (alignmentTarget.x !== undefined) {
@@ -188,7 +212,10 @@ export function useNodeDrag(
           }
         }
 
-        if (isAlignedRef.current.y && isAlignedRef.current.targetY !== undefined) {
+        if (
+          isAlignedRef.current.y &&
+          isAlignedRef.current.targetY !== undefined
+        ) {
           const deltaY = Math.abs(newY - isAlignedRef.current.targetY);
           if (deltaY > ALIGNMENT_THRESHOLD * 2) {
             isAlignedRef.current.y = false;
@@ -199,7 +226,9 @@ export function useNodeDrag(
         } else {
           const alignmentTarget = findAlignmentTarget(
             { x: newX, y: newY },
-            width, height, shape,
+            width,
+            height,
+            shape,
             endpointsWithAnchors
           );
           if (alignmentTarget.y !== undefined) {
@@ -242,7 +271,7 @@ export function useNodeDrag(
       startPosRef.current = { x: position.x, y: position.y };
 
       alignmentCandidatesRef.current = calculateConnectedEndpoints();
-      
+
       setIsDraggingNode(true);
 
       const onPointerMove = (e: PointerEvent) => {
@@ -269,11 +298,17 @@ export function useNodeDrag(
       document.addEventListener("pointercancel", onPointerCancel);
     },
     [
-      editing, position.x, position.y, setIsDraggingNode, 
-      onMove, onEnd, cleanupListeners, calculateConnectedEndpoints 
+      editing,
+      position.x,
+      position.y,
+      setIsDraggingNode,
+      onMove,
+      onEnd,
+      cleanupListeners,
+      calculateConnectedEndpoints,
     ]
   );
-  
+
   if (viewMode) {
     return { onPointerDown: () => {} };
   }

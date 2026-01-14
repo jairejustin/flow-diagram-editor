@@ -2,7 +2,6 @@
   position: absolute;
   user-select: none;
   overflow: visible;
-  
 }
 
 .node textarea {
@@ -19,4 +18,3 @@
   padding: 4px;
   box-sizing: border-box;
 }
-

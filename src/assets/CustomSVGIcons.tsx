@@ -1,4 +1,9 @@
-export const DocumentIcon = ({ size = 24, color = "currentColor", strokeWidth = 2, ...props }) => (
+export const DocumentIcon = ({
+  size = 24,
+  color = "currentColor",
+  strokeWidth = 2,
+  ...props
+}) => (
   <svg
     width={size}
     height={size}
@@ -14,7 +19,12 @@ export const DocumentIcon = ({ size = 24, color = "currentColor", strokeWidth = 
   </svg>
 );
 
-export const TrapezoidIcon = ({ size = 24, color = "currentColor", strokeWidth = 2, ...props }) => (
+export const TrapezoidIcon = ({
+  size = 24,
+  color = "currentColor",
+  strokeWidth = 2,
+  ...props
+}) => (
   <svg
     width={size}
     height={size}
@@ -30,7 +40,12 @@ export const TrapezoidIcon = ({ size = 24, color = "currentColor", strokeWidth =
   </svg>
 );
 
-export const EllipseIcon = ({ size = 24, color = "currentColor", strokeWidth = 2, ...props }) => (
+export const EllipseIcon = ({
+  size = 24,
+  color = "currentColor",
+  strokeWidth = 2,
+  ...props
+}) => (
   <svg
     width={size}
     height={size}
@@ -46,7 +61,12 @@ export const EllipseIcon = ({ size = 24, color = "currentColor", strokeWidth = 2
   </svg>
 );
 
-export const ParallelogramIcon = ({ size = 24, color = "currentColor", strokeWidth = 2, ...props }) => (
+export const ParallelogramIcon = ({
+  size = 24,
+  color = "currentColor",
+  strokeWidth = 2,
+  ...props
+}) => (
   <svg
     width={size}
     height={size}
@@ -62,7 +82,12 @@ export const ParallelogramIcon = ({ size = 24, color = "currentColor", strokeWid
   </svg>
 );
 
-export const PathStraightIcon = ({ size = 24, color = "currentColor", strokeWidth = 2, ...props }) => (
+export const PathStraightIcon = ({
+  size = 24,
+  color = "currentColor",
+  strokeWidth = 2,
+  ...props
+}) => (
   <svg
     width={size}
     height={size}
@@ -80,7 +105,12 @@ export const PathStraightIcon = ({ size = 24, color = "currentColor", strokeWidt
   </svg>
 );
 
-export const PathElbowIcon = ({ size = 24, color = "currentColor", strokeWidth = 2, ...props }) => (
+export const PathElbowIcon = ({
+  size = 24,
+  color = "currentColor",
+  strokeWidth = 2,
+  ...props
+}) => (
   <svg
     width={size}
     height={size}

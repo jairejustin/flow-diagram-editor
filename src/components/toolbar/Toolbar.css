@@ -1,72 +1,71 @@
 .toolbar {
-    position: fixed;
-    top: 1rem;
-    left: 1rem;
-    display: flex;
-    flex-direction: column;
-    width: 1.5rem;
-    align-items: center;
-    padding: 8px;
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  display: flex;
+  flex-direction: column;
+  width: 1.5rem;
+  align-items: center;
+  padding: 8px;
 
-    color: #1A1A1A;
-    background-color: #F7F7F8;
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    box-shadow:
-        0 0 0 1px rgba(0, 0, 0, 0.06),
-        0 4px 12px rgba(0, 0, 0, 0.08),
-        0 2px 4px rgba(0, 0, 0, 0.04);
-    border-radius: 10px;
-    z-index: 100;
+  color: #1a1a1a;
+  background-color: #f7f7f8;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.06),
+    0 4px 12px rgba(0, 0, 0, 0.08),
+    0 2px 4px rgba(0, 0, 0, 0.04);
+  border-radius: 10px;
+  z-index: 100;
 }
 
 .toolbar__main-buttons {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .toolbar__button {
-    outline: none;
-    display: block;
-    cursor: pointer;
-    text-align: center;
-    border: none;
-    border-radius: 10px;
-    background-color: #f0f0f0;
+  outline: none;
+  display: block;
+  cursor: pointer;
+  text-align: center;
+  border: none;
+  border-radius: 10px;
+  background-color: #f0f0f0;
 }
 
 .toolbar__button:hover {
-    background-color: #d0d0d0;
+  background-color: #d0d0d0;
 }
 
 .toolbar__shapes-option {
-    position: fixed;
-    top: 1rem;
-    left: 4rem;
-    display: flex;
-    flex-direction: column;
-    width: 1.5rem;
-    align-items: center;
-    padding: 8px;
-    color: #1A1A1A;
-    background-color: #F7F7F8;
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    box-shadow:
-        0 0 0 1px rgba(0, 0, 0, 0.06),
-        0 4px 12px rgba(0, 0, 0, 0.08),
-        0 2px 4px rgba(0, 0, 0, 0.04);
-    border-radius: 10px;
-    z-index: 100;
+  position: fixed;
+  top: 1rem;
+  left: 4rem;
+  display: flex;
+  flex-direction: column;
+  width: 1.5rem;
+  align-items: center;
+  padding: 8px;
+  color: #1a1a1a;
+  background-color: #f7f7f8;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.06),
+    0 4px 12px rgba(0, 0, 0, 0.08),
+    0 2px 4px rgba(0, 0, 0, 0.04);
+  border-radius: 10px;
+  z-index: 100;
 }
 
 .toolbar__button.active {
   border-color: #0066cc;
   background-color: #e6f2ff;
-  
 }
 
 @media (width: 360px) {
-.toolbar {
+  .toolbar {
     top: 0.5rem;
     left: 0.5rem;
   }

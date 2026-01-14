@@ -32,7 +32,6 @@ export function useNodeResize(
     end: null,
   });
 
-
   const cleanup = useCallback(() => {
     if (handlersRef.current.move) {
       document.removeEventListener("pointermove", handlersRef.current.move);
@@ -102,19 +101,25 @@ export function useNodeResize(
     [nodeId, scale, updateNodePosition, updateNodeSize]
   );
 
-  const onPointerMove = useCallback((e: PointerEvent) => {
-    if (e.pointerId !== activePointerIdRef.current) return;
-    if (rafRef.current) return;
-    rafRef.current = requestAnimationFrame(() => {
-      rafRef.current = null;
-      applyResize(e.clientX, e.clientY);
-    });
-  }, [applyResize]);
+  const onPointerMove = useCallback(
+    (e: PointerEvent) => {
+      if (e.pointerId !== activePointerIdRef.current) return;
+      if (rafRef.current) return;
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = null;
+        applyResize(e.clientX, e.clientY);
+      });
+    },
+    [applyResize]
+  );
 
-  const onPointerUp = useCallback((e: PointerEvent) => {
-    if (e.pointerId !== activePointerIdRef.current) return;
-    cleanup();
-  }, [cleanup]);
+  const onPointerUp = useCallback(
+    (e: PointerEvent) => {
+      if (e.pointerId !== activePointerIdRef.current) return;
+      cleanup();
+    },
+    [cleanup]
+  );
 
   const onResizeHandlePointerDown = useCallback(
     (e: React.PointerEvent, handle: ResizeHandle) => {
@@ -137,7 +142,15 @@ export function useNodeResize(
       document.addEventListener("pointerup", onPointerUp);
       document.addEventListener("pointercancel", onPointerUp);
     },
-    [cleanup, height, onPointerMove, onPointerUp, position, setIsResizingNode, width]
+    [
+      cleanup,
+      height,
+      onPointerMove,
+      onPointerUp,
+      position,
+      setIsResizingNode,
+      width,
+    ]
   );
 
   return {

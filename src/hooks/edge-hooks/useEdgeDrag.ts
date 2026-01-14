@@ -18,7 +18,10 @@ export function useEdgeDrag(
   const startPosRef = useRef({ x: 0, y: 0 });
   const draggingEndRef = useRef<"from" | "to" | null>(null);
   const activePointerId = useRef<number | null>(null);
-  const isAlignedRef = useRef<{ x: boolean; y: boolean }>({ x: false, y: false });
+  const isAlignedRef = useRef<{ x: boolean; y: boolean }>({
+    x: false,
+    y: false,
+  });
   const handlersRef = useRef<{
     onPointerMove: ((e: PointerEvent) => void) | null;
     onPointerUp: ((e: PointerEvent) => void) | null;
@@ -38,21 +41,30 @@ export function useEdgeDrag(
   const updateEdgeHead = useFlowStore((state) => state.updateEdgeHead);
   const updateEdgeTail = useFlowStore((state) => state.updateEdgeTail);
   const setIsDraggingEdge = useFlowStore((state) => state.setIsDraggingEdge);
-  const selectedEdgeId = useFlowStore((state) => state.selectedEdgeId)
+  const selectedEdgeId = useFlowStore((state) => state.selectedEdgeId);
   const selectNode = useFlowStore((state) => state.selectNode);
   const viewMode = useFlowStore((state) => state.viewMode);
 
   const cleanupListeners = useCallback(() => {
     if (handlersRef.current.onPointerMove) {
-      document.removeEventListener("pointermove", handlersRef.current.onPointerMove);
+      document.removeEventListener(
+        "pointermove",
+        handlersRef.current.onPointerMove
+      );
       handlersRef.current.onPointerMove = null;
     }
     if (handlersRef.current.onPointerUp) {
-      document.removeEventListener("pointerup", handlersRef.current.onPointerUp);
+      document.removeEventListener(
+        "pointerup",
+        handlersRef.current.onPointerUp
+      );
       handlersRef.current.onPointerUp = null;
     }
     if (handlersRef.current.onPointerCancel) {
-      document.removeEventListener("pointercancel", handlersRef.current.onPointerCancel);
+      document.removeEventListener(
+        "pointercancel",
+        handlersRef.current.onPointerCancel
+      );
       handlersRef.current.onPointerCancel = null;
     }
     activePointerId.current = null;
@@ -68,7 +80,7 @@ export function useEdgeDrag(
     (e: React.PointerEvent) => {
       e.stopPropagation();
       selectNode(null);
-      
+
       if (selectedEdgeId === edgeId) {
         useFlowStore.setState({ selectedEdgeId: null });
       } else {
@@ -79,32 +91,39 @@ export function useEdgeDrag(
   );
 
   // Get the opposite endpoint position
-  const getOppositePoint = useCallback((draggingEnd: "from" | "to"): position | null => {
-    if (draggingEnd === "to") {
-      // We're dragging the head, so get the tail position
-      if (typeof storeEdgeFrom === "string") {
-        const fromNode = nodes.find((n) => n.id === storeEdgeFrom);
-        if (!fromNode) return null;
-        return getAnchorPoint(fromNode, storeEdgeFromAnchor);
+  const getOppositePoint = useCallback(
+    (draggingEnd: "from" | "to"): position | null => {
+      if (draggingEnd === "to") {
+        // We're dragging the head, so get the tail position
+        if (typeof storeEdgeFrom === "string") {
+          const fromNode = nodes.find((n) => n.id === storeEdgeFrom);
+          if (!fromNode) return null;
+          return getAnchorPoint(fromNode, storeEdgeFromAnchor);
+        } else {
+          return storeEdgeFrom;
+        }
       } else {
-        return storeEdgeFrom;
+        // We're dragging the tail, so get the head position
+        if (typeof storeEdgeTo === "string") {
+          const toNode = nodes.find((n) => n.id === storeEdgeTo);
+          if (!toNode) return null;
+          return getAnchorPoint(toNode, storeEdgeToAnchor);
+        } else {
+          return storeEdgeTo;
+        }
       }
-    } else {
-      // We're dragging the tail, so get the head position
-      if (typeof storeEdgeTo === "string") {
-        const toNode = nodes.find((n) => n.id === storeEdgeTo);
-        if (!toNode) return null;
-        return getAnchorPoint(toNode, storeEdgeToAnchor);
-      } else {
-        return storeEdgeTo;
-      }
-    }
-  }, [nodes, storeEdgeFrom, storeEdgeFromAnchor, storeEdgeTo, storeEdgeToAnchor]);
+    },
+    [nodes, storeEdgeFrom, storeEdgeFromAnchor, storeEdgeTo, storeEdgeToAnchor]
+  );
 
   const onMove = useCallback(
     (clientX: number, clientY: number) => {
-      const dx = (clientX - pointerPosRef.current.x) / useFlowStore.getState().viewport.zoom;
-      const dy = (clientY - pointerPosRef.current.y) / useFlowStore.getState().viewport.zoom;
+      const dx =
+        (clientX - pointerPosRef.current.x) /
+        useFlowStore.getState().viewport.zoom;
+      const dy =
+        (clientY - pointerPosRef.current.y) /
+        useFlowStore.getState().viewport.zoom;
 
       let newX = startPosRef.current.x + dx;
       let newY = startPosRef.current.y + dy;
@@ -200,7 +219,15 @@ export function useEdgeDrag(
         }
       }
     },
-    [allNodes, edgeId, fromNodeId, toNodeId, updateEdgeHead, updateEdgeTail, getOppositePoint]
+    [
+      allNodes,
+      edgeId,
+      fromNodeId,
+      toNodeId,
+      updateEdgeHead,
+      updateEdgeTail,
+      getOppositePoint,
+    ]
   );
 
   const onEnd = useCallback(() => {
@@ -378,15 +405,15 @@ export function useEdgeDrag(
   );
 
   if (viewMode) {
-    return { 
+    return {
       onPointerDownHead: () => {},
       onPointerDownTail: () => {},
       onEdgeClick: () => {},
     };
   }
 
-  return { 
-    onPointerDownHead, 
+  return {
+    onPointerDownHead,
     onPointerDownTail,
     onEdgeClick,
   };

@@ -11,7 +11,6 @@ export function useCanvasPan(
   _isPanning: boolean,
   setIsPanning: (value: boolean) => void
 ) {
-  
   const lastPointerPos = useRef({ x: 0, y: 0 });
   const activePointerId = useRef<number | null>(null);
   const handlersRef = useRef<{
@@ -28,15 +27,24 @@ export function useCanvasPan(
 
   const cleanupListeners = useCallback(() => {
     if (handlersRef.current.onPointerMove) {
-      document.removeEventListener("pointermove", handlersRef.current.onPointerMove);
+      document.removeEventListener(
+        "pointermove",
+        handlersRef.current.onPointerMove
+      );
       handlersRef.current.onPointerMove = null;
     }
     if (handlersRef.current.onPointerUp) {
-      document.removeEventListener("pointerup", handlersRef.current.onPointerUp);
+      document.removeEventListener(
+        "pointerup",
+        handlersRef.current.onPointerUp
+      );
       handlersRef.current.onPointerUp = null;
     }
     if (handlersRef.current.onPointerCancel) {
-      document.removeEventListener("pointercancel", handlersRef.current.onPointerCancel);
+      document.removeEventListener(
+        "pointercancel",
+        handlersRef.current.onPointerCancel
+      );
       handlersRef.current.onPointerCancel = null;
     }
   }, []);
@@ -70,18 +78,18 @@ export function useCanvasPan(
 
       const target = event.target as HTMLElement;
       if (
-        target.closest('.style-panel') ||
-        target.closest('.toolbar') ||
-        target.closest('.zoom-controls') ||
-        target.closest('.node') ||
-        target.closest('.edge') ||
-        target.closest('.mobile-toggle-editor-button')
+        target.closest(".style-panel") ||
+        target.closest(".toolbar") ||
+        target.closest(".zoom-controls") ||
+        target.closest(".node") ||
+        target.closest(".edge") ||
+        target.closest(".mobile-toggle-editor-button")
       ) {
         return;
       }
 
       // to avoid scrolling
-      if (event.pointerType === 'touch') {
+      if (event.pointerType === "touch") {
         event.preventDefault();
       }
 
@@ -136,14 +144,17 @@ export function useCanvasPan(
     (event: React.WheelEvent) => {
       event.preventDefault();
       const scaleFactor = 1.1;
-      const newScale = event.deltaY < 0 ? scale * scaleFactor : scale / scaleFactor;
+      const newScale =
+        event.deltaY < 0 ? scale * scaleFactor : scale / scaleFactor;
 
       if (newScale > 0.1 && newScale < 5) {
         const rect = event.currentTarget.getBoundingClientRect();
         const mouseX = event.clientX - rect.left;
         const mouseY = event.clientY - rect.top;
-        const newTranslateX = mouseX - (mouseX - translateX) * (newScale / scale);
-        const newTranslateY = mouseY - (mouseY - translateY) * (newScale / scale);
+        const newTranslateX =
+          mouseX - (mouseX - translateX) * (newScale / scale);
+        const newTranslateY =
+          mouseY - (mouseY - translateY) * (newScale / scale);
         setTranslateX(newTranslateX);
         setTranslateY(newTranslateY);
         setScale(newScale);

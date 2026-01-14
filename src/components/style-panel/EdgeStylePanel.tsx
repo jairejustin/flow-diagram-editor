@@ -46,13 +46,13 @@ export default function EdgeStylePanel({ id }: EdgeStylePanelProps) {
             className={`path-type-button ${!isElbow ? "active" : ""}`}
             onClick={() => handlePathTypeChange("straight")}
           >
-            <PathStraightIcon/>
+            <PathStraightIcon />
           </button>
           <button
             className={`path-type-button ${isElbow ? "active" : ""}`}
             onClick={() => handlePathTypeChange("elbow")}
           >
-            <PathElbowIcon/>
+            <PathElbowIcon />
           </button>
         </div>
       </div>
@@ -116,7 +116,9 @@ export default function EdgeStylePanel({ id }: EdgeStylePanelProps) {
                 type="number"
                 className="style-input-small"
                 value={labelFontSize}
-                onChange={(e) => handleLabelFontSizeChange(Number(e.target.value))}
+                onChange={(e) =>
+                  handleLabelFontSizeChange(Number(e.target.value))
+                }
                 min="8"
                 max="72"
               />

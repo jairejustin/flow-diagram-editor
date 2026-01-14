@@ -11,18 +11,10 @@ interface NodeProps {
 export const Node = ({ node }: NodeProps) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const {
-    storeNode,
-    position,
-    height,
-    width,
-    text,
-    pad,
-    onPointerDown
-  } = useNode(node);
+  const { storeNode, position, height, width, text, pad, onPointerDown } =
+    useNode(node);
 
   if (!storeNode) return null;
-
 
   return (
     <div
@@ -32,7 +24,7 @@ export const Node = ({ node }: NodeProps) => {
         transform: `translate(${position.x}px, ${position.y}px)`,
         width: width + pad,
         height: height + pad,
-        touchAction: "none"
+        touchAction: "none",
       }}
       onPointerDown={onPointerDown}
     >
@@ -47,7 +39,8 @@ export const Node = ({ node }: NodeProps) => {
             const fontSize = node.style?.fontSize || 14;
             const wrappedLines = wrapText(text, width - pad, fontSize);
             const lineHeight = fontSize * 1.2;
-            const startY = (height / 2) - (wrappedLines.length / 2 - 0.5) * lineHeight;
+            const startY =
+              height / 2 - (wrappedLines.length / 2 - 0.5) * lineHeight;
 
             return (
               <text
@@ -61,7 +54,11 @@ export const Node = ({ node }: NodeProps) => {
                 style={{ userSelect: "none", pointerEvents: "none" }}
               >
                 {wrappedLines.map((line, index) => (
-                  <tspan key={index} x={width / 2} dy={index === 0 ? 0 : lineHeight}>
+                  <tspan
+                    key={index}
+                    x={width / 2}
+                    dy={index === 0 ? 0 : lineHeight}
+                  >
                     {line}
                   </tspan>
                 ))}
@@ -76,7 +73,7 @@ export const Node = ({ node }: NodeProps) => {
 
 function renderShape(node: NodeData, width: number, height: number) {
   const stroke = node.style?.borderWidth || 2;
-  
+
   switch (node.shape) {
     case "rectangle":
       return (
@@ -89,7 +86,7 @@ function renderShape(node: NodeData, width: number, height: number) {
           rx={node.style?.borderRadius || 0}
         />
       );
-      
+
     case "diamond":
       return (
         <polygon
@@ -99,7 +96,7 @@ function renderShape(node: NodeData, width: number, height: number) {
           strokeWidth={stroke}
         />
       );
-      
+
     case "ellipse":
       return (
         <ellipse
@@ -112,7 +109,7 @@ function renderShape(node: NodeData, width: number, height: number) {
           strokeWidth={stroke}
         />
       );
-      
+
     case "parallelogram": {
       const offset = width * 0.2;
       return (
@@ -124,7 +121,7 @@ function renderShape(node: NodeData, width: number, height: number) {
         />
       );
     }
-      
+
     case "trapezoid": {
       const topOffset = width * 0.2;
       return (
@@ -136,7 +133,7 @@ function renderShape(node: NodeData, width: number, height: number) {
         />
       );
     }
-      
+
     case "document": {
       const curveHeight = height * 0.1;
       return (
@@ -155,7 +152,7 @@ function renderShape(node: NodeData, width: number, height: number) {
         />
       );
     }
-      
+
     default:
       return (
         <rect

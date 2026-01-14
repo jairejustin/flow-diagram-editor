@@ -3,12 +3,14 @@ import { useFlowStore } from "../../store/flowStore";
 
 export function useNodeStylePanel(id: string) {
   const node = useFlowStore((state) => state.nodes.find((n) => n.id === id));
-  
+
   const fontSizeFromStore = node?.style?.fontSize || 14;
   const borderWidthFromStore = node?.style?.borderWidth || 2;
 
   const [fontSize, setFontSize] = useState<string>(String(fontSizeFromStore));
-  const [borderWidth, setBorderWidth] = useState<string>(String(borderWidthFromStore));
+  const [borderWidth, setBorderWidth] = useState<string>(
+    String(borderWidthFromStore)
+  );
   const [openPicker, setOpenPicker] = useState<string | null>(null);
 
   const updateNodeContent = useFlowStore((state) => state.updateNodeContent);
@@ -41,7 +43,7 @@ export function useNodeStylePanel(id: string) {
 
   const handleDuplicateNode = () => {
     if (!node) return;
-    
+
     const duplicateNodeData = {
       content: node.content,
       width: node.width,
@@ -70,7 +72,7 @@ export function useNodeStylePanel(id: string) {
   const handleFontSizeChange = (value: string) => {
     setFontSize(value);
     handleStyleChange("fontSize", value);
-  }
+  };
 
   return {
     node,
@@ -84,5 +86,6 @@ export function useNodeStylePanel(id: string) {
     openColorPicker,
     updateNodeEditing,
     handleFontSizeChange,
-    handleBorderWidthChange
-  };}
+    handleBorderWidthChange,
+  };
+}

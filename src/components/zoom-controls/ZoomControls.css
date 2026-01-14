@@ -1,51 +1,51 @@
 .zoom-controls {
-    position: fixed;
-    bottom: 1rem;
-    left: 1rem;
-    display: flex;
-    width: 2.5rem;  
-    padding: 3px;
+  position: fixed;
+  bottom: 1rem;
+  left: 1rem;
+  display: flex;
+  width: 2.5rem;
+  padding: 3px;
 
-    flex-direction: column;
-    align-items: center;
+  flex-direction: column;
+  align-items: center;
 
-    z-index: 100;
+  z-index: 100;
 
-    color: #1A1A1A;
-    background-color: #F7F7F8;
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    box-shadow:
-        0 0 0 1px rgba(0, 0, 0, 0.06),
-        0 4px 12px rgba(0, 0, 0, 0.08),
-        0 2px 4px rgba(0, 0, 0, 0.04);
-    border-radius: 10px;
-    z-index: 100;
-    overflow-y: auto;
+  color: #1a1a1a;
+  background-color: #f7f7f8;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.06),
+    0 4px 12px rgba(0, 0, 0, 0.08),
+    0 2px 4px rgba(0, 0, 0, 0.04);
+  border-radius: 10px;
+  z-index: 100;
+  overflow-y: auto;
 }
 
 .zoom-controls p {
-    margin: 4px 0;
-    font-size: 0.8rem;
-    font-weight: bold;
+  margin: 4px 0;
+  font-size: 0.8rem;
+  font-weight: bold;
 }
 
 .zoom-controls__button {
-    outline: none;
-    display: block;
-    margin: 0 auto;
-    cursor: pointer;
-    text-align: center;
-    border: none;
-    border-radius: 10px;
-    background-color: #f0f0f0;
+  outline: none;
+  display: block;
+  margin: 0 auto;
+  cursor: pointer;
+  text-align: center;
+  border: none;
+  border-radius: 10px;
+  background-color: #f0f0f0;
 }
 
 .zoom-controls__button:hover {
-    background-color: #d0d0d0;
+  background-color: #d0d0d0;
 }
 
 @media (width: 360px) {
-.zoom-controls {
+  .zoom-controls {
     bottom: 0.5rem;
     left: 0.5rem;
   }

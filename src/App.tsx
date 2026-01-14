@@ -1,8 +1,8 @@
-import { useEffect } from 'react';
-import './App.css';
-import CanvasPage from './pages/canvas_page/CanvasPage';
+import { useEffect } from "react";
+import "./App.css";
+import CanvasPage from "./pages/canvas_page/CanvasPage";
 import { mockFlowDocument } from "./assets/MockData";
-import { useFlowStore } from './store/flowStore';
+import { useFlowStore } from "./store/flowStore";
 
 export default function App() {
   useEffect(() => {

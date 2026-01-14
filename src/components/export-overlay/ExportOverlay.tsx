@@ -1,6 +1,6 @@
-import { X, Download, Copy } from 'lucide-react';
-import './ExportOverlay.css';
-import { useExportOverlay } from '../../hooks/export-overlay-hooks/useExportOverlay';
+import { X, Download, Copy } from "lucide-react";
+import "./ExportOverlay.css";
+import { useExportOverlay } from "../../hooks/export-overlay-hooks/useExportOverlay";
 
 export function ExportOverlay() {
   const {
@@ -65,16 +65,38 @@ export function ExportOverlay() {
             }}
             onPointerDown={handleSelectionPointerDown}
           >
-            <div 
-            className="export-overlay__handle export-overlay__handle--nw" 
-            onPointerDown={(e) => handleResizePointerDown(e, 'nw')} />
-            <div className="export-overlay__handle export-overlay__handle--n" onPointerDown={(e) => handleResizePointerDown(e, 'n')} />
-            <div className="export-overlay__handle export-overlay__handle--ne" onPointerDown={(e) => handleResizePointerDown(e, 'ne')} />
-            <div className="export-overlay__handle export-overlay__handle--e" onPointerDown={(e) => handleResizePointerDown(e, 'e')} />
-            <div className="export-overlay__handle export-overlay__handle--se" onPointerDown={(e) => handleResizePointerDown(e, 'se')} />
-            <div className="export-overlay__handle export-overlay__handle--s" onPointerDown={(e) => handleResizePointerDown(e, 's')} />
-            <div className="export-overlay__handle export-overlay__handle--sw" onPointerDown={(e) => handleResizePointerDown(e, 'sw')} />
-            <div className="export-overlay__handle export-overlay__handle--w" onPointerDown={(e) => handleResizePointerDown(e, 'w')} />
+            <div
+              className="export-overlay__handle export-overlay__handle--nw"
+              onPointerDown={(e) => handleResizePointerDown(e, "nw")}
+            />
+            <div
+              className="export-overlay__handle export-overlay__handle--n"
+              onPointerDown={(e) => handleResizePointerDown(e, "n")}
+            />
+            <div
+              className="export-overlay__handle export-overlay__handle--ne"
+              onPointerDown={(e) => handleResizePointerDown(e, "ne")}
+            />
+            <div
+              className="export-overlay__handle export-overlay__handle--e"
+              onPointerDown={(e) => handleResizePointerDown(e, "e")}
+            />
+            <div
+              className="export-overlay__handle export-overlay__handle--se"
+              onPointerDown={(e) => handleResizePointerDown(e, "se")}
+            />
+            <div
+              className="export-overlay__handle export-overlay__handle--s"
+              onPointerDown={(e) => handleResizePointerDown(e, "s")}
+            />
+            <div
+              className="export-overlay__handle export-overlay__handle--sw"
+              onPointerDown={(e) => handleResizePointerDown(e, "sw")}
+            />
+            <div
+              className="export-overlay__handle export-overlay__handle--w"
+              onPointerDown={(e) => handleResizePointerDown(e, "w")}
+            />
 
             <div className="export-overlay__dimensions">
               {Math.round(selection.width)} × {Math.round(selection.height)}
@@ -87,40 +109,44 @@ export function ExportOverlay() {
               ...(buttonPlacement.isInside && {
                 left: selection.x + selection.width - 8,
                 top: selection.y + 8,
-                transform: 'translateX(-100%)',
+                transform: "translateX(-100%)",
               }),
-              ...(!buttonPlacement.isInside && buttonPlacement.position === 'bottom' && {
-                left: selection.x + selection.width / 2,
-                top: selection.y + selection.height + 12,
-                transform: 'translateX(-50%)',
-              }),
-              ...(!buttonPlacement.isInside && buttonPlacement.position === 'top' && {
-                left: selection.x + selection.width / 2,
-                top: selection.y - 12,
-                transform: 'translate(-50%, -100%)',
-              }),
-              ...(!buttonPlacement.isInside && buttonPlacement.position === 'right' && {
-                left: selection.x + selection.width + 12,
-                top: selection.y + selection.height / 2,
-                transform: 'translateY(-50%)',
-              }),
-              ...(!buttonPlacement.isInside && buttonPlacement.position === 'left' && {
-                left: selection.x - 12,
-                top: selection.y + selection.height / 2,
-                transform: 'translate(-100%, -50%)',
-              }),
+              ...(!buttonPlacement.isInside &&
+                buttonPlacement.position === "bottom" && {
+                  left: selection.x + selection.width / 2,
+                  top: selection.y + selection.height + 12,
+                  transform: "translateX(-50%)",
+                }),
+              ...(!buttonPlacement.isInside &&
+                buttonPlacement.position === "top" && {
+                  left: selection.x + selection.width / 2,
+                  top: selection.y - 12,
+                  transform: "translate(-50%, -100%)",
+                }),
+              ...(!buttonPlacement.isInside &&
+                buttonPlacement.position === "right" && {
+                  left: selection.x + selection.width + 12,
+                  top: selection.y + selection.height / 2,
+                  transform: "translateY(-50%)",
+                }),
+              ...(!buttonPlacement.isInside &&
+                buttonPlacement.position === "left" && {
+                  left: selection.x - 12,
+                  top: selection.y + selection.height / 2,
+                  transform: "translate(-100%, -50%)",
+                }),
             }}
           >
             <button
-              className={`export-overlay__tool-btn ${exportFormat === 'png' ? 'active' : ''}`}
-              onClick={() => setExportFormat('png')}
+              className={`export-overlay__tool-btn ${exportFormat === "png" ? "active" : ""}`}
+              onClick={() => setExportFormat("png")}
               title="PNG format"
             >
               PNG
             </button>
             <button
-              className={`export-overlay__tool-btn ${exportFormat === 'jpeg' ? 'active' : ''}`}
-              onClick={() => setExportFormat('jpeg')}
+              className={`export-overlay__tool-btn ${exportFormat === "jpeg" ? "active" : ""}`}
+              onClick={() => setExportFormat("jpeg")}
               title="JPEG format"
             >
               JPG
@@ -132,7 +158,7 @@ export function ExportOverlay() {
               className="export-overlay__tool-btn"
               onClick={handleCopyClick}
               disabled={isCopying}
-              title={isCopying ? 'Copied!' : 'Copy to clipboard'}
+              title={isCopying ? "Copied!" : "Copy to clipboard"}
             >
               <Copy size={18} />
             </button>
@@ -141,7 +167,7 @@ export function ExportOverlay() {
               className="export-overlay__tool-btn"
               onClick={handleExportClick}
               disabled={isExporting}
-              title={isExporting ? 'Exporting...' : 'Export image'}
+              title={isExporting ? "Exporting..." : "Export image"}
             >
               <Download size={18} />
             </button>
@@ -160,7 +186,9 @@ export function ExportOverlay() {
       {!selection && (
         <div className="export-overlay__instructions">
           <p>Click and drag to select an area</p>
-          <p className="export-overlay__instructions-hint">Press ESC to cancel</p>
+          <p className="export-overlay__instructions-hint">
+            Press ESC to cancel
+          </p>
         </div>
       )}
     </div>

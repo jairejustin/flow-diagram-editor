@@ -20,7 +20,7 @@ export default function NodeStylePanel({ id }: NodeStylePanelProps) {
     openColorPicker,
     updateNodeEditing,
     handleFontSizeChange,
-    handleBorderWidthChange
+    handleBorderWidthChange,
   } = useNodeStylePanel(id);
 
   if (!node) {

@@ -20,9 +20,9 @@ export const mockFlowDocument: FlowDocument = {
         backgroundColor: "#ffffff",
         borderColor: "#000000",
         borderWidth: 2,
-        fontSize: 15
+        fontSize: 15,
       },
-      editing: false
+      editing: false,
     },
     {
       id: "node_decision",
@@ -36,9 +36,9 @@ export const mockFlowDocument: FlowDocument = {
         textColor: "#000000",
         fontSize: 14,
         backgroundColor: "#ffffff",
-        borderWidth: 2
+        borderWidth: 2,
       },
-      editing: false
+      editing: false,
     },
     {
       id: "node_process",
@@ -50,9 +50,9 @@ export const mockFlowDocument: FlowDocument = {
       style: {
         borderRadius: 10,
         textColor: "#000000",
-        borderWidth: 2
+        borderWidth: 2,
       },
-      editing: false
+      editing: false,
     },
     {
       id: "babdc460-5ef3-4184-8c4d-e08c5b529ac8",
@@ -69,8 +69,8 @@ export const mockFlowDocument: FlowDocument = {
         borderRadius: 0,
         textColor: "#000",
         fontSize: 14,
-        fontWeight: "normal"
-      }
+        fontWeight: "normal",
+      },
     },
     {
       id: "7abe7646-1ee6-4c5a-920b-92a92381297e",
@@ -87,8 +87,8 @@ export const mockFlowDocument: FlowDocument = {
         borderRadius: 10,
         textColor: "#000",
         fontSize: 14,
-        fontWeight: "normal"
-      }
+        fontWeight: "normal",
+      },
     },
     {
       id: "b932f0ad-dccb-482a-8b49-f23d353b688b",
@@ -105,8 +105,8 @@ export const mockFlowDocument: FlowDocument = {
         borderRadius: 0,
         textColor: "#000",
         fontSize: 14,
-        fontWeight: "normal"
-      }
+        fontWeight: "normal",
+      },
     },
     {
       id: "3137ce6b-a516-4db6-9ccc-79af2f196048",
@@ -123,9 +123,9 @@ export const mockFlowDocument: FlowDocument = {
         borderRadius: 0,
         textColor: "#002abe",
         fontSize: 14,
-        fontWeight: "normal"
-      }
-    }
+        fontWeight: "normal",
+      },
+    },
   ],
   edges: [
     {
@@ -135,7 +135,7 @@ export const mockFlowDocument: FlowDocument = {
       path: "straight",
       fromAnchor: { side: "bottom" },
       toAnchor: { side: "top" },
-      points: []
+      points: [],
     },
     {
       id: "edge_3",
@@ -146,7 +146,7 @@ export const mockFlowDocument: FlowDocument = {
       toAnchor: { side: "top" },
       points: [],
       label: { text: "True", t: 0.41, fontSize: 11 },
-      style: { color: "#0fb600", width: 2 }
+      style: { color: "#0fb600", width: 2 },
     },
     {
       id: "3d493838-77a1-4cdd-a53a-323a289261c5",
@@ -160,9 +160,9 @@ export const mockFlowDocument: FlowDocument = {
         { x: 116.82217740954565, y: 263.15160842420016 },
         { x: 116.82217740954565, y: 263.15160842420016 },
         { x: 116.82217740954565, y: 174.8206021218894 },
-        { x: 129.26853374350878, y: 174.8206021218894 }
+        { x: 129.26853374350878, y: 174.8206021218894 },
       ],
-      label: { text: "False", t: 0.45, fontSize: 12 }
+      label: { text: "False", t: 0.45, fontSize: 12 },
     },
     {
       id: "dca30373-bddd-4b7d-ab8b-56b3cefb42cc",
@@ -175,8 +175,8 @@ export const mockFlowDocument: FlowDocument = {
       points: [
         { x: 276.6910877291126, y: 455.0335476104485 },
         { x: 303.8636363636364, y: 455.0335476104485 },
-        { x: 303.8636363636364, y: 352.85172942863034 }
-      ]
+        { x: 303.8636363636364, y: 352.85172942863034 },
+      ],
     },
     {
       id: "fec60a2e-2302-4ffe-9f7b-6ff356fe2b1c",
@@ -190,8 +190,8 @@ export const mockFlowDocument: FlowDocument = {
         { x: 119.69108772911261, y: 385.91862127874333 },
         { x: 119.69108772911261, y: 385.91862127874333 },
         { x: 119.69108772911261, y: 455.0335476104485 },
-        { x: 119.69108772911261, y: 455.0335476104485 }
-      ]
+        { x: 119.69108772911261, y: 455.0335476104485 },
+      ],
     },
     {
       id: "b40130b2-c38a-4966-8df7-39c7bee205c4",
@@ -201,7 +201,7 @@ export const mockFlowDocument: FlowDocument = {
       fromAnchor: { side: "bottom" },
       toAnchor: { side: "top" },
       style: { color: "#000", width: 2, dashed: false },
-      points: []
+      points: [],
     },
     {
       id: "b1b0cb8d-3d0e-480f-8b99-0d4d62239604",
@@ -214,9 +214,9 @@ export const mockFlowDocument: FlowDocument = {
       points: [
         { x: 268.11364171471644, y: 174.8206021218894 },
         { x: 303.8636363636364, y: 174.8206021218894 },
-        { x: 303.8636363636364, y: 270.85172942863034 }
+        { x: 303.8636363636364, y: 270.85172942863034 },
       ],
-      label: { text: "Exit", t: 0.56, fontSize: 12 }
-    }
-  ]
+      label: { text: "Exit", t: 0.56, fontSize: 12 },
+    },
+  ],
 };

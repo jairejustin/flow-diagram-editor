@@ -11,7 +11,13 @@ interface ResizeHandlesProps {
   scale: number;
 }
 
-export const ResizeHandles = ({ nodeId, position, width, height, scale }: ResizeHandlesProps) => {
+export const ResizeHandles = ({
+  nodeId,
+  position,
+  width,
+  height,
+  scale,
+}: ResizeHandlesProps) => {
   const { onResizeHandlePointerDown } = useNodeResize(
     nodeId,
     position,
@@ -19,19 +25,64 @@ export const ResizeHandles = ({ nodeId, position, width, height, scale }: Resize
     height,
     scale
   );
-  
-  const isMobile = useFlowStore((state) => state.isMobile);
-  const handleSize = isMobile? 18 : 8;
 
-  const resizeHandles: { handle: ResizeHandle; cursor: string; x: number; y: number }[] = [
-    { handle: "nw", cursor: "nwse-resize", x: -handleSize / 2, y: -handleSize / 2 },
-    { handle: "ne", cursor: "nesw-resize", x: width - handleSize / 2, y: -handleSize / 2 },
-    { handle: "sw", cursor: "nesw-resize", x: -handleSize / 2, y: height - handleSize / 2 },
-    { handle: "se", cursor: "nwse-resize", x: width - handleSize / 2, y: height - handleSize / 2 },
-    { handle: "n", cursor: "ns-resize", x: width / 2 - handleSize / 2, y: -handleSize / 2 },
-    { handle: "s", cursor: "ns-resize", x: width / 2 - handleSize / 2, y: height - handleSize / 2 },
-    { handle: "e", cursor: "ew-resize", x: width - handleSize / 2, y: height / 2 - handleSize / 2 },
-    { handle: "w", cursor: "ew-resize", x: -handleSize / 2, y: height / 2 - handleSize / 2 },
+  const isMobile = useFlowStore((state) => state.isMobile);
+  const handleSize = isMobile ? 18 : 8;
+
+  const resizeHandles: {
+    handle: ResizeHandle;
+    cursor: string;
+    x: number;
+    y: number;
+  }[] = [
+    {
+      handle: "nw",
+      cursor: "nwse-resize",
+      x: -handleSize / 2,
+      y: -handleSize / 2,
+    },
+    {
+      handle: "ne",
+      cursor: "nesw-resize",
+      x: width - handleSize / 2,
+      y: -handleSize / 2,
+    },
+    {
+      handle: "sw",
+      cursor: "nesw-resize",
+      x: -handleSize / 2,
+      y: height - handleSize / 2,
+    },
+    {
+      handle: "se",
+      cursor: "nwse-resize",
+      x: width - handleSize / 2,
+      y: height - handleSize / 2,
+    },
+    {
+      handle: "n",
+      cursor: "ns-resize",
+      x: width / 2 - handleSize / 2,
+      y: -handleSize / 2,
+    },
+    {
+      handle: "s",
+      cursor: "ns-resize",
+      x: width / 2 - handleSize / 2,
+      y: height - handleSize / 2,
+    },
+    {
+      handle: "e",
+      cursor: "ew-resize",
+      x: width - handleSize / 2,
+      y: height / 2 - handleSize / 2,
+    },
+    {
+      handle: "w",
+      cursor: "ew-resize",
+      x: -handleSize / 2,
+      y: height / 2 - handleSize / 2,
+    },
   ];
 
   return (
@@ -62,8 +113,7 @@ export const ResizeHandles = ({ nodeId, position, width, height, scale }: Resize
             pointerEvents: "auto",
             zIndex: 10,
           }}
-          onPointerDown={(e) => onResizeHandlePointerDown(e,handle)}
-
+          onPointerDown={(e) => onResizeHandlePointerDown(e, handle)}
         />
       ))}
     </div>

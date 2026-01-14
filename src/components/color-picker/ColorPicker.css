@@ -1,26 +1,26 @@
 .color-picker {
-    position: fixed;
-    padding: 0 1rem 0rem 1rem;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  position: fixed;
+  padding: 0 1rem 0rem 1rem;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 
-    top: 1rem;
-    right: 310px
+  top: 1rem;
+  right: 310px;
 }
 
 .color-picker input {
-    margin: 1rem auto;
-    display: flex;
+  margin: 1rem auto;
+  display: flex;
 }
 
 .color-picker label {
-    font-weight: 600;
-    letter-spacing: -0.5px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
 }
 
 @media (width: 360px) {
-.color-picker {
+  .color-picker {
     top: 350px;
     right: 0.5rem;
   }

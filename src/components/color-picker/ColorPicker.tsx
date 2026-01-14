@@ -1,6 +1,6 @@
-import { RgbColorPicker } from 'react-colorful';
-import "./ColorPicker.css"
-import { rgbToHex, hexToRgb } from '../../lib/utils';
+import { RgbColorPicker } from "react-colorful";
+import "./ColorPicker.css";
+import { rgbToHex, hexToRgb } from "../../lib/utils";
 
 interface ColorPickerProps {
   color: string;
@@ -8,7 +8,11 @@ interface ColorPickerProps {
   onChange: (color: string) => void;
 }
 
-export default function ColorPicker({ color, target, onChange }: ColorPickerProps) {
+export default function ColorPicker({
+  color,
+  target,
+  onChange,
+}: ColorPickerProps) {
   const handleColorChange = (rgb: { r: number; g: number; b: number }) => {
     const hexColor = rgbToHex(rgb.r, rgb.g, rgb.b);
     onChange(hexColor);
@@ -23,12 +27,9 @@ export default function ColorPicker({ color, target, onChange }: ColorPickerProp
   };
 
   return (
-    <div className='color-picker'>
+    <div className="color-picker">
       <label>{target}</label>
-      <RgbColorPicker
-        color={hexToRgb(color)}
-        onChange={handleColorChange}
-      />
+      <RgbColorPicker color={hexToRgb(color)} onChange={handleColorChange} />
       <input
         type="text"
         value={color.toUpperCase()}

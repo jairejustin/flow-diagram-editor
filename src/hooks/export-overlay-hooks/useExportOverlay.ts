@@ -1,10 +1,10 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
-import { useExport } from './useExport';
-import { useFlowStore } from '../../store/flowStore';
-import type { Rectangle, ResizeHandle } from '../../lib/types';
+import { useState, useRef, useEffect, useCallback } from "react";
+import { useExport } from "./useExport";
+import { useFlowStore } from "../../store/flowStore";
+import type { Rectangle, ResizeHandle } from "../../lib/types";
 
 type ButtonPlacement = {
-  position: 'top' | 'bottom' | 'left' | 'right' | 'inside';
+  position: "top" | "bottom" | "left" | "right" | "inside";
   isInside: boolean;
 };
 
@@ -16,7 +16,7 @@ export function useExportOverlay() {
   const [startPoint, setStartPoint] = useState({ x: 0, y: 0 });
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [buttonPlacement, setButtonPlacement] = useState<ButtonPlacement>({
-    position: 'bottom',
+    position: "bottom",
     isInside: false,
   });
 
@@ -38,7 +38,7 @@ export function useExportOverlay() {
 
   const calculateButtonPlacement = useCallback((): ButtonPlacement => {
     if (!selection || !overlayRef.current) {
-      return { position: 'bottom', isInside: false };
+      return { position: "bottom", isInside: false };
     }
 
     const viewport = overlayRef.current.getBoundingClientRect();
@@ -47,7 +47,7 @@ export function useExportOverlay() {
     const selectionRatio = selectionArea / viewportArea;
 
     if (selectionRatio > 0.7) {
-      return { position: 'inside', isInside: true };
+      return { position: "inside", isInside: true };
     }
 
     const spaceTop = selection.y;
@@ -61,19 +61,19 @@ export function useExportOverlay() {
       if (isWiderThanTall) {
         if (selection.height > viewport.height * 0.6) {
           return spaceRight > spaceLeft
-            ? { position: 'right', isInside: false }
-            : { position: 'left', isInside: false };
+            ? { position: "right", isInside: false }
+            : { position: "left", isInside: false };
         }
       }
 
       return spaceBottom > spaceTop
-        ? { position: 'bottom', isInside: false }
-        : { position: 'top', isInside: false };
+        ? { position: "bottom", isInside: false }
+        : { position: "top", isInside: false };
     }
 
     return spaceBottom > spaceTop
-      ? { position: 'bottom', isInside: false }
-      : { position: 'top', isInside: false };
+      ? { position: "bottom", isInside: false }
+      : { position: "top", isInside: false };
   }, [selection, isMobile]);
 
   useEffect(() => {
@@ -111,23 +111,23 @@ export function useExportOverlay() {
     let newHeight = 0;
 
     switch (isResizing) {
-      case 'se':
+      case "se":
         newSelection.width = Math.max(20, x - selection.x);
         newSelection.height = Math.max(20, y - selection.y);
         break;
-      case 'sw':
+      case "sw":
         newWidth = Math.max(20, selection.x + selection.width - x);
         newSelection.x = selection.x + selection.width - newWidth;
         newSelection.width = newWidth;
         newSelection.height = Math.max(20, y - selection.y);
         break;
-      case 'ne':
+      case "ne":
         newSelection.width = Math.max(20, x - selection.x);
         newHeight = Math.max(20, selection.y + selection.height - y);
         newSelection.y = selection.y + selection.height - newHeight;
         newSelection.height = newHeight;
         break;
-      case 'nw':
+      case "nw":
         newWidth = Math.max(20, selection.x + selection.width - x);
         newHeight = Math.max(20, selection.y + selection.height - y);
         newSelection.x = selection.x + selection.width - newWidth;
@@ -135,18 +135,18 @@ export function useExportOverlay() {
         newSelection.width = newWidth;
         newSelection.height = newHeight;
         break;
-      case 'n':
+      case "n":
         newHeight = Math.max(20, selection.y + selection.height - y);
         newSelection.y = selection.y + selection.height - newHeight;
         newSelection.height = newHeight;
         break;
-      case 's':
+      case "s":
         newSelection.height = Math.max(20, y - selection.y);
         break;
-      case 'e':
+      case "e":
         newSelection.width = Math.max(20, x - selection.x);
         break;
-      case 'w':
+      case "w":
         newWidth = Math.max(20, selection.x + selection.width - x);
         newSelection.x = selection.x + selection.width - newWidth;
         newSelection.width = newWidth;
@@ -155,8 +155,14 @@ export function useExportOverlay() {
 
     newSelection.x = Math.max(0, Math.min(newSelection.x, rect.width - 20));
     newSelection.y = Math.max(0, Math.min(newSelection.y, rect.height - 20));
-    newSelection.width = Math.min(newSelection.width, rect.width - newSelection.x);
-    newSelection.height = Math.min(newSelection.height, rect.height - newSelection.y);
+    newSelection.width = Math.min(
+      newSelection.width,
+      rect.width - newSelection.x
+    );
+    newSelection.height = Math.min(
+      newSelection.height,
+      rect.height - newSelection.y
+    );
 
     setSelection(newSelection);
   };
@@ -217,7 +223,10 @@ export function useExportOverlay() {
     });
   };
 
-  const handleResizePointerDown = (e: React.PointerEvent, handle: ResizeHandle) => {
+  const handleResizePointerDown = (
+    e: React.PointerEvent,
+    handle: ResizeHandle
+  ) => {
     e.stopPropagation();
     setIsResizing(handle);
   };
@@ -234,15 +243,15 @@ export function useExportOverlay() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         handleClose();
-      } else if (e.key === 'Enter' && selection) {
+      } else if (e.key === "Enter" && selection) {
         handleExportClick();
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selection, handleClose, handleExportClick]);
 
   return {

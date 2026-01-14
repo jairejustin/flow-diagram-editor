@@ -20,7 +20,14 @@ export function useEdgeCreation(
   useEffect(() => {
     createEdgeRef.current = (handle: EdgeHandle) => {
       const fromAnchor = {
-        side: handle === "n" ? "top" : handle === "s" ? "bottom" : handle === "e" ? "right" : "left"
+        side:
+          handle === "n"
+            ? "top"
+            : handle === "s"
+              ? "bottom"
+              : handle === "e"
+                ? "right"
+                : "left",
       } as const;
 
       // get the free endpoint position 50px away from the node edge
@@ -29,25 +36,25 @@ export function useEdgeCreation(
         case "n":
           toPosition = {
             x: nodePosition.x + width / 2,
-            y: nodePosition.y - 50
+            y: nodePosition.y - 50,
           };
           break;
         case "s":
           toPosition = {
             x: nodePosition.x + width / 2,
-            y: nodePosition.y + height + 50
+            y: nodePosition.y + height + 50,
           };
           break;
         case "e":
           toPosition = {
             x: nodePosition.x + width + 50,
-            y: nodePosition.y + height / 2
+            y: nodePosition.y + height / 2,
           };
           break;
         case "w":
           toPosition = {
             x: nodePosition.x - 50,
-            y: nodePosition.y + height / 2
+            y: nodePosition.y + height / 2,
           };
           break;
       }
@@ -57,7 +64,7 @@ export function useEdgeCreation(
         from: nodeId,
         fromAnchor: fromAnchor,
         to: toPosition,
-        toAnchor: { side: "top" }, 
+        toAnchor: { side: "top" },
       });
 
       selectNode(null);
