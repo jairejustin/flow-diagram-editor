@@ -7,7 +7,7 @@ import type {
   NodeShape,
   AlignmentCandidate,
 } from "../../lib/types";
-import { ALIGNMENT_THRESHOLD } from "../../lib/constants";
+import { ALIGNMENT_THRESHOLD, PAN_LIMIT } from "../../lib/constants";
 
 export function useNodeDrag(
   nodeId: string,
@@ -175,13 +175,23 @@ export function useNodeDrag(
         (clientY - pointerPosRef.current.y) /
         useFlowStore.getState().viewport.zoom;
 
-      let newX = startPosRef.current.x + dx;
-      let newY = startPosRef.current.y + dy;
-
       const currentNode = allNodes.find((n) => n.id === nodeId);
       if (!currentNode) return;
 
       const { width, height, shape } = currentNode;
+
+      let newX = startPosRef.current.x + dx;
+      let newY = startPosRef.current.y + dy;
+
+      // Left Boundary
+      if (newX < -PAN_LIMIT) {
+        newX = -PAN_LIMIT;
+      } else if (newX + width > PAN_LIMIT) {
+        newX = PAN_LIMIT - width;
+      }
+
+      if (newY > PAN_LIMIT) newY = PAN_LIMIT;
+      if (newY < -PAN_LIMIT) newY = -PAN_LIMIT;
 
       const endpointsWithAnchors = alignmentCandidatesRef.current;
 

@@ -1,5 +1,6 @@
 import { useRef, useCallback, useEffect } from "react";
 import { useFlowStore } from "../../store/flowStore";
+import { PAN_LIMIT } from "../../lib/constants";
 
 export function useCanvasPan(
   translateX: number,
@@ -50,16 +51,13 @@ export function useCanvasPan(
   }, []);
 
   useEffect(() => {
-    return () => {
-      cleanupListeners();
-    };
+    return () => cleanupListeners();
   }, [cleanupListeners]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       setViewport({ x: translateX, y: translateY, zoom: scale });
     }, 100);
-
     return () => clearTimeout(timeoutId);
   }, [translateX, translateY, scale, setViewport]);
 
@@ -71,10 +69,7 @@ export function useCanvasPan(
 
   const handlePointerDown = useCallback(
     (event: React.PointerEvent) => {
-      // check for another pointer
-      if (activePointerId.current !== null) {
-        return;
-      }
+      if (activePointerId.current !== null) return;
 
       const target = event.target as HTMLElement;
       if (
@@ -88,44 +83,45 @@ export function useCanvasPan(
         return;
       }
 
-      // to avoid scrolling
-      if (event.pointerType === "touch") {
-        event.preventDefault();
-      }
+      if (event.pointerType === "touch") event.preventDefault();
 
       cleanupListeners();
 
-      // get the pointer for tracking
       (event.target as HTMLElement).setPointerCapture(event.pointerId);
       activePointerId.current = event.pointerId;
-
       setIsPanning(true);
       lastPointerPos.current = { x: event.clientX, y: event.clientY };
 
       const onPointerMove = (e: PointerEvent) => {
-        // handle the captured pointer
-        if (e.pointerId !== activePointerId.current) {
-          return;
-        }
+        if (e.pointerId !== activePointerId.current) return;
 
         const dx = e.clientX - lastPointerPos.current.x;
         const dy = e.clientY - lastPointerPos.current.y;
-        setTranslateX((prev) => prev + dx);
-        setTranslateY((prev) => prev + dy);
+
+        setTranslateX((prev) => {
+          const nextX = prev + dx;
+          if (nextX > PAN_LIMIT) return PAN_LIMIT;
+          if (nextX < -PAN_LIMIT) return -PAN_LIMIT;
+          return nextX;
+        });
+
+        setTranslateY((prev) => {
+          const nextY = prev + dy;
+          if (nextY > PAN_LIMIT) return PAN_LIMIT;
+          if (nextY < -PAN_LIMIT) return -PAN_LIMIT;
+          return nextY;
+        });
+
         lastPointerPos.current = { x: e.clientX, y: e.clientY };
       };
 
       const onPointerUp = (e: PointerEvent) => {
-        if (e.pointerId !== activePointerId.current) {
-          return;
-        }
+        if (e.pointerId !== activePointerId.current) return;
         onPanEnd();
       };
 
       const onPointerCancel = (e: PointerEvent) => {
-        if (e.pointerId !== activePointerId.current) {
-          return;
-        }
+        if (e.pointerId !== activePointerId.current) return;
         onPanEnd();
       };
 
@@ -151,10 +147,15 @@ export function useCanvasPan(
         const rect = event.currentTarget.getBoundingClientRect();
         const mouseX = event.clientX - rect.left;
         const mouseY = event.clientY - rect.top;
-        const newTranslateX =
-          mouseX - (mouseX - translateX) * (newScale / scale);
-        const newTranslateY =
-          mouseY - (mouseY - translateY) * (newScale / scale);
+
+        let newTranslateX = mouseX - (mouseX - translateX) * (newScale / scale);
+        let newTranslateY = mouseY - (mouseY - translateY) * (newScale / scale);
+
+        if (newTranslateX > PAN_LIMIT) newTranslateX = PAN_LIMIT;
+        if (newTranslateX < -PAN_LIMIT) newTranslateX = -PAN_LIMIT;
+        if (newTranslateY > PAN_LIMIT) newTranslateY = PAN_LIMIT;
+        if (newTranslateY < -PAN_LIMIT) newTranslateY = -PAN_LIMIT;
+
         setTranslateX(newTranslateX);
         setTranslateY(newTranslateY);
         setScale(newScale);

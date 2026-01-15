@@ -2,7 +2,7 @@ import { useRef, useCallback, useEffect } from "react";
 import type { NodeData, EdgeAnchor, position } from "../../lib/types";
 import { useFlowStore } from "../../store/flowStore";
 import { getAnchorPoint } from "../../lib/utils";
-import { ALIGNMENT_THRESHOLD } from "../../lib/constants";
+import { ALIGNMENT_THRESHOLD, PAN_LIMIT } from "../../lib/constants";
 
 export function useEdgeDrag(
   edgeId: string,
@@ -127,6 +127,12 @@ export function useEdgeDrag(
 
       let newX = startPosRef.current.x + dx;
       let newY = startPosRef.current.y + dy;
+
+      if (newX > PAN_LIMIT) newX = PAN_LIMIT;
+      if (newX < -PAN_LIMIT) newX = -PAN_LIMIT;
+
+      if (newY > PAN_LIMIT) newY = PAN_LIMIT;
+      if (newY < -PAN_LIMIT) newY = -PAN_LIMIT;
 
       const draggingEnd = draggingEndRef.current;
       if (!draggingEnd) return;
