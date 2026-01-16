@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useExport } from "./useExport";
-import { useFlowStore } from "../../store/flowStore";
+import { useIsMobile } from "../../store/flowStore";
 import type { Rectangle, ResizeHandle } from "../../lib/types";
 
 type ButtonPlacement = {
@@ -23,7 +23,7 @@ export function useExportOverlay() {
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const activePointerIdRef = useRef<number | null>(null);
 
-  const isMobile = useFlowStore((s) => s.isMobile);
+  const isMobile = useIsMobile();
 
   const exportHook = useExport();
   const {

@@ -1,5 +1,5 @@
 import { useRef, useCallback, useEffect } from "react";
-import { useFlowStore } from "../../store/flowStore";
+import { useSetViewport } from "../../store/flowStore";
 import { PAN_LIMIT } from "../../lib/constants";
 
 export function useCanvasPan(
@@ -24,7 +24,7 @@ export function useCanvasPan(
     onPointerCancel: null,
   });
 
-  const setViewport = useFlowStore((state) => state.setViewport);
+  const setViewport = useSetViewport();
 
   const cleanupListeners = useCallback(() => {
     if (handlersRef.current.onPointerMove) {

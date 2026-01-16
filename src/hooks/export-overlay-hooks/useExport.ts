@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { toPng, toJpeg } from "html-to-image";
-import { useFlowStore } from "../../store/flowStore";
+import { useSetIsExporting } from "../../store/flowStore";
 import type { Rectangle, ExportFormat } from "../../lib/types";
 
 export const useExport = (canvasId: string = "canvas-container") => {
   const [exportFormat, setExportFormat] = useState<ExportFormat>("png");
   const [isExporting, setIsExporting] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
-  const setShowExportOverlay = useFlowStore((state) => state.setIsExporting);
+  const setShowExportOverlay = useSetIsExporting();
 
   const getScaledSelection = async (
     selection: Rectangle,

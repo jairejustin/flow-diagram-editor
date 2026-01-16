@@ -1,8 +1,16 @@
 import { useState, useEffect } from "react";
-import { useFlowStore } from "../../store/flowStore";
+import {
+  useAddNode,
+  useDeleteNode,
+  useNodeById,
+  useSelectNode,
+  useUpdateNodeContent,
+  useUpdateNodeEditing,
+  useUpdateNodeStyles,
+} from "../../store/flowStore";
 
 export function useNodeStylePanel(id: string) {
-  const node = useFlowStore((state) => state.nodes.find((n) => n.id === id));
+  const node = useNodeById(id);
 
   const fontSizeFromStore = node?.style?.fontSize || 14;
   const borderWidthFromStore = node?.style?.borderWidth || 2;
@@ -13,11 +21,12 @@ export function useNodeStylePanel(id: string) {
   );
   const [openPicker, setOpenPicker] = useState<string | null>(null);
 
-  const updateNodeContent = useFlowStore((state) => state.updateNodeContent);
-  const updateNodeEditing = useFlowStore((state) => state.updateNodeEditing);
-  const updateNodeStyles = useFlowStore((state) => state.updateNodeStyles);
-  const selectNode = useFlowStore((state) => state.selectNode);
-  const { addNode, deleteNode } = useFlowStore();
+  const updateNodeContent = useUpdateNodeContent();
+  const updateNodeEditing = useUpdateNodeEditing();
+  const updateNodeStyles = useUpdateNodeStyles();
+  const selectNode = useSelectNode();
+  const addNode = useAddNode();
+  const deleteNode = useDeleteNode();
 
   useEffect(() => {
     setFontSize(String(fontSizeFromStore));

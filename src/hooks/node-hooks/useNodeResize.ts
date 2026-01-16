@@ -1,5 +1,9 @@
 import { useRef, useCallback, useEffect } from "react";
-import { useFlowStore } from "../../store/flowStore";
+import {
+  useSetIsResizingNode,
+  useUpdateNodeDimensions,
+  useUpdateNodePosition,
+} from "../../store/flowStore";
 import type { position } from "../../lib/types";
 
 export type ResizeHandle = "nw" | "ne" | "sw" | "se" | "n" | "s" | "e" | "w";
@@ -20,9 +24,9 @@ export function useNodeResize(
   const activePointerIdRef = useRef<number | null>(null);
   const rafRef = useRef<number | null>(null);
 
-  const updateNodePosition = useFlowStore((s) => s.updateNodePosition);
-  const updateNodeSize = useFlowStore((s) => s.updateNodeDimensions);
-  const setIsResizingNode = useFlowStore((s) => s.setIsResizingNode);
+  const updateNodePosition = useUpdateNodePosition();
+  const updateNodeSize = useUpdateNodeDimensions();
+  const setIsResizingNode = useSetIsResizingNode();
 
   const handlersRef = useRef<{
     move: ((e: PointerEvent) => void) | null;

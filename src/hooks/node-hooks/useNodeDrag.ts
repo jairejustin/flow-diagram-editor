@@ -1,5 +1,14 @@
 import { useRef, useCallback, useEffect } from "react";
-import { useFlowStore } from "../../store/flowStore";
+import {
+  useEdges,
+  useNodes,
+  useSelectedNodeId,
+  useSelectNode,
+  useSetIsDraggingNode,
+  useUpdateNodePosition,
+  useViewMode,
+  useViewport,
+} from "../../store/flowStore";
 import { getAnchorPoint } from "../../lib/utils";
 import type {
   position,
@@ -36,17 +45,15 @@ export function useNodeDrag(
     onPointerCancel: null,
   });
 
-  const selectNode = useCallback(
-    (id: string | null) =>
-      useFlowStore.setState({ selectedNodeId: id, selectedEdgeId: null }),
-    []
-  );
-  const updateNodePosition = useFlowStore((state) => state.updateNodePosition);
-  const setIsDraggingNode = useFlowStore((state) => state.setIsDraggingNode);
-  const viewMode = useFlowStore((state) => state.viewMode);
+  const selectNode = useSelectNode();
+  const updateNodePosition = useUpdateNodePosition();
+  const setIsDraggingNode = useSetIsDraggingNode();
+  const viewMode = useViewMode();
 
-  const allEdges = useFlowStore((state) => state.edges);
-  const allNodes = useFlowStore((state) => state.nodes);
+  const allEdges = useEdges();
+  const allNodes = useNodes();
+  const viewport = useViewport();
+  const selectedNodeId = useSelectedNodeId();
 
   const cleanupListeners = useCallback(() => {
     if (handlersRef.current.onPointerMove) {
@@ -168,12 +175,8 @@ export function useNodeDrag(
 
   const onMove = useCallback(
     (clientX: number, clientY: number) => {
-      const dx =
-        (clientX - pointerPosRef.current.x) /
-        useFlowStore.getState().viewport.zoom;
-      const dy =
-        (clientY - pointerPosRef.current.y) /
-        useFlowStore.getState().viewport.zoom;
+      const dx = (clientX - pointerPosRef.current.x) / viewport.zoom;
+      const dy = (clientY - pointerPosRef.current.y) / viewport.zoom;
 
       const currentNode = allNodes.find((n) => n.id === nodeId);
       if (!currentNode) return;
@@ -251,20 +254,19 @@ export function useNodeDrag(
 
       updateNodePosition(nodeId, { x: newX, y: newY });
     },
-    [nodeId, updateNodePosition, allNodes, findAlignmentTarget]
+    [nodeId, updateNodePosition, allNodes, findAlignmentTarget, viewport]
   );
 
   const onEnd = useCallback(() => {
     cleanupListeners();
-    const currentSelectedId = useFlowStore.getState().selectedNodeId;
-    if (nodeId === currentSelectedId) {
+    if (nodeId === selectedNodeId) {
       selectNode(null);
     } else {
       selectNode(nodeId);
     }
     setIsDraggingNode(false);
     isAlignedRef.current = { x: false, y: false };
-  }, [nodeId, selectNode, setIsDraggingNode, cleanupListeners]);
+  }, [nodeId, selectNode, setIsDraggingNode, cleanupListeners, selectedNodeId]);
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent) => {

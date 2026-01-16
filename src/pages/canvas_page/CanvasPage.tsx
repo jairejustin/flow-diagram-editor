@@ -3,7 +3,18 @@ import { Node } from "../../components/node/Node";
 import { Edge } from "../../components/edge/Edge";
 import Toolbar from "../../components/toolbar/Toolbar";
 import ZoomControls from "../../components/zoom-controls/ZoomControls";
-import { useFlowStore } from "../../store/flowStore";
+import {
+  useIsExporting,
+  useIsMobile,
+  useNodes,
+  useEdges,
+  useSelectedEdgeId,
+  useSelectedNodeId,
+  useSetShowPanel,
+  useShowPanel,
+  useViewport,
+  useSetViewport,
+} from "../../store/flowStore";
 import NodeStylePanel from "../../components/style-panel/NodeStylePanel";
 import EdgeStylePanel from "../../components/style-panel/EdgeStylePanel";
 import { ResizeHandles } from "../../components/resize-handles/ResizeHandles";
@@ -34,19 +45,18 @@ const ToggleEditor = ({ onToggle }: ToggleEditorProps) => {
 };
 
 export default function CanvasPage() {
-  const selectedNodeId = useFlowStore((state) => state.selectedNodeId);
-  const selectedEdgeId = useFlowStore((state) => state.selectedEdgeId);
-  const viewport = useFlowStore((state) => state.viewport);
-  const isNarrow = useFlowStore((state) => state.isMobile);
-  const showPanel = useFlowStore((state) => state.showPanel);
-  const isExporting = useFlowStore((state) => state.isExporting);
-  const setShowPanel = useFlowStore((state) => state.setShowPanel);
+  const selectedNodeId = useSelectedNodeId();
+  const selectedEdgeId = useSelectedEdgeId();
+  const viewport = useViewport();
+  const isNarrow = useIsMobile();
+  const showPanel = useShowPanel();
+  const isExporting = useIsExporting();
+  const setShowPanel = useSetShowPanel();
+  const setViewport = useSetViewport();
 
-  // Subscribe to nodes and edges from store
-  const nodes = useFlowStore((state) => state.nodes);
-  const edges = useFlowStore((state) => state.edges);
+  const nodes = useNodes();
+  const edges = useEdges();
 
-  // Use viewport from store directly instead of syncing to local state
   const [translateX, setTranslateX] = useState(viewport.x);
   const [translateY, setTranslateY] = useState(viewport.y);
   const [scale, setScale] = useState(viewport.zoom);
@@ -81,7 +91,7 @@ export default function CanvasPage() {
     setScale(1);
     setTranslateX(0);
     setTranslateY(0);
-    useFlowStore.getState().setViewport({ x: 0, y: 0, zoom: 1 });
+    setViewport({ x: 0, y: 0, zoom: 1 });
   };
 
   return (

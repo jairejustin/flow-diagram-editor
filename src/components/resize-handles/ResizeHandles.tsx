@@ -1,5 +1,5 @@
 import { useNodeResize } from "../../hooks/node-hooks/useNodeResize";
-import { useFlowStore } from "../../store/flowStore";
+import { useIsMobile } from "../../store/flowStore";
 
 type ResizeHandle = "nw" | "ne" | "sw" | "se" | "n" | "s" | "e" | "w";
 
@@ -26,7 +26,7 @@ export const ResizeHandles = ({
     scale
   );
 
-  const isMobile = useFlowStore((state) => state.isMobile);
+  const isMobile = useIsMobile();
   const handleSize = isMobile ? 18 : 8;
 
   const resizeHandles: {

@@ -1,6 +1,16 @@
 import { useRef, useCallback, useEffect } from "react";
 import type { NodeData, EdgeAnchor, position } from "../../lib/types";
-import { useFlowStore } from "../../store/flowStore";
+import {
+  useSelectEdge,
+  useNodes,
+  useUpdateEdgeHead,
+  useUpdateEdgeTail,
+  useSetIsDraggingEdge,
+  useSelectedEdgeId,
+  useSelectNode,
+  useViewMode,
+  useViewport,
+} from "../../store/flowStore";
 import { getAnchorPoint } from "../../lib/utils";
 import { ALIGNMENT_THRESHOLD, PAN_LIMIT } from "../../lib/constants";
 
@@ -32,18 +42,15 @@ export function useEdgeDrag(
     onPointerCancel: null,
   });
 
-  const selectEdge = useCallback(
-    (id: string | null) => useFlowStore.setState({ selectedEdgeId: id }),
-    []
-  );
-
-  const allNodes = useFlowStore((state) => state.nodes);
-  const updateEdgeHead = useFlowStore((state) => state.updateEdgeHead);
-  const updateEdgeTail = useFlowStore((state) => state.updateEdgeTail);
-  const setIsDraggingEdge = useFlowStore((state) => state.setIsDraggingEdge);
-  const selectedEdgeId = useFlowStore((state) => state.selectedEdgeId);
-  const selectNode = useFlowStore((state) => state.selectNode);
-  const viewMode = useFlowStore((state) => state.viewMode);
+  const selectEdge = useSelectEdge();
+  const allNodes = useNodes();
+  const updateEdgeHead = useUpdateEdgeHead();
+  const updateEdgeTail = useUpdateEdgeTail();
+  const setIsDraggingEdge = useSetIsDraggingEdge();
+  const selectedEdgeId = useSelectedEdgeId();
+  const selectNode = useSelectNode();
+  const viewMode = useViewMode();
+  const viewport = useViewport();
 
   const cleanupListeners = useCallback(() => {
     if (handlersRef.current.onPointerMove) {
@@ -82,12 +89,12 @@ export function useEdgeDrag(
       selectNode(null);
 
       if (selectedEdgeId === edgeId) {
-        useFlowStore.setState({ selectedEdgeId: null });
+        selectEdge(null);
       } else {
-        useFlowStore.setState({ selectedEdgeId: edgeId });
+        selectEdge(edgeId);
       }
     },
-    [edgeId, selectedEdgeId, selectNode]
+    [edgeId, selectedEdgeId, selectNode, selectEdge]
   );
 
   // Get the opposite endpoint position
@@ -118,12 +125,8 @@ export function useEdgeDrag(
 
   const onMove = useCallback(
     (clientX: number, clientY: number) => {
-      const dx =
-        (clientX - pointerPosRef.current.x) /
-        useFlowStore.getState().viewport.zoom;
-      const dy =
-        (clientY - pointerPosRef.current.y) /
-        useFlowStore.getState().viewport.zoom;
+      const dx = (clientX - pointerPosRef.current.x) / viewport.zoom;
+      const dy = (clientY - pointerPosRef.current.y) / viewport.zoom;
 
       let newX = startPosRef.current.x + dx;
       let newY = startPosRef.current.y + dy;
@@ -226,6 +229,7 @@ export function useEdgeDrag(
       }
     },
     [
+      viewport.zoom,
       allNodes,
       edgeId,
       fromNodeId,
@@ -257,8 +261,7 @@ export function useEdgeDrag(
       cleanupListeners();
       selectNode(null);
 
-      const currentSelectedId = useFlowStore.getState().selectedEdgeId;
-      if (edgeId === currentSelectedId) {
+      if (edgeId === selectedEdgeId) {
         selectEdge(null);
       } else {
         selectEdge(edgeId);
@@ -324,6 +327,7 @@ export function useEdgeDrag(
       cleanupListeners,
       selectEdge,
       edgeId,
+      selectedEdgeId,
     ]
   );
 
@@ -340,8 +344,7 @@ export function useEdgeDrag(
       cleanupListeners();
       selectNode(null);
 
-      const currentSelectedId = useFlowStore.getState().selectedEdgeId;
-      if (edgeId === currentSelectedId) {
+      if (edgeId === selectedEdgeId) {
         selectEdge(null);
       } else {
         selectEdge(edgeId);
@@ -407,6 +410,7 @@ export function useEdgeDrag(
       cleanupListeners,
       selectEdge,
       edgeId,
+      selectedEdgeId,
     ]
   );
 

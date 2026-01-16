@@ -1,6 +1,9 @@
 import { useState, useRef } from "react";
 import type { position } from "../../lib/types";
-import { useFlowStore } from "../../store/flowStore";
+import {
+  useUpdateEdgeSegmentPosition,
+  useViewport,
+} from "../../store/flowStore";
 
 interface EdgeSegmentProps {
   index: number;
@@ -34,10 +37,9 @@ export function EdgeSegment({
   const startMousePos = useRef({ x: 0, y: 0 });
   const startSegPos = useRef({ p1: { ...p1 }, p2: { ...p2 } });
 
-  const updateEdgeSegmentPosition = useFlowStore(
-    (state) => state.updateEdgeSegmentPosition
-  );
-  const zoom = useFlowStore((state) => state.viewport.zoom);
+  const updateEdgeSegmentPosition = useUpdateEdgeSegmentPosition();
+  const viewport = useViewport();
+  const zoom = viewport.zoom;
 
   // 1. Determine Current Orientation
   const isVertical = Math.abs(p1.x - p2.x) < 1;

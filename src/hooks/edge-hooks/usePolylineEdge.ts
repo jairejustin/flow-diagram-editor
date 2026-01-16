@@ -1,5 +1,5 @@
 import type { NodeData, EdgeData, position, EdgeAnchor } from "../../lib/types";
-import { useFlowStore } from "../../store/flowStore";
+import { useSelectedEdgeId, useEdgeById } from "../../store/flowStore";
 import { getAnchorPoint, getArrowheadDimensions } from "../../lib/utils";
 
 interface UsePolylineEdgeResult {
@@ -31,10 +31,8 @@ export function usePolylineEdge(
   edge: EdgeData,
   nodes: NodeData[]
 ): UsePolylineEdgeResult {
-  const storeEdge = useFlowStore((state) =>
-    state.edges.find((e) => e.id === edge.id)
-  );
-  const selectedEdgeId = useFlowStore((state) => state.selectedEdgeId);
+  const storeEdge = useEdgeById(edge.id);
+  const selectedEdgeId = useSelectedEdgeId();
 
   const edgeWidth: number = storeEdge?.style?.width || 2;
   const arrowheadDimensions = getArrowheadDimensions(edgeWidth);

@@ -14,16 +14,23 @@ import {
   DocumentIcon,
 } from "../../assets/CustomSVGIcons";
 import "./Toolbar.css";
-import { useFlowStore } from "../../store/flowStore";
+import {
+  useViewMode,
+  useSetViewMode,
+  useSetIsExporting,
+  useSelectNode,
+  useSelectEdge,
+  useAddNode,
+} from "../../store/flowStore";
 
 export default function Toolbar() {
   const [openCreateNode, setOpenCreateNode] = useState(false);
-  const viewMode = useFlowStore((state) => state.viewMode);
-  const setViewMode = useFlowStore((state) => state.setViewMode);
-  const setIsExporting = useFlowStore((state) => state.setIsExporting);
-  const setSelectedNodeId = useFlowStore((state) => state.selectNode);
-  const setSelectedEdgeId = useFlowStore((state) => state.selectEdge);
-  const { addNode } = useFlowStore();
+  const viewMode = useViewMode();
+  const setViewMode = useSetViewMode();
+  const setIsExporting = useSetIsExporting();
+  const setSelectedNodeId = useSelectNode();
+  const setSelectedEdgeId = useSelectEdge();
+  const addNode = useAddNode();
 
   const handleAddRectangle = () => {
     addNode({ shape: "rectangle" });

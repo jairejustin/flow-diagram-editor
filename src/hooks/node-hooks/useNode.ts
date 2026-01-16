@@ -1,5 +1,5 @@
 import type { NodeData, position } from "../../lib/types";
-import { useFlowStore } from "../../store/flowStore";
+import { useNodeById } from "../../store/flowStore";
 import { useNodeDrag } from "./useNodeDrag";
 
 interface UseNodeResult {
@@ -15,10 +15,7 @@ interface UseNodeResult {
 }
 
 export function useNode(node: NodeData): UseNodeResult {
-  const storeNode = useFlowStore((state) =>
-    state.nodes.find((n) => n.id === node.id)
-  );
-
+  const storeNode = useNodeById(node.id);
   const position = storeNode?.position || { x: 0, y: 0 };
   const height = storeNode?.height || 100;
   const width = storeNode?.width || 150;

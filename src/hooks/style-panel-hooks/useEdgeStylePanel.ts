@@ -1,16 +1,24 @@
 import { useState } from "react";
-import { useFlowStore } from "../../store/flowStore";
+import {
+  useConvertToElbow,
+  useConvertToStraight,
+  useDeleteEdge,
+  useEdgeById,
+  useFlipEdge,
+  useSelectEdge,
+  useUpdateEdgeLabel,
+  useUpdateEdgeStyles,
+} from "../../store/flowStore";
 
 export function useEdgeStylePanel(id: string) {
-  const edge = useFlowStore((state) => state.edges.find((e) => e.id === id));
-  const updateEdgeStyles = useFlowStore((state) => state.updateEdgeStyles);
-  const updateEdgeLabel = useFlowStore((state) => state.updateEdgeLabel);
-  const selectEdge = useFlowStore((state) => state.selectEdge);
-  const convertEdgeToStraight = useFlowStore(
-    (state) => state.convertToStraight
-  );
-  const convertEdgeToElbow = useFlowStore((state) => state.convertToElbow);
-  const { deleteEdge, flipEdge } = useFlowStore();
+  const edge = useEdgeById(id);
+  const updateEdgeStyles = useUpdateEdgeStyles();
+  const updateEdgeLabel = useUpdateEdgeLabel();
+  const selectEdge = useSelectEdge();
+  const convertEdgeToStraight = useConvertToStraight();
+  const convertEdgeToElbow = useConvertToElbow();
+  const deleteEdge = useDeleteEdge();
+  const flipEdge = useFlipEdge();
 
   const [openPicker, setOpenPicker] = useState<string | null>(null);
 

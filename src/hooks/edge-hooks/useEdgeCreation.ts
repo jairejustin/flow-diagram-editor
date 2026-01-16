@@ -1,5 +1,9 @@
 import { useRef, useCallback, useEffect } from "react";
-import { useFlowStore } from "../../store/flowStore";
+import {
+  useAddEdge,
+  useSelectNode,
+  useSelectEdge,
+} from "../../store/flowStore";
 import type { position } from "../../lib/types";
 
 type EdgeHandle = "n" | "s" | "e" | "w";
@@ -10,11 +14,9 @@ export function useEdgeCreation(
   width: number,
   height: number
 ) {
-  const addEdge = useFlowStore((state) => state.addEdge);
-  const selectEdge = useFlowStore((state) => state.selectEdge);
-  const selectNode = useFlowStore((state) => state.selectNode);
-
-  // store the createEdge function in a ref to keep it stable
+  const addEdge = useAddEdge();
+  const selectEdge = useSelectEdge();
+  const selectNode = useSelectNode();
   const createEdgeRef = useRef<(handle: EdgeHandle) => void>(null);
 
   useEffect(() => {
@@ -30,7 +32,6 @@ export function useEdgeCreation(
                 : "left",
       } as const;
 
-      // get the free endpoint position 50px away from the node edge
       let toPosition: position;
       switch (handle) {
         case "n":
