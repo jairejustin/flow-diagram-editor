@@ -1,5 +1,5 @@
 import { Plus, Minus, RefreshCcw } from "lucide-react";
-import "./ZoomControls.css";
+import "./ViewportControls.css";
 
 interface ZoomControlsProps {
   onZoomIn?: () => void;
