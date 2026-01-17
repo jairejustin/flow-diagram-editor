@@ -1,6 +1,7 @@
 import { useRef, useCallback, useEffect } from "react";
 import {
   useEdges,
+  useHistory,
   useNodes,
   useSelectedNodeId,
   useSelectNode,
@@ -48,6 +49,7 @@ export function useNodeDrag(
   const selectNode = useSelectNode();
   const updateNodePosition = useUpdateNodePosition();
   const setIsDraggingNode = useSetIsDraggingNode();
+  const {resume, pause} = useHistory();
   const viewMode = useViewMode();
 
   const allEdges = useEdges();
@@ -266,10 +268,12 @@ export function useNodeDrag(
     }
     setIsDraggingNode(false);
     isAlignedRef.current = { x: false, y: false };
-  }, [nodeId, selectNode, setIsDraggingNode, cleanupListeners, selectedNodeId]);
+    resume();
+  }, [nodeId, selectNode, setIsDraggingNode, cleanupListeners, selectedNodeId, resume]);
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent) => {
+      
       e.stopPropagation();
       if (editing) return;
       if (activePointerId.current !== null) return;
@@ -301,6 +305,8 @@ export function useNodeDrag(
         onEnd();
       };
 
+      pause();
+
       handlersRef.current.onPointerMove = onPointerMove;
       handlersRef.current.onPointerUp = onPointerUp;
       handlersRef.current.onPointerCancel = onPointerCancel;
@@ -318,6 +324,7 @@ export function useNodeDrag(
       onEnd,
       cleanupListeners,
       calculateConnectedEndpoints,
+      pause
     ]
   );
 

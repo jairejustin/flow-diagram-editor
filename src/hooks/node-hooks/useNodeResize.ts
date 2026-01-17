@@ -1,5 +1,6 @@
 import { useRef, useCallback, useEffect } from "react";
 import {
+  useHistory,
   useSetIsResizingNode,
   useUpdateNodeDimensions,
   useUpdateNodePosition,
@@ -27,6 +28,7 @@ export function useNodeResize(
   const updateNodePosition = useUpdateNodePosition();
   const updateNodeSize = useUpdateNodeDimensions();
   const setIsResizingNode = useSetIsResizingNode();
+  const {resume, pause} = useHistory();
 
   const handlersRef = useRef<{
     move: ((e: PointerEvent) => void) | null;
@@ -121,12 +123,14 @@ export function useNodeResize(
     (e: PointerEvent) => {
       if (e.pointerId !== activePointerIdRef.current) return;
       cleanup();
+      resume();
     },
-    [cleanup]
+    [cleanup, resume]
   );
 
   const onResizeHandlePointerDown = useCallback(
     (e: React.PointerEvent, handle: ResizeHandle) => {
+      pause();
       e.stopPropagation();
 
       const target = e.currentTarget as HTMLElement;
@@ -154,6 +158,7 @@ export function useNodeResize(
       position,
       setIsResizingNode,
       width,
+      pause
     ]
   );
 

@@ -10,6 +10,7 @@ import {
   useSelectNode,
   useViewMode,
   useViewport,
+  useHistory,
 } from "../../store/flowStore";
 import { getAnchorPoint } from "../../lib/utils";
 import { ALIGNMENT_THRESHOLD, PAN_LIMIT } from "../../lib/constants";
@@ -51,6 +52,7 @@ export function useEdgeDrag(
   const selectNode = useSelectNode();
   const viewMode = useViewMode();
   const viewport = useViewport();
+  const { pause, resume } = useHistory();
 
   const cleanupListeners = useCallback(() => {
     if (handlersRef.current.onPointerMove) {
@@ -246,7 +248,8 @@ export function useEdgeDrag(
     draggingEndRef.current = null;
     // clean up
     isAlignedRef.current = { x: false, y: false };
-  }, [setIsDraggingEdge, cleanupListeners]);
+    resume();
+  }, [setIsDraggingEdge, cleanupListeners, resume]);
 
   // head endpoint
   const onPointerDownHead = useCallback(
@@ -284,6 +287,8 @@ export function useEdgeDrag(
       pointerPosRef.current = { x: e.clientX, y: e.clientY };
       startPosRef.current = { x: p2.x, y: p2.y };
       draggingEndRef.current = "to";
+
+      pause();
       setIsDraggingEdge(true);
 
       const onPointerMove = (e: PointerEvent) => {
@@ -328,6 +333,7 @@ export function useEdgeDrag(
       selectEdge,
       edgeId,
       selectedEdgeId,
+      pause
     ]
   );
 
@@ -342,6 +348,7 @@ export function useEdgeDrag(
       }
 
       cleanupListeners();
+      pause();
       selectNode(null);
 
       if (edgeId === selectedEdgeId) {
@@ -411,6 +418,7 @@ export function useEdgeDrag(
       selectEdge,
       edgeId,
       selectedEdgeId,
+      pause
     ]
   );
 

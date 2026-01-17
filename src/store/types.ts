@@ -80,6 +80,4 @@ export interface UISlice {
 
 export type FlowState = NodeSlice &
   EdgeSlice &
-  UISlice & {
-    triggerUpdate: () => void;
-  };
+  UISlice;

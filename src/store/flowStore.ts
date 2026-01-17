@@ -33,7 +33,14 @@ const useFlowStore = create<FlowState>()(
         nodes: state.nodes,
         edges: state.edges,
       }),
-    }
+      equality: (a, b) => {
+        // If they are the exact same reference, they are equal
+        if (a === b) return true;
+        // Otherwise, assume they are different to force an entry
+        return false; 
+      }
+    },
+    
   )
 );
 
@@ -56,9 +63,6 @@ export function useHistory() {
     canRedo: futureStates.length > 0,
   };
 }
-
-export const useTriggerUpdate = () =>
-  useFlowStore((state) => state.triggerUpdate);
 
 // Node Actions
 export const useNodes = () => useFlowStore((state) => state.nodes);
