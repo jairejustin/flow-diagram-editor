@@ -1,0 +1,41 @@
+.history-controls {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  color: #1a1a1a;
+  display: flex;
+  flex-direction: row;
+  width: 4.5rem;
+  height: 1.5rem;
+  align-items: stretch;
+  padding: 0.5rem;
+  gap: 0.5rem;
+  background-color: #f7f7f8;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.06),
+    0 4px 12px rgba(0, 0, 0, 0.08),
+    0 2px 4px rgba(0, 0, 0, 0.04);
+  border-radius: 10px;
+  z-index: 100;
+  overflow:hidden;
+}
+
+.history-controls__button {
+  outline: none;
+  display: block;
+  margin: 0 auto;
+  cursor: pointer;
+  text-align: center;
+  border: none;
+  border-radius: 10px;
+  background-color: #f0f0f0;
+}
+
+.history-controls__button:hover {
+  background-color: #d0d0d0;
+}
+
+.disabled {
+    pointer-events: none;
+}

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Node } from "../../components/node/Node";
 import { Edge } from "../../components/edge/Edge";
 import Toolbar from "../../components/toolbar/Toolbar";
-import ZoomControls from "../../components/zoom-controls/ZoomControls";
+import ZoomControls from "../../components/viewport-controls/ViewportControls";
 import {
   useIsExporting,
   useIsMobile,
@@ -24,6 +24,7 @@ import { EdgeCreationHandles } from "../../components/edge-creation-handles/Edge
 import { Edit3 } from "lucide-react";
 import { ExportOverlay } from "../../components/export-overlay/ExportOverlay";
 import "./CanvasPage.css";
+import HistoryControls from "../../components/history-controls/HistoryControls";
 
 interface ToggleEditorProps {
   isOpen: boolean;
@@ -126,6 +127,7 @@ export default function CanvasPage() {
               onZoomOut={onZoomOut}
               onReset={onReset}
             />
+            <HistoryControls/>
           </>
         )}
         <div
