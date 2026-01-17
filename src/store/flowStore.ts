@@ -5,24 +5,60 @@ import type { FlowState } from "./types";
 import { createNodeSlice } from "./slices/createNodeSlice";
 import { createEdgeSlice } from "./slices/createEdgeSlice";
 import { createUISlice } from "./slices/createUISlice";
+import { temporal } from "zundo";
+import type { TemporalState } from "zundo";
 
 const useFlowStore = create<FlowState>()(
-  persist(
-    (...a) => ({
-      ...createNodeSlice(...a),
-      ...createEdgeSlice(...a),
-      ...createUISlice(...a),
-    }),
+  temporal(
+    persist(
+      (set, get, store) => ({
+        ...createNodeSlice(set, get, store),
+        ...createEdgeSlice(set, get, store),
+        ...createUISlice(set, get, store),
+
+        triggerUpdate: () => set((state) => ({ ...state })),
+      }),
+      {
+        name: "flow-storage",
+        partialize: (state) => ({
+          nodes: state.nodes.map((node) => ({ ...node, editing: false })),
+          edges: state.edges,
+          viewport: state.viewport,
+        }),
+      }
+    ),
     {
-      name: "flow-storage",
+      limit: 100,
       partialize: (state) => ({
-        nodes: state.nodes.map((node) => ({ ...node, editing: false })),
+        nodes: state.nodes,
         edges: state.edges,
-        viewport: state.viewport,
       }),
     }
   )
 );
+
+// History Actions
+export function useHistory() {
+  const temporalStore = useFlowStore.temporal as unknown as {
+    getState: () => TemporalState<FlowState>;
+  };
+
+  const { undo, redo, pause, resume, clear, pastStates, futureStates } =
+    temporalStore.getState();
+
+  return {
+    undo,
+    redo,
+    pause,
+    resume,
+    clear,
+    canUndo: pastStates.length > 0,
+    canRedo: futureStates.length > 0,
+  };
+}
+
+export const useTriggerUpdate = () =>
+  useFlowStore((state) => state.triggerUpdate);
 
 // Node Actions
 export const useNodes = () => useFlowStore((state) => state.nodes);

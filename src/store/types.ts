@@ -78,4 +78,8 @@ export interface UISlice {
   setIsExporting: (isExporting: boolean) => void;
 }
 
-export type FlowState = NodeSlice & EdgeSlice & UISlice;
+export type FlowState = NodeSlice &
+  EdgeSlice &
+  UISlice & {
+    triggerUpdate: () => void;
+  };
