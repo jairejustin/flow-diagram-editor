@@ -25,7 +25,7 @@ export const createEdgeSlice: StateCreator<FlowState, [], [], EdgeSlice> = (
     }));
   },
 
-  selectEdge: (id) => set({ selectedEdgeId: id }),
+  selectEdge: (id) => set({ selectedEdgeId: id , selectedNodeId: null}),
 
   updateEdgeHead: (id, to, toAnchor) => {
     set((state) => ({
