@@ -21,8 +21,7 @@ export const mockFlowDocument: FlowDocument = {
         borderColor: "#000000",
         borderWidth: 2,
         fontSize: 15,
-      },
-      editing: false,
+      }
     },
     {
       id: "node_decision",
@@ -37,8 +36,7 @@ export const mockFlowDocument: FlowDocument = {
         fontSize: 14,
         backgroundColor: "#ffffff",
         borderWidth: 2,
-      },
-      editing: false,
+      }
     },
     {
       id: "node_process",
@@ -51,8 +49,7 @@ export const mockFlowDocument: FlowDocument = {
         borderRadius: 10,
         textColor: "#000000",
         borderWidth: 2,
-      },
-      editing: false,
+      }
     },
     {
       id: "babdc460-5ef3-4184-8c4d-e08c5b529ac8",
@@ -61,7 +58,6 @@ export const mockFlowDocument: FlowDocument = {
       height: 42,
       content: "END",
       shape: "rectangle",
-      editing: false,
       style: {
         backgroundColor: "#ffffff",
         borderColor: "#000",
@@ -79,7 +75,6 @@ export const mockFlowDocument: FlowDocument = {
       height: 50,
       content: "Print Output",
       shape: "rectangle",
-      editing: false,
       style: {
         backgroundColor: "#ffffff",
         borderColor: "#000",
@@ -97,7 +92,6 @@ export const mockFlowDocument: FlowDocument = {
       height: 50,
       content: "START",
       shape: "rectangle",
-      editing: false,
       style: {
         backgroundColor: "#ffffff",
         borderColor: "#000",
@@ -115,7 +109,6 @@ export const mockFlowDocument: FlowDocument = {
       height: 100,
       content: "HELLO WORLD!",
       shape: "ellipse",
-      editing: false,
       style: {
         backgroundColor: "#95b9ff",
         borderColor: "#001aa5",

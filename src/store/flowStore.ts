@@ -21,7 +21,7 @@ const useFlowStore = create<FlowState>()(
       {
         name: "flow-storage",
         partialize: (state) => ({
-          nodes: state.nodes.map((node) => ({ ...node, editing: false })),
+          nodes: state.nodes,
           edges: state.edges,
           viewport: state.viewport,
         }),
