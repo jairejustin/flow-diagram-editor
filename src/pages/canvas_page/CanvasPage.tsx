@@ -158,7 +158,7 @@ export default function CanvasPage() {
           {nodes.map((node) => (
             <React.Fragment key={node.id}>
               <Node node={node} />
-              {selectedNodeId === node.id && !node.editing && (
+              {selectedNodeId === node.id && (
                 <>
                   <ResizeHandles
                     nodeId={node.id}

@@ -21,7 +21,6 @@ import { ALIGNMENT_THRESHOLD, PAN_LIMIT } from "../../lib/constants";
 export function useNodeDrag(
   nodeId: string,
   position: { x: number; y: number },
-  editing: boolean
 ) {
   const pointerPosRef = useRef({ x: 0, y: 0 });
   const startPosRef = useRef({ x: 0, y: 0 });
@@ -271,7 +270,6 @@ export function useNodeDrag(
   const onPointerDown = useCallback(
     (e: React.PointerEvent) => {
       e.stopPropagation();
-      if (editing) return;
       if (activePointerId.current !== null) return;
 
       cleanupListeners();
@@ -310,7 +308,6 @@ export function useNodeDrag(
       document.addEventListener("pointercancel", onPointerCancel);
     },
     [
-      editing,
       position.x,
       position.y,
       setIsDraggingNode,

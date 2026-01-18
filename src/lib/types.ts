@@ -97,7 +97,6 @@ export interface NodeData {
   content: string;
   shape: NodeShape;
   style?: NodeStyle;
-  editing?: boolean;
 }
 
 // FlowDocument type
