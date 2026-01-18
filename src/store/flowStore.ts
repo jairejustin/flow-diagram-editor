@@ -59,8 +59,10 @@ export function useHistory() {
     pause,
     resume,
     clear,
-    canUndo: pastStates.length > 0,
-    canRedo: futureStates.length > 0,
+    canUndo: pastStates.length > 1,
+    canRedo: futureStates.length > 1,
+    pastStates,
+    futureStates
   };
 }
 
