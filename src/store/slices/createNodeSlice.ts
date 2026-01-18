@@ -28,7 +28,7 @@ export const createNodeSlice: StateCreator<FlowState, [], [], NodeSlice> = (
     }));
   },
 
-  selectNode: (id) => set({ selectedNodeId: id }),
+  selectNode: (id) => set({ selectedNodeId: id, selectedEdgeId: null }),
 
   updateNodePosition: (id, newPosition) => {
     set((state) => {

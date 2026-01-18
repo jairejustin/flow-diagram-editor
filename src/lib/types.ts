@@ -80,13 +80,13 @@ export type NodeShape =
   | "document";
 
 export interface NodeStyle {
-  backgroundColor?: string;
-  borderColor?: string;
-  borderWidth?: number;
-  borderRadius?: number;
-  textColor?: string;
-  fontSize?: number;
-  fontWeight?: string;
+  backgroundColor: string;
+  borderColor: string;
+  borderWidth: number;
+  borderRadius: number;
+  textColor: string;
+  fontSize: number;
+  fontWeight: string;
 }
 
 export interface NodeData {
@@ -96,8 +96,7 @@ export interface NodeData {
   height: number;
   content: string;
   shape: NodeShape;
-  style?: NodeStyle;
-  editing?: boolean;
+  style: NodeStyle;
 }
 
 // FlowDocument type
