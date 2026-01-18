@@ -7,7 +7,6 @@ interface UseNodeResult {
   position: position;
   height: number;
   width: number;
-  editing: boolean;
   text: string;
   border: number;
   pad: number;
@@ -19,10 +18,9 @@ export function useNode(node: NodeData): UseNodeResult {
   const position = storeNode?.position || { x: 0, y: 0 };
   const height = storeNode?.height || 100;
   const width = storeNode?.width || 150;
-  const editing = storeNode?.editing || false;
   const text = storeNode?.content || "";
 
-  const { onPointerDown } = useNodeDrag(node.id, position, editing);
+  const { onPointerDown } = useNodeDrag(node.id, position);
 
   const border = node.style?.borderWidth || 2;
   const pad = border < 3 ? border / 2 + 2 : border / 5 + 3;
@@ -32,7 +30,6 @@ export function useNode(node: NodeData): UseNodeResult {
     position,
     height,
     width,
-    editing,
     text,
     border,
     pad,
