@@ -127,7 +127,7 @@ export default function CanvasPage() {
               onZoomOut={onZoomOut}
               onReset={onReset}
             />
-            <HistoryControls/>
+            <HistoryControls />
           </>
         )}
         <div

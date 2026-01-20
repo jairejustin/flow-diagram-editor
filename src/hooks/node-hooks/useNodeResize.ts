@@ -28,7 +28,7 @@ export function useNodeResize(
   const updateNodePosition = useUpdateNodePosition();
   const updateNodeSize = useUpdateNodeDimensions();
   const setIsResizingNode = useSetIsResizingNode();
-  const {resume, pause} = useHistory();
+  const { resume, pause } = useHistory();
 
   const handlersRef = useRef<{
     move: ((e: PointerEvent) => void) | null;
@@ -158,7 +158,7 @@ export function useNodeResize(
       position,
       setIsResizingNode,
       width,
-      pause
+      pause,
     ]
   );
 

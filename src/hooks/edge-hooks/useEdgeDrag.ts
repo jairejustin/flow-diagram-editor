@@ -333,7 +333,7 @@ export function useEdgeDrag(
       selectEdge,
       edgeId,
       selectedEdgeId,
-      pause
+      pause,
     ]
   );
 
@@ -418,7 +418,7 @@ export function useEdgeDrag(
       selectEdge,
       edgeId,
       selectedEdgeId,
-      pause
+      pause,
     ]
   );
 

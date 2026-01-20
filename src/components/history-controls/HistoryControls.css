@@ -18,7 +18,7 @@
     0 2px 4px rgba(0, 0, 0, 0.04);
   border-radius: 10px;
   z-index: 100;
-  overflow:hidden;
+  overflow: hidden;
 }
 
 .history-controls__button {
@@ -37,5 +37,5 @@
 }
 
 .disabled {
-    pointer-events: none;
+  pointer-events: none;
 }

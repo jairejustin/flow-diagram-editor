@@ -21,7 +21,7 @@ export const mockFlowDocument: FlowDocument = {
         borderColor: "#000000",
         borderWidth: 2,
         fontSize: 15,
-      }
+      },
     },
     {
       id: "node_decision",
@@ -36,7 +36,7 @@ export const mockFlowDocument: FlowDocument = {
         fontSize: 14,
         backgroundColor: "#ffffff",
         borderWidth: 2,
-      }
+      },
     },
     {
       id: "node_process",
@@ -49,7 +49,7 @@ export const mockFlowDocument: FlowDocument = {
         borderRadius: 10,
         textColor: "#000000",
         borderWidth: 2,
-      }
+      },
     },
     {
       id: "babdc460-5ef3-4184-8c4d-e08c5b529ac8",

@@ -37,10 +37,9 @@ const useFlowStore = create<FlowState>()(
         // If they are the exact same reference, they are equal
         if (a === b) return true;
         // Otherwise, assume they are different to force an entry
-        return false; 
-      }
-    },
-    
+        return false;
+      },
+    }
   )
 );
 
@@ -62,7 +61,7 @@ export function useHistory() {
     canUndo: pastStates.length > 1,
     canRedo: futureStates.length > 1,
     pastStates,
-    futureStates
+    futureStates,
   };
 }
 
