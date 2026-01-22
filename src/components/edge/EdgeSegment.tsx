@@ -130,7 +130,7 @@ export function EdgeSegment({
         y2={p2.y}
         stroke={color}
         strokeWidth={edgeWidth}
-        strokeDasharray={isLast ? `${dashLength} ${totalLength}` : ""}
+        strokeDasharray={isLast ? `${dashLength} ${totalLength}` : "none"}
         strokeLinecap="round"
         style={{ opacity: isSelected ? 1 : 0.8 }}
       />
