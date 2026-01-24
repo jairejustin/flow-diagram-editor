@@ -63,14 +63,6 @@ export const createNodeSlice: StateCreator<FlowState, [], [], NodeSlice> = (
     }));
   },
 
-  updateNodeEditing: (id, editing) => {
-    set((state) => ({
-      nodes: state.nodes.map((node) =>
-        node.id === id ? { ...node, editing } : node
-      ),
-    }));
-  },
-
   updateNodeStyles: (id, style) => {
     set((state) => {
       const node = state.nodes.find((n) => n.id === id);

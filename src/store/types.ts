@@ -21,7 +21,6 @@ export interface NodeSlice {
   updateNodePosition: (id: string, newPosition: position) => void;
   updateNodeDimensions: (id: string, width: number, height: number) => void;
   updateNodeContent: (id: string, content: string) => void;
-  updateNodeEditing: (id: string, editing: boolean) => void;
   updateNodeStyles: (id: string, style: Partial<NodeStyle>) => void;
   resetEditingStates: () => void;
   setNodes: (nodes: NodeData[]) => void;

@@ -34,9 +34,7 @@ const useFlowStore = create<FlowState>()(
         edges: state.edges,
       }),
       equality: (a, b) => {
-        // If they are the exact same reference, they are equal
         if (a === b) return true;
-        // Otherwise, assume they are different to force an entry
         return false;
       },
     }
@@ -83,8 +81,6 @@ export const useUpdateNodeDimensions = () =>
   useFlowStore((state) => state.updateNodeDimensions);
 export const useUpdateNodeContent = () =>
   useFlowStore((state) => state.updateNodeContent);
-export const useUpdateNodeEditing = () =>
-  useFlowStore((state) => state.updateNodeEditing);
 export const useUpdateNodeStyles = () =>
   useFlowStore((state) => state.updateNodeStyles);
 export const useResetEditingStates = () =>
