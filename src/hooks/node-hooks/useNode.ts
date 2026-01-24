@@ -1,5 +1,6 @@
+import { useCallback } from "react";
 import type { NodeData, position } from "../../lib/types";
-import { useNodeById } from "../../store/flowStore";
+import { useNodeById, useFlowStore } from "../../store/flowStore";
 import { useNodeDrag } from "./useNodeDrag";
 
 interface UseNodeResult {
@@ -15,7 +16,19 @@ interface UseNodeResult {
 
 export function useNode(node: NodeData): UseNodeResult {
   const storeNode = useNodeById(node.id);
-  const position = storeNode?.position || { x: 0, y: 0 };
+  const dragPosition = useFlowStore(
+    useCallback(
+      (state) => {
+        if (state.dragState.nodeId === node.id && state.dragState.position) {
+          return state.dragState.position;
+        }
+        return null;
+      },
+      [node.id]
+    )
+  );
+
+  const position = dragPosition || storeNode?.position || { x: 0, y: 0 };
   const height = storeNode?.height || 100;
   const width = storeNode?.width || 150;
   const text = storeNode?.content || "";

@@ -6,6 +6,7 @@ import {
   useSelectedNodeId,
   useSelectNode,
   useSetIsDraggingNode,
+  useSetDragState,
   useUpdateNodePosition,
   useViewMode,
   useViewport,
@@ -21,13 +22,14 @@ import { ALIGNMENT_THRESHOLD, PAN_LIMIT } from "../../lib/constants";
 
 export function useNodeDrag(
   nodeId: string,
-  position: { x: number; y: number }
+  initialPosition: { x: number; y: number }
 ) {
   const pointerPosRef = useRef({ x: 0, y: 0 });
   const startPosRef = useRef({ x: 0, y: 0 });
   const activePointerId = useRef<number | null>(null);
   const alignmentCandidatesRef = useRef<AlignmentCandidate[]>([]);
 
+  // Throttling refs
   const rafId = useRef<number | null>(null);
   const latestCalculatedPos = useRef<{ x: number; y: number } | null>(null);
 
@@ -51,6 +53,7 @@ export function useNodeDrag(
   const selectNode = useSelectNode();
   const updateNodePosition = useUpdateNodePosition();
   const setIsDraggingNode = useSetIsDraggingNode();
+  const updateDragState = useSetDragState();
   const { resume, pause } = useHistory();
   const viewMode = useViewMode();
 
@@ -60,21 +63,31 @@ export function useNodeDrag(
   const selectedNodeId = useSelectedNodeId();
 
   const cleanupListeners = useCallback(() => {
+    // Cancel any pending animation frame
     if (rafId.current !== null) {
       cancelAnimationFrame(rafId.current);
       rafId.current = null;
     }
 
     if (handlersRef.current.onPointerMove) {
-      document.removeEventListener("pointermove", handlersRef.current.onPointerMove);
+      document.removeEventListener(
+        "pointermove",
+        handlersRef.current.onPointerMove
+      );
       handlersRef.current.onPointerMove = null;
     }
     if (handlersRef.current.onPointerUp) {
-      document.removeEventListener("pointerup", handlersRef.current.onPointerUp);
+      document.removeEventListener(
+        "pointerup",
+        handlersRef.current.onPointerUp
+      );
       handlersRef.current.onPointerUp = null;
     }
     if (handlersRef.current.onPointerCancel) {
-      document.removeEventListener("pointercancel", handlersRef.current.onPointerCancel);
+      document.removeEventListener(
+        "pointercancel",
+        handlersRef.current.onPointerCancel
+      );
       handlersRef.current.onPointerCancel = null;
     }
     activePointerId.current = null;
@@ -122,11 +135,9 @@ export function useNodeDrag(
         endpoints.push({ endpoint: sourcePos, myAnchor: edge.toAnchor });
       }
     }
-
     return endpoints;
   }, [allEdges, allNodes, nodeId]);
 
-  // (Kept exactly as your original code)
   const findAlignmentTarget = useCallback(
     (
       newNodePos: position,
@@ -166,7 +177,6 @@ export function useNodeDrag(
           alignY = endpoint.y - offsetY;
         }
       }
-
       return { x: alignX, y: alignY };
     },
     [nodeId]
@@ -185,19 +195,19 @@ export function useNodeDrag(
       let newX = startPosRef.current.x + dx;
       let newY = startPosRef.current.y + dy;
 
-      // Left Boundary
+      // Boundaries
       if (newX < -PAN_LIMIT) {
         newX = -PAN_LIMIT;
       } else if (newX + width > PAN_LIMIT) {
         newX = PAN_LIMIT - width;
       }
-
       if (newY > PAN_LIMIT) newY = PAN_LIMIT;
       if (newY < -PAN_LIMIT) newY = -PAN_LIMIT;
 
+      // Alignment Logic
       const endpointsWithAnchors = alignmentCandidatesRef.current;
-
       if (endpointsWithAnchors.length > 0) {
+        // X Alignment
         if (
           isAlignedRef.current.x &&
           isAlignedRef.current.targetX !== undefined
@@ -224,6 +234,7 @@ export function useNodeDrag(
           }
         }
 
+        // Y Alignment
         if (
           isAlignedRef.current.y &&
           isAlignedRef.current.targetY !== undefined
@@ -251,33 +262,24 @@ export function useNodeDrag(
         }
       }
 
-      // --- OPTIMIZATION START: Throttle via RAF ---
-      // 1. Save the calculated position to a Ref (cheap)
       latestCalculatedPos.current = { x: newX, y: newY };
-
-      // 2. Only schedule a React update if one isn't already pending
       if (rafId.current === null) {
         rafId.current = requestAnimationFrame(() => {
           if (latestCalculatedPos.current) {
-            // This is the expensive part (React Render)
-            updateNodePosition(nodeId, latestCalculatedPos.current);
+            updateDragState(nodeId, latestCalculatedPos.current);
           }
           rafId.current = null;
         });
       }
     },
-    [nodeId, updateNodePosition, allNodes, findAlignmentTarget, viewport]
+    [nodeId, updateDragState, allNodes, findAlignmentTarget, viewport]
   );
 
   const onEnd = useCallback(() => {
     cleanupListeners();
-    
-    if (rafId.current) {
-      cancelAnimationFrame(rafId.current);
-      rafId.current = null;
-    }
+
     if (latestCalculatedPos.current) {
-       updateNodePosition(nodeId, latestCalculatedPos.current);
+      updateNodePosition(nodeId, latestCalculatedPos.current);
     }
 
     if (nodeId === selectedNodeId) {
@@ -285,7 +287,10 @@ export function useNodeDrag(
     } else {
       selectNode(nodeId);
     }
+
     setIsDraggingNode(false);
+    updateDragState(null, null);
+
     isAlignedRef.current = { x: false, y: false };
     resume();
   }, [
@@ -295,7 +300,8 @@ export function useNodeDrag(
     cleanupListeners,
     selectedNodeId,
     resume,
-    updateNodePosition
+    updateNodePosition,
+    updateDragState,
   ]);
 
   const onPointerDown = useCallback(
@@ -309,13 +315,16 @@ export function useNodeDrag(
       activePointerId.current = e.pointerId;
 
       pointerPosRef.current = { x: e.clientX, y: e.clientY };
-      startPosRef.current = { x: position.x, y: position.y };
-      
-      latestCalculatedPos.current = { x: position.x, y: position.y };
+      startPosRef.current = { x: initialPosition.x, y: initialPosition.y };
+      latestCalculatedPos.current = {
+        x: initialPosition.x,
+        y: initialPosition.y,
+      };
 
       alignmentCandidatesRef.current = calculateConnectedEndpoints();
 
       setIsDraggingNode(true);
+      pause();
 
       const onPointerMove = (e: PointerEvent) => {
         if (e.pointerId !== activePointerId.current) return;
@@ -332,8 +341,6 @@ export function useNodeDrag(
         onEnd();
       };
 
-      pause();
-
       handlersRef.current.onPointerMove = onPointerMove;
       handlersRef.current.onPointerUp = onPointerUp;
       handlersRef.current.onPointerCancel = onPointerCancel;
@@ -343,8 +350,8 @@ export function useNodeDrag(
       document.addEventListener("pointercancel", onPointerCancel);
     },
     [
-      position.x,
-      position.y,
+      initialPosition.x,
+      initialPosition.y,
       setIsDraggingNode,
       onMove,
       onEnd,

@@ -1,18 +1,23 @@
-import { useRef } from "react";
+import { memo, useRef } from "react";
 import type { NodeData } from "../../lib/types";
 import { wrapText } from "../../lib/utils";
 import "./Node.css";
 import { useNode } from "../../hooks/node-hooks/useNode";
+import { useNodeById } from "../../store/flowStore";
 
 interface NodeProps {
-  node: NodeData;
+  id: string;
 }
 
-export const Node = ({ node }: NodeProps) => {
+export const Node = memo(({ id }: NodeProps) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
+
+  const node = useNodeById(id)!;
 
   const { storeNode, position, height, width, text, pad, onPointerDown } =
     useNode(node);
+
+  if (!node) return null;
 
   if (!storeNode) return null;
 
@@ -69,7 +74,7 @@ export const Node = ({ node }: NodeProps) => {
       </svg>
     </div>
   );
-};
+});
 
 function renderShape(node: NodeData, width: number, height: number) {
   const stroke = node.style?.borderWidth || 2;
