@@ -28,6 +28,9 @@ export function useNodeDrag(
   const activePointerId = useRef<number | null>(null);
   const alignmentCandidatesRef = useRef<AlignmentCandidate[]>([]);
 
+  const rafId = useRef<number | null>(null);
+  const latestCalculatedPos = useRef<{ x: number; y: number } | null>(null);
+
   const isAlignedRef = useRef<{
     x: boolean;
     y: boolean;
@@ -57,25 +60,21 @@ export function useNodeDrag(
   const selectedNodeId = useSelectedNodeId();
 
   const cleanupListeners = useCallback(() => {
+    if (rafId.current !== null) {
+      cancelAnimationFrame(rafId.current);
+      rafId.current = null;
+    }
+
     if (handlersRef.current.onPointerMove) {
-      document.removeEventListener(
-        "pointermove",
-        handlersRef.current.onPointerMove
-      );
+      document.removeEventListener("pointermove", handlersRef.current.onPointerMove);
       handlersRef.current.onPointerMove = null;
     }
     if (handlersRef.current.onPointerUp) {
-      document.removeEventListener(
-        "pointerup",
-        handlersRef.current.onPointerUp
-      );
+      document.removeEventListener("pointerup", handlersRef.current.onPointerUp);
       handlersRef.current.onPointerUp = null;
     }
     if (handlersRef.current.onPointerCancel) {
-      document.removeEventListener(
-        "pointercancel",
-        handlersRef.current.onPointerCancel
-      );
+      document.removeEventListener("pointercancel", handlersRef.current.onPointerCancel);
       handlersRef.current.onPointerCancel = null;
     }
     activePointerId.current = null;
@@ -90,7 +89,6 @@ export function useNodeDrag(
 
   const calculateConnectedEndpoints = useCallback(() => {
     const endpoints: AlignmentCandidate[] = [];
-
     const connectedEdges = allEdges.filter(
       (edge) => edge.from === nodeId || edge.to === nodeId
     );
@@ -128,6 +126,7 @@ export function useNodeDrag(
     return endpoints;
   }, [allEdges, allNodes, nodeId]);
 
+  // (Kept exactly as your original code)
   const findAlignmentTarget = useCallback(
     (
       newNodePos: position,
@@ -152,7 +151,6 @@ export function useNodeDrag(
 
       for (const { endpoint, myAnchor } of candidates) {
         const myAnchorPoint = getAnchorPoint(currentNodeData, myAnchor);
-
         const deltaX = Math.abs(myAnchorPoint.x - endpoint.x);
         const deltaY = Math.abs(myAnchorPoint.y - endpoint.y);
 
@@ -253,13 +251,35 @@ export function useNodeDrag(
         }
       }
 
-      updateNodePosition(nodeId, { x: newX, y: newY });
+      // --- OPTIMIZATION START: Throttle via RAF ---
+      // 1. Save the calculated position to a Ref (cheap)
+      latestCalculatedPos.current = { x: newX, y: newY };
+
+      // 2. Only schedule a React update if one isn't already pending
+      if (rafId.current === null) {
+        rafId.current = requestAnimationFrame(() => {
+          if (latestCalculatedPos.current) {
+            // This is the expensive part (React Render)
+            updateNodePosition(nodeId, latestCalculatedPos.current);
+          }
+          rafId.current = null;
+        });
+      }
     },
     [nodeId, updateNodePosition, allNodes, findAlignmentTarget, viewport]
   );
 
   const onEnd = useCallback(() => {
     cleanupListeners();
+    
+    if (rafId.current) {
+      cancelAnimationFrame(rafId.current);
+      rafId.current = null;
+    }
+    if (latestCalculatedPos.current) {
+       updateNodePosition(nodeId, latestCalculatedPos.current);
+    }
+
     if (nodeId === selectedNodeId) {
       selectNode(null);
     } else {
@@ -275,6 +295,7 @@ export function useNodeDrag(
     cleanupListeners,
     selectedNodeId,
     resume,
+    updateNodePosition
   ]);
 
   const onPointerDown = useCallback(
@@ -289,6 +310,8 @@ export function useNodeDrag(
 
       pointerPosRef.current = { x: e.clientX, y: e.clientY };
       startPosRef.current = { x: position.x, y: position.y };
+      
+      latestCalculatedPos.current = { x: position.x, y: position.y };
 
       alignmentCandidatesRef.current = calculateConnectedEndpoints();
 
