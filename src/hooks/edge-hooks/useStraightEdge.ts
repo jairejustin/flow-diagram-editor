@@ -1,5 +1,10 @@
 import type { NodeData, EdgeData, position, EdgeAnchor } from "../../lib/types";
-import { useEdgeById, useSelectedEdgeId } from "../../store/flowStore";
+import {
+  useEdgeById,
+  useSelectedEdgeId,
+  useDragState,
+  useNodeById,
+} from "../../store/flowStore";
 import { getAnchorPoint } from "../../lib/utils";
 import { getArrowheadDimensions } from "../../lib/utils";
 
@@ -29,19 +34,42 @@ interface UseStraightEdgeResult {
   edgeWidth: number;
 }
 
-export function useStraightEdge(
-  edge: EdgeData,
-  nodes: NodeData[]
-): UseStraightEdgeResult {
+export function useStraightEdge(edge: EdgeData): UseStraightEdgeResult {
   const storeEdge = useEdgeById(edge.id);
   const selectedEdgeId = useSelectedEdgeId();
+  const dragState = useDragState();
+  const isSelected = selectedEdgeId === edge.id;
+
+  const fromIdStr =
+    storeEdge && typeof storeEdge.from === "string"
+      ? storeEdge.from
+      : undefined;
+  const fromNode = useNodeById(fromIdStr || null);
+
+  const toIdStr =
+    storeEdge && typeof storeEdge.to === "string" ? storeEdge.to : undefined;
+  const toNode = useNodeById(toIdStr || null);
+
+  // resolve node position with drag state override
+  const resolveEffectiveNode = (
+    node: NodeData | undefined,
+    nodeId: string | undefined
+  ): NodeData | undefined => {
+    if (node && dragState.nodeId === nodeId && dragState.position) {
+      return { ...node, position: dragState.position };
+    }
+    return node;
+  };
+
+  const effectiveFromNode = resolveEffectiveNode(fromNode, fromIdStr);
+  const effectiveToNode = resolveEffectiveNode(toNode, toIdStr);
+
   const edgeWidth: number = storeEdge?.style?.width || 2;
   const arrowheadDimensions = getArrowheadDimensions(edgeWidth);
 
   let p1: position | null = null;
   let p2: position | null = null;
   let color: string = "black";
-  let isSelected: boolean = false;
   let labelX: number = 0;
   let labelY: number = 0;
   let labelFontSize: number = 14;
@@ -78,19 +106,23 @@ export function useStraightEdge(
     };
   }
 
-  let fromNode: NodeData | undefined;
-  if (typeof storeEdge.from === "string") {
-    fromNode = nodes.find((n) => n.id === storeEdge.from);
-    fromNodeId = fromNode?.id || "";
+  // resolve From Node
+  if (effectiveFromNode) {
+    fromNodeId = effectiveFromNode.id;
   }
+
+  // resolve To Node
+  if (effectiveToNode) {
+    toNodeId = effectiveToNode.id;
+  }
+
   to = storeEdge.to;
   toAnchor = storeEdge.toAnchor || { side: "top" as const };
   from = storeEdge.from;
   fromAnchor = storeEdge.fromAnchor || { side: "bottom" as const };
-  toNodeId = typeof storeEdge.to === "string" ? storeEdge.to : undefined;
 
-  if (typeof storeEdge.from === "string" && fromNode) {
-    p1 = getAnchorPoint(fromNode, storeEdge.fromAnchor);
+  if (typeof storeEdge.from === "string" && effectiveFromNode) {
+    p1 = getAnchorPoint(effectiveFromNode, storeEdge.fromAnchor);
   } else if (typeof storeEdge.from === "object") {
     p1 = storeEdge.from;
   } else {
@@ -117,9 +149,8 @@ export function useStraightEdge(
   }
 
   if (typeof storeEdge.to === "string") {
-    const toNode = nodes.find((n) => n.id === storeEdge.to);
-    if (toNode) {
-      p2 = getAnchorPoint(toNode, storeEdge.toAnchor);
+    if (effectiveToNode) {
+      p2 = getAnchorPoint(effectiveToNode, storeEdge.toAnchor);
     } else {
       return {
         p1: null,
@@ -147,7 +178,6 @@ export function useStraightEdge(
   }
 
   color = storeEdge.style?.color || "black";
-  isSelected = selectedEdgeId === edge.id;
 
   if (storeEdge.label && p1 && p2) {
     const t = storeEdge.label.t || 0.5;
