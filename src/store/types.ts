@@ -11,6 +11,11 @@ import type {
   FlowDocument,
 } from "../lib/types";
 
+export interface DragState {
+  nodeId: string | null;
+  position: position | null;
+}
+
 export interface NodeSlice {
   nodes: NodeData[];
   selectedNodeId: string | null;
@@ -58,6 +63,7 @@ export interface EdgeSlice {
 }
 
 export interface UISlice {
+  dragState: DragState;
   viewport: Viewport;
   isDraggingNode: boolean;
   isResizingNode: boolean;
@@ -69,6 +75,7 @@ export interface UISlice {
 
   loadMockData: (mockDoc: FlowDocument) => void;
   setViewport: (viewport: Viewport) => void;
+  setDragState: (nodeId: string | null, position: position | null) => void;
   setIsDraggingNode: (isDragging: boolean) => void;
   setIsResizingNode: (isResizing: boolean) => void;
   setIsDraggingEdge: (isDragging: boolean) => void;
