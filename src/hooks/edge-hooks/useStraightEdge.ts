@@ -1,9 +1,10 @@
+import { useCallback } from "react";
 import type { NodeData, EdgeData, position, EdgeAnchor } from "../../lib/types";
 import {
   useEdgeById,
   useSelectedEdgeId,
-  useDragState,
   useNodeById,
+  useFlowStore,
 } from "../../store/flowStore";
 import { getAnchorPoint } from "../../lib/utils";
 import { getArrowheadDimensions } from "../../lib/utils";
@@ -37,7 +38,6 @@ interface UseStraightEdgeResult {
 export function useStraightEdge(edge: EdgeData): UseStraightEdgeResult {
   const storeEdge = useEdgeById(edge.id);
   const selectedEdgeId = useSelectedEdgeId();
-  const dragState = useDragState();
   const isSelected = selectedEdgeId === edge.id;
 
   const fromIdStr =
@@ -50,13 +50,47 @@ export function useStraightEdge(edge: EdgeData): UseStraightEdgeResult {
     storeEdge && typeof storeEdge.to === "string" ? storeEdge.to : undefined;
   const toNode = useNodeById(toIdStr || null);
 
+  /**
+   * PERFORMANCE OPTIMIZATION:
+   * Why: Similar to polyline edges, straight edges are numerous.
+   * Listening to the global drag state blindly would cause the entire diagram's
+   * connection layer to re-render on every mouse movement.
+   */
+  const relevantDragPos = useFlowStore(
+    useCallback(
+      (state) => {
+        const { nodeId, position } = state.dragState;
+        if (!nodeId || !position) return null;
+        
+        // Why: Only wake up this hook if the dragged node is one of our endpoints.
+        if (nodeId === fromIdStr || nodeId === toIdStr) {
+          /*
+           * STABILITY FIX: Snapshot Stability
+           * Why: Returning { nodeId, position } creates a new object reference.
+           * React assumes the store changed every time, causing infinite loops.
+           * We must return the stable reference `state.dragState`.
+           */
+          return state.dragState;
+        }
+        return null;
+      },
+      [fromIdStr, toIdStr]
+    )
+  );
+
   // resolve node position with drag state override
   const resolveEffectiveNode = (
     node: NodeData | undefined,
     nodeId: string | undefined
   ): NodeData | undefined => {
-    if (node && dragState.nodeId === nodeId && dragState.position) {
-      return { ...node, position: dragState.position };
+    // Why: Apply the "future" position from the drag event before the store commits it.
+    if (
+      node &&
+      relevantDragPos &&
+      relevantDragPos.nodeId === nodeId &&
+      relevantDragPos.position
+    ) {
+      return { ...node, position: relevantDragPos.position };
     }
     return node;
   };

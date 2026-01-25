@@ -1,9 +1,10 @@
+import { useCallback } from "react";
 import type { NodeData, EdgeData, position, EdgeAnchor } from "../../lib/types";
 import {
   useSelectedEdgeId,
   useEdgeById,
-  useDragState,
   useNodeById,
+  useFlowStore,
 } from "../../store/flowStore";
 import {
   getAnchorPoint,
@@ -36,22 +37,9 @@ interface UsePolylineEdgeResult {
   };
 }
 
-// get effective node (persistent or transient)
-const getEffectiveNode = (
-  node: NodeData | undefined,
-  nodeId: string | undefined,
-  dragState: ReturnType<typeof useDragState>
-): NodeData | undefined => {
-  if (node && dragState.nodeId === nodeId && dragState.position) {
-    return { ...node, position: dragState.position };
-  }
-  return node;
-};
-
 export function usePolylineEdge(edge: EdgeData): UsePolylineEdgeResult {
   const storeEdge = useEdgeById(edge.id);
   const selectedEdgeId = useSelectedEdgeId();
-  const dragState = useDragState();
   const isSelected = selectedEdgeId === edge.id;
 
   // resolve node IDs first
@@ -62,8 +50,62 @@ export function usePolylineEdge(edge: EdgeData): UsePolylineEdgeResult {
   const toIdStr =
     storeEdge && typeof storeEdge.to === "string" ? storeEdge.to : undefined;
 
+  /**
+   * PERFORMANCE CRITICAL: Granular Subscription
+   * Why: Standard `useDragState()` triggers a re-render for EVERY edge on EVERY frame
+   * whenever any node is dragged. By using this selector, we ensure this specific hook
+   * only wakes up if the dragged node is actually connected to THIS edge.
+   */
+  const relevantDragPos = useFlowStore(
+    useCallback(
+      (state) => {
+        const { nodeId, position } = state.dragState;
+        
+        // fast exit if no drag is happening
+        if (!nodeId || !position) return null;
+        
+        // Why: Filter out noise. If the moving node isn't one of our endpoints,
+        // we don't care about the update.
+        if (nodeId === fromIdStr || nodeId === toIdStr) {
+          /**
+           * STABILITY FIX: Return the Store Object Reference
+           * Why: React's useSyncExternalStore (underlying Zustand) compares the
+           * result of this selector using Object.is().
+           * If we returned a new object literal like { nodeId, position }, it would
+           * be a new reference every time, causing an infinite loop or "Snapshot" error.
+           * Returning `state.dragState` guarantees referential stability.
+           */
+          return state.dragState;
+        }
+        return null;
+      },
+      [fromIdStr, toIdStr]
+    )
+  );
+
   const fromNodeRaw = useNodeById(fromIdStr || null);
   const toNodeRaw = useNodeById(toIdStr || null);
+
+  /**
+   * PERFORMANCE FIX: Transient Updates
+   * Why: We override the node's position with the drag state locally within this render.
+   * This allows the edge to follow the mouse instantly without waiting for
+   * the expensive operation of updating the actual Node object in the global store.
+   */
+  const getEffectiveNode = (
+    node: NodeData | undefined,
+    nodeId: string | undefined
+  ): NodeData | undefined => {
+    if (
+      node &&
+      relevantDragPos &&
+      relevantDragPos.nodeId === nodeId &&
+      relevantDragPos.position
+    ) {
+      return { ...node, position: relevantDragPos.position };
+    }
+    return node;
+  };
 
   const edgeWidth: number = storeEdge?.style?.width || 2;
   const arrowheadDimensions = getArrowheadDimensions(edgeWidth);
@@ -107,7 +149,7 @@ export function usePolylineEdge(edge: EdgeData): UsePolylineEdgeResult {
   }
 
   // resolve Start Node
-  const fromNode = getEffectiveNode(fromNodeRaw, fromIdStr, dragState);
+  const fromNode = getEffectiveNode(fromNodeRaw, fromIdStr);
   let pStart: position | null = null;
 
   if (typeof storeEdge.from === "string") {
@@ -122,7 +164,7 @@ export function usePolylineEdge(edge: EdgeData): UsePolylineEdgeResult {
   fromAnchor = storeEdge.fromAnchor || { side: "bottom" };
 
   // resolve End Node
-  const toNode = getEffectiveNode(toNodeRaw, toIdStr, dragState);
+  const toNode = getEffectiveNode(toNodeRaw, toIdStr);
   let pEnd: position | null = null;
 
   if (typeof storeEdge.to === "string") {
@@ -142,29 +184,13 @@ export function usePolylineEdge(edge: EdgeData): UsePolylineEdgeResult {
   if (pStart && pEnd) {
     allPoints.push(pStart);
 
-    // dynamic routing: recalculate path on an elbow edge
     if (storeEdge.path === "elbow") {
-      // Note: createElbowPath returns [startStub, ...corners, endStub]
-      // We already pushed pStart (the anchor).
-      // Ideally, createElbowPath should be used fully to replace the path.
-
-      // If we use createElbowPath, it gives us the full path including stubs.
-      // We should use that, but we need to verify start/end match anchor points exactly.
-      // createElbowPath takes (start, end, ...).
-
-      // Clear allPoints and reuse dynamicPoints
-      // But we need to be careful if createElbowPath behavior changes.
-      // For now, let's append the dynamic points (excluding the start/end if they duplicate).
-
-      // simplest robust way:
       const pathPoints = createElbowPath(
         pStart,
         pEnd,
         fromAnchor.side,
         toAnchor.side
       );
-      // pathPoints[0] is startStub. pStart is anchor.
-      // We'll keep pStart, then pathPoints, then pEnd.
       allPoints.push(...pathPoints);
     } else if (storeEdge.points && storeEdge.points.length > 0) {
       allPoints.push(...storeEdge.points);
