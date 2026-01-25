@@ -5,7 +5,6 @@ import {
   useNodeById,
   useSelectNode,
   useUpdateNodeContent,
-  useUpdateNodeEditing,
   useUpdateNodeStyles,
 } from "../../store/flowStore";
 
@@ -22,7 +21,6 @@ export function useNodeStylePanel(id: string) {
   const [openPicker, setOpenPicker] = useState<string | null>(null);
 
   const updateNodeContent = useUpdateNodeContent();
-  const updateNodeEditing = useUpdateNodeEditing();
   const updateNodeStyles = useUpdateNodeStyles();
   const selectNode = useSelectNode();
   const addNode = useAddNode();
@@ -93,7 +91,6 @@ export function useNodeStylePanel(id: string) {
     handleDeleteNode,
     handleDuplicateNode,
     openColorPicker,
-    updateNodeEditing,
     handleFontSizeChange,
     handleBorderWidthChange,
   };

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { useShallow } from "zustand/shallow";
 import { useCallback } from "react";
 import type { FlowState } from "./types";
 import { createNodeSlice } from "./slices/createNodeSlice";
@@ -8,7 +9,12 @@ import { createUISlice } from "./slices/createUISlice";
 import { temporal } from "zundo";
 import type { TemporalState } from "zundo";
 
-const useFlowStore = create<FlowState>()(
+export interface DragState {
+  nodeId: string | null;
+  position: { x: number; y: number } | null;
+}
+
+export const useFlowStore = create<FlowState>()(
   temporal(
     persist(
       (set, get, store) => ({
@@ -34,9 +40,7 @@ const useFlowStore = create<FlowState>()(
         edges: state.edges,
       }),
       equality: (a, b) => {
-        // If they are the exact same reference, they are equal
         if (a === b) return true;
-        // Otherwise, assume they are different to force an entry
         return false;
       },
     }
@@ -65,6 +69,12 @@ export function useHistory() {
   };
 }
 
+// Shallow Selectors
+export const useNodeIds = () =>
+  useFlowStore(useShallow((state) => state.nodes.map((n) => n.id)));
+export const useEdgeIds = () =>
+  useFlowStore(useShallow((state) => state.edges.map((e) => e.id)));
+
 // Node Actions
 export const useNodes = () => useFlowStore((state) => state.nodes);
 export const useSelectedNodeId = () =>
@@ -83,8 +93,6 @@ export const useUpdateNodeDimensions = () =>
   useFlowStore((state) => state.updateNodeDimensions);
 export const useUpdateNodeContent = () =>
   useFlowStore((state) => state.updateNodeContent);
-export const useUpdateNodeEditing = () =>
-  useFlowStore((state) => state.updateNodeEditing);
 export const useUpdateNodeStyles = () =>
   useFlowStore((state) => state.updateNodeStyles);
 export const useResetEditingStates = () =>
@@ -148,3 +156,6 @@ export const useSetShowPanel = () =>
 export const useSetViewMode = () => useFlowStore((state) => state.setViewMode);
 export const useSetIsExporting = () =>
   useFlowStore((state) => state.setIsExporting);
+export const useDragState = () => useFlowStore((state) => state.dragState);
+export const useSetDragState = () =>
+  useFlowStore((state) => state.setDragState);

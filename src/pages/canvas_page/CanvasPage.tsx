@@ -6,8 +6,8 @@ import ZoomControls from "../../components/viewport-controls/ViewportControls";
 import {
   useIsExporting,
   useIsMobile,
-  useNodes,
-  useEdges,
+  useNodeIds,
+  useEdgeIds,
   useSelectedEdgeId,
   useSelectedNodeId,
   useSetShowPanel,
@@ -19,7 +19,6 @@ import NodeStylePanel from "../../components/style-panel/NodeStylePanel";
 import EdgeStylePanel from "../../components/style-panel/EdgeStylePanel";
 import { ResizeHandles } from "../../components/resize-handles/ResizeHandles";
 import { useCanvasPan } from "../../hooks/canvas-hooks/useCanvasPan";
-import { getAnchorPoint } from "../../lib/utils";
 import { EdgeCreationHandles } from "../../components/edge-creation-handles/EdgeCreationHandles";
 import { Edit3 } from "lucide-react";
 import { ExportOverlay } from "../../components/export-overlay/ExportOverlay";
@@ -55,8 +54,9 @@ export default function CanvasPage() {
   const setShowPanel = useSetShowPanel();
   const setViewport = useSetViewport();
 
-  const nodes = useNodes();
-  const edges = useEdges();
+  // ID-based rendering only
+  const nodeIds = useNodeIds();
+  const edgeIds = useEdgeIds();
 
   const [translateX, setTranslateX] = useState(viewport.x);
   const [translateY, setTranslateY] = useState(viewport.y);
@@ -102,9 +102,7 @@ export default function CanvasPage() {
         className="canvas"
         onPointerDown={handlePointerDown}
         onWheel={handleWheel}
-        style={{
-          touchAction: "none",
-        }}
+        style={{ touchAction: "none" }}
       >
         {!isExporting && (
           <>
@@ -153,95 +151,24 @@ export default function CanvasPage() {
               overflow: "visible",
             }}
           >
-            {edges.map((edge) => (
-              <Edge key={edge.id} edge={edge} nodes={nodes} />
+            {edgeIds.map((id) => (
+              <Edge key={id} id={id} />
             ))}
           </svg>
-          {nodes.map((node) => (
-            <React.Fragment key={node.id}>
-              <Node node={node} />
-              {selectedNodeId === node.id && (
+
+          {nodeIds.map((id) => (
+            <React.Fragment key={id}>
+              <Node id={id} />
+              {/* Only render handles if this node is selected. 
+                  Now they fetch their own data! */}
+              {selectedNodeId === id && (
                 <>
-                  <ResizeHandles
-                    nodeId={node.id}
-                    position={node.position}
-                    width={node.width}
-                    height={node.height}
-                    scale={scale}
-                  />
-                  <EdgeCreationHandles
-                    nodeId={node.id}
-                    position={node.position}
-                    width={node.width}
-                    height={node.height}
-                    isMobile={isNarrow}
-                  />
+                  <ResizeHandles nodeId={id} scale={scale} />
+                  <EdgeCreationHandles nodeId={id} isMobile={isNarrow} />
                 </>
               )}
             </React.Fragment>
           ))}
-
-          {/* temporary solution to put the dots above nodes in z-index */}
-          {selectedEdgeId &&
-            (() => {
-              const edge = edges.find((e) => e.id === selectedEdgeId);
-              if (!edge) return null;
-
-              const fromNode = nodes.find((n) => n.id === edge.from);
-              if (!fromNode) return null;
-
-              const p1 = getAnchorPoint(fromNode, edge.fromAnchor);
-              let p2;
-
-              if (typeof edge.to === "string") {
-                const toNode = nodes.find((n) => n.id === edge.to);
-                if (!toNode) return null;
-                p2 = getAnchorPoint(toNode, edge.toAnchor);
-              } else {
-                p2 = edge.to;
-              }
-
-              const color = edge.style?.color || "black";
-
-              return (
-                <>
-                  <div
-                    style={{
-                      position: "absolute",
-                      left: p1.x,
-                      top: p1.y,
-                      width: 10,
-                      height: 10,
-                      marginLeft: -8,
-                      marginTop: -8,
-                      borderRadius: "50%",
-                      backgroundColor: color,
-                      border: "2px solid white",
-                      pointerEvents: "auto",
-                      cursor: "grab",
-                      zIndex: 1000,
-                    }}
-                  />
-                  <div
-                    style={{
-                      position: "absolute",
-                      left: p2.x,
-                      top: p2.y,
-                      width: 10,
-                      height: 10,
-                      marginLeft: -8,
-                      marginTop: -8,
-                      borderRadius: "50%",
-                      backgroundColor: color,
-                      border: "2px solid white",
-                      pointerEvents: "auto",
-                      cursor: "grab",
-                      zIndex: 1000,
-                    }}
-                  />
-                </>
-              );
-            })()}
         </div>
       </div>
       {isExporting && <ExportOverlay />}

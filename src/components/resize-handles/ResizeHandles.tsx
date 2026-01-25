@@ -1,23 +1,24 @@
 import { useNodeResize } from "../../hooks/node-hooks/useNodeResize";
-import { useIsMobile } from "../../store/flowStore";
+import { useIsMobile, useNodeById, useDragState } from "../../store/flowStore";
 
 type ResizeHandle = "nw" | "ne" | "sw" | "se" | "n" | "s" | "e" | "w";
 
 interface ResizeHandlesProps {
   nodeId: string;
-  position: { x: number; y: number };
-  width: number;
-  height: number;
   scale: number;
 }
 
-export const ResizeHandles = ({
-  nodeId,
-  position,
-  width,
-  height,
-  scale,
-}: ResizeHandlesProps) => {
+export const ResizeHandles = ({ nodeId, scale }: ResizeHandlesProps) => {
+  const node = useNodeById(nodeId)!;
+  const dragState = useDragState();
+  const isMobile = useIsMobile();
+
+  // resolve Position (transient vs persistent)
+  // this ensures handles follow the node during a drag
+  const isDragging = dragState.nodeId === nodeId && dragState.position !== null;
+  const position = isDragging ? dragState.position! : node.position;
+  const { width, height } = node;
+
   const { onResizeHandlePointerDown } = useNodeResize(
     nodeId,
     position,
@@ -26,7 +27,8 @@ export const ResizeHandles = ({
     scale
   );
 
-  const isMobile = useIsMobile();
+  if (!node) return null;
+
   const handleSize = isMobile ? 18 : 8;
 
   const resizeHandles: {

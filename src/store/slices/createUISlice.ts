@@ -5,6 +5,7 @@ export const createUISlice: StateCreator<FlowState, [], [], UISlice> = (
   set,
   get
 ) => ({
+  dragState: { nodeId: null, position: null },
   viewport: { x: 0, y: 0, zoom: 1 },
   isDraggingNode: false,
   isResizingNode: false,
@@ -25,6 +26,7 @@ export const createUISlice: StateCreator<FlowState, [], [], UISlice> = (
     }
   },
 
+  setDragState: (nodeId, position) => set({ dragState: { nodeId, position } }),
   setViewport: (viewport) => set({ viewport }),
   setIsDraggingNode: (isDraggingNode) => set({ isDraggingNode }),
   setIsResizingNode: (isResizingNode) => set({ isResizingNode }),

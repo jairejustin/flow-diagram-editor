@@ -18,7 +18,6 @@ export default function NodeStylePanel({ id }: NodeStylePanelProps) {
     handleDeleteNode,
     handleDuplicateNode,
     openColorPicker,
-    updateNodeEditing,
     handleFontSizeChange,
     handleBorderWidthChange,
   } = useNodeStylePanel(id);
@@ -40,9 +39,6 @@ export default function NodeStylePanel({ id }: NodeStylePanelProps) {
         className="style-panel__node-textbox"
         placeholder="Write text"
         value={text}
-        onBlur={() => {
-          updateNodeEditing(node.id, false);
-        }}
         onChange={handleTextChange}
       />
 

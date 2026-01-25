@@ -1,13 +1,19 @@
-import type { NodeData, EdgeData } from "../../lib/types";
+import { memo } from "react";
+import type { EdgeData } from "../../lib/types";
 import "./Edge.css";
 import { useEdgeDrag } from "../../hooks/edge-hooks/useEdgeDrag";
 import { useStraightEdge } from "../../hooks/edge-hooks/useStraightEdge";
 import { usePolylineEdge } from "../../hooks/edge-hooks/usePolylineEdge";
 import { EdgeSegment } from "./EdgeSegment";
+import { useEdgeById } from "../../store/flowStore";
 
-function PolylineEdge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
+interface EdgeProps {
+  id: string;
+}
+
+const PolylineEdgeWrapper = memo(({ edge }: { edge: EdgeData }) => {
   const {
-    points, // [AnchorStart, Stub1, Stub2, ..., AnchorEnd]
+    points,
     color,
     isSelected,
     labelX,
@@ -24,7 +30,7 @@ function PolylineEdge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
     fromAnchor,
     edgeWidth,
     arrowheadDimensions,
-  } = usePolylineEdge(edge, nodes);
+  } = usePolylineEdge(edge);
 
   const { onPointerDownHead, onPointerDownTail, onEdgeClick } = useEdgeDrag(
     edge.id,
@@ -33,15 +39,29 @@ function PolylineEdge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
     to,
     toAnchor,
     from,
-    fromAnchor,
-    nodes
+    fromAnchor
   );
 
   if (!storeEdge || points.length < 2) return null;
 
+  const pStart = points[0];
+  const pEnd = points[points.length - 1];
+
   return (
     <g>
       <defs>
+        <linearGradient
+          id={`gradient-${edge.id}`}
+          gradientUnits="userSpaceOnUse"
+          x1={pStart.x}
+          y1={pStart.y}
+          x2={pEnd.x}
+          y2={pEnd.y}
+        >
+          <stop offset="0%" stopColor={color} stopOpacity={0.6} />
+          <stop offset="100%" stopColor={color} stopOpacity={0.1} />
+        </linearGradient>
+
         <marker
           id={`arrowhead-${edge.id}`}
           markerWidth={arrowheadDimensions.width}
@@ -60,27 +80,26 @@ function PolylineEdge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
         </marker>
       </defs>
 
+      {/* Selection Highlight */}
+      {isSelected && (
+        <polyline
+          points={points.map((p) => `${p.x},${p.y}`).join(" ")}
+          fill="none"
+          stroke={`url(#gradient-${edge.id})`}
+          strokeWidth={edgeWidth + 8}
+          strokeLinecap="round"
+          strokeOpacity={0.5}
+          pointerEvents="none"
+        />
+      )}
+
       {/* RENDER SEGMENTS */}
       {points.map((p1, i) => {
         if (i === points.length - 1) return null;
         const p2 = points[i + 1];
-
-        // Pass neighbor points for collinearity checks
         const prevPoint = i > 0 ? points[i - 1] : undefined;
         const nextPoint = i < points.length - 2 ? points[i + 2] : undefined;
-
-        // MAPPING LOGIC:
-        // 'points' array includes: [AnchorStart, Stub1, ..., StubN, AnchorEnd]
-        // 'store.points' array includes: [Stub1, ..., StubN]
-        //
-        // Segment 0: AnchorStart -> Stub1. (Not draggable via segment logic)
-        // Segment 1: Stub1 -> Stub2. (Corresponds to store index 0)
-        // Store Index = Segment Index - 1.
-
         const storeIndex = i - 1;
-
-        // Determine if this is a "docking" segment (connected directly to a node)
-        // Docking segments shouldn't slide because they depend on the Anchor position.
         const isDockingSegment = i === 0 || i === points.length - 2;
 
         return (
@@ -111,21 +130,9 @@ function PolylineEdge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
         pointerEvents="none"
       />
 
-      {/* Faint Highlight for Selection Continuity */}
-      {isSelected && (
-        <polyline
-          points={points.map((p) => `${p.x},${p.y}`).join(" ")}
-          fill="none"
-          stroke={color}
-          strokeWidth={edgeWidth + 4}
-          opacity={0.1}
-          pointerEvents="none"
-        />
-      )}
-
       {/* Labels */}
       {storeEdge.label && (
-        <g>
+        <g style={{ pointerEvents: "none" }}>
           <rect
             x={labelX - labelWidth / 2}
             y={labelY - labelHeight / 2}
@@ -157,11 +164,7 @@ function PolylineEdge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
         cy={points[points.length - 1].y}
         r={25}
         fill="transparent"
-        style={{
-          cursor: "grab",
-          touchAction: "none",
-          pointerEvents: "auto",
-        }}
+        style={{ cursor: "grab", touchAction: "none", pointerEvents: "auto" }}
         onPointerDown={onPointerDownHead}
       />
       <circle
@@ -170,18 +173,14 @@ function PolylineEdge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
         cy={points[0].y}
         r={25}
         fill="transparent"
-        style={{
-          cursor: "grab",
-          touchAction: "none",
-          pointerEvents: "auto",
-        }}
+        style={{ cursor: "grab", touchAction: "none", pointerEvents: "auto" }}
         onPointerDown={onPointerDownTail}
       />
     </g>
   );
-}
+});
 
-function StraightEdge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
+const StraightEdgeWrapper = memo(({ edge }: { edge: EdgeData }) => {
   const {
     p1,
     p2,
@@ -201,7 +200,7 @@ function StraightEdge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
     fromAnchor,
     edgeWidth,
     arrowheadDimensions,
-  } = useStraightEdge(edge, nodes);
+  } = useStraightEdge(edge);
 
   const { onPointerDownHead, onPointerDownTail, onEdgeClick } = useEdgeDrag(
     edge.id,
@@ -210,8 +209,7 @@ function StraightEdge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
     to,
     toAnchor,
     from,
-    fromAnchor,
-    nodes
+    fromAnchor
   );
 
   if (!storeEdge || !p1 || !p2) return null;
@@ -219,6 +217,18 @@ function StraightEdge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
   return (
     <g>
       <defs>
+        <linearGradient
+          id={`gradient-${edge.id}`}
+          gradientUnits="userSpaceOnUse"
+          x1={p1.x}
+          y1={p1.y}
+          x2={p2.x}
+          y2={p2.y}
+        >
+          <stop offset="0%" stopColor={color} stopOpacity={0.6} />
+          <stop offset="100%" stopColor={color} stopOpacity={0.1} />
+        </linearGradient>
+
         <marker
           id={`arrowhead-${edge.id}`}
           markerWidth={arrowheadDimensions.width}
@@ -236,6 +246,22 @@ function StraightEdge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
           />
         </marker>
       </defs>
+
+      {/* Selection Highlight (Gradient Glow) */}
+      {isSelected && (
+        <line
+          x1={p1.x}
+          y1={p1.y}
+          x2={p2.x}
+          y2={p2.y}
+          stroke={`url(#gradient-${edge.id})`}
+          strokeWidth={edgeWidth + 8}
+          strokeOpacity={0.5}
+          pointerEvents="none"
+        />
+      )}
+
+      {/* Visible Line */}
       <line
         x1={p1.x}
         y1={p1.y}
@@ -254,6 +280,8 @@ function StraightEdge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
           opacity: isSelected ? 1 : 0.8,
         }}
       />
+
+      {/* Click Hit Area */}
       <line
         x1={p1.x}
         y1={p1.y}
@@ -264,20 +292,10 @@ function StraightEdge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
         style={{ cursor: "pointer", pointerEvents: "auto" }}
         onPointerDown={onEdgeClick}
       />
-      {isSelected && (
-        <line
-          x1={p1.x}
-          y1={p1.y}
-          x2={p2.x}
-          y2={p2.y}
-          stroke={color}
-          strokeWidth={edgeWidth + 4}
-          opacity={0.2}
-          pointerEvents="none"
-        />
-      )}
+
+      {/* Labels */}
       {storeEdge.label && (
-        <g>
+        <g style={{ pointerEvents: "none" }}>
           <rect
             x={labelX - labelWidth / 2}
             y={labelY - labelHeight / 2}
@@ -301,17 +319,14 @@ function StraightEdge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
           </text>
         </g>
       )}
+
       <circle
         className="hover-indicator"
         cx={p2.x}
         cy={p2.y}
         r={25}
         fill="transparent"
-        style={{
-          cursor: "grab",
-          touchAction: "none",
-          pointerEvents: "auto",
-        }}
+        style={{ cursor: "grab", touchAction: "none", pointerEvents: "auto" }}
         onPointerDown={onPointerDownHead}
       />
       <circle
@@ -320,20 +335,19 @@ function StraightEdge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
         cy={p1.y}
         r={25}
         fill="transparent"
-        style={{
-          cursor: "grab",
-          touchAction: "none",
-          pointerEvents: "auto",
-        }}
+        style={{ cursor: "grab", touchAction: "none", pointerEvents: "auto" }}
         onPointerDown={onPointerDownTail}
       />
     </g>
   );
-}
+});
 
-export function Edge({ edge, nodes }: { edge: EdgeData; nodes: NodeData[] }) {
+export const Edge = memo(({ id }: EdgeProps) => {
+  const edge = useEdgeById(id);
+  if (!edge) return null;
+
   if (edge.path === "elbow") {
-    return <PolylineEdge edge={edge} nodes={nodes} />;
+    return <PolylineEdgeWrapper edge={edge} />;
   }
-  return <StraightEdge edge={edge} nodes={nodes} />;
-}
+  return <StraightEdgeWrapper edge={edge} />;
+});

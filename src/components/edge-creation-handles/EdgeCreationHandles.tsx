@@ -1,28 +1,35 @@
 import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from "lucide-react";
 import { useEdgeCreation } from "../../hooks/edge-hooks/useEdgeCreation";
+import { useNodeById, useDragState } from "../../store/flowStore";
+
 type EdgeHandle = "n" | "s" | "e" | "w";
 
 interface EdgeCreationHandlesProps {
   nodeId: string;
-  position: { x: number; y: number };
-  width: number;
-  height: number;
   isMobile: boolean;
 }
 
 export const EdgeCreationHandles = ({
   nodeId,
-  position,
-  width,
-  height,
   isMobile,
 }: EdgeCreationHandlesProps) => {
+  const node = useNodeById(nodeId);
+  const dragState = useDragState();
   const { onHandlePointerDown } = useEdgeCreation(
     nodeId,
-    position,
-    width,
-    height
+    dragState.position !== null && dragState.nodeId === nodeId
+      ? dragState.position!
+      : node?.position || { x: 0, y: 0 },
+    node?.width || 0,
+    node?.height || 0
   );
+
+  if (!node) return null;
+
+  // Sync with drag state so handles don't lag behind while moving
+  const isDragging = dragState.nodeId === nodeId && dragState.position !== null;
+  const position = isDragging ? dragState.position! : node.position;
+  const { width, height } = node;
 
   const handleSize = isMobile ? 30 : 20;
   const offset = isMobile ? 30 : 20;

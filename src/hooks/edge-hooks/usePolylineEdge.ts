@@ -1,6 +1,16 @@
+import { useCallback } from "react";
 import type { NodeData, EdgeData, position, EdgeAnchor } from "../../lib/types";
-import { useSelectedEdgeId, useEdgeById } from "../../store/flowStore";
-import { getAnchorPoint, getArrowheadDimensions } from "../../lib/utils";
+import {
+  useSelectedEdgeId,
+  useEdgeById,
+  useNodeById,
+  useFlowStore,
+} from "../../store/flowStore";
+import {
+  getAnchorPoint,
+  getArrowheadDimensions,
+  createElbowPath,
+} from "../../lib/utils";
 
 interface UsePolylineEdgeResult {
   points: position[];
@@ -27,19 +37,81 @@ interface UsePolylineEdgeResult {
   };
 }
 
-export function usePolylineEdge(
-  edge: EdgeData,
-  nodes: NodeData[]
-): UsePolylineEdgeResult {
+export function usePolylineEdge(edge: EdgeData): UsePolylineEdgeResult {
   const storeEdge = useEdgeById(edge.id);
   const selectedEdgeId = useSelectedEdgeId();
+  const isSelected = selectedEdgeId === edge.id;
+
+  // resolve node IDs first
+  const fromIdStr =
+    storeEdge && typeof storeEdge.from === "string"
+      ? storeEdge.from
+      : undefined;
+  const toIdStr =
+    storeEdge && typeof storeEdge.to === "string" ? storeEdge.to : undefined;
+
+  /**
+   * PERFORMANCE CRITICAL: Granular Subscription
+   * Why: Standard `useDragState()` triggers a re-render for EVERY edge on EVERY frame
+   * whenever any node is dragged. By using this selector, we ensure this specific hook
+   * only wakes up if the dragged node is actually connected to THIS edge.
+   */
+  const relevantDragPos = useFlowStore(
+    useCallback(
+      (state) => {
+        const { nodeId, position } = state.dragState;
+        
+        // fast exit if no drag is happening
+        if (!nodeId || !position) return null;
+        
+        // Why: Filter out noise. If the moving node isn't one of our endpoints,
+        // we don't care about the update.
+        if (nodeId === fromIdStr || nodeId === toIdStr) {
+          /**
+           * STABILITY FIX: Return the Store Object Reference
+           * Why: React's useSyncExternalStore (underlying Zustand) compares the
+           * result of this selector using Object.is().
+           * If we returned a new object literal like { nodeId, position }, it would
+           * be a new reference every time, causing an infinite loop or "Snapshot" error.
+           * Returning `state.dragState` guarantees referential stability.
+           */
+          return state.dragState;
+        }
+        return null;
+      },
+      [fromIdStr, toIdStr]
+    )
+  );
+
+  const fromNodeRaw = useNodeById(fromIdStr || null);
+  const toNodeRaw = useNodeById(toIdStr || null);
+
+  /**
+   * PERFORMANCE FIX: Transient Updates
+   * Why: We override the node's position with the drag state locally within this render.
+   * This allows the edge to follow the mouse instantly without waiting for
+   * the expensive operation of updating the actual Node object in the global store.
+   */
+  const getEffectiveNode = (
+    node: NodeData | undefined,
+    nodeId: string | undefined
+  ): NodeData | undefined => {
+    if (
+      node &&
+      relevantDragPos &&
+      relevantDragPos.nodeId === nodeId &&
+      relevantDragPos.position
+    ) {
+      return { ...node, position: relevantDragPos.position };
+    }
+    return node;
+  };
 
   const edgeWidth: number = storeEdge?.style?.width || 2;
   const arrowheadDimensions = getArrowheadDimensions(edgeWidth);
 
-  // Defaults
+  // defaults
   let color: string = "black";
-  let isSelected: boolean = false;
   let labelX: number = 0;
   let labelY: number = 0;
   let labelFontSize: number = 14;
@@ -76,10 +148,11 @@ export function usePolylineEdge(
     };
   }
 
-  // resolve start point (anchor or coordinate)
+  // resolve Start Node
+  const fromNode = getEffectiveNode(fromNodeRaw, fromIdStr);
   let pStart: position | null = null;
+
   if (typeof storeEdge.from === "string") {
-    const fromNode = nodes.find((n) => n.id === storeEdge.from);
     if (fromNode) {
       fromNodeId = fromNode.id;
       pStart = getAnchorPoint(fromNode, storeEdge.fromAnchor);
@@ -90,10 +163,11 @@ export function usePolylineEdge(
   from = storeEdge.from;
   fromAnchor = storeEdge.fromAnchor || { side: "bottom" };
 
-  // resolve end point (anchor or coordinate)
+  // resolve End Node
+  const toNode = getEffectiveNode(toNodeRaw, toIdStr);
   let pEnd: position | null = null;
+
   if (typeof storeEdge.to === "string") {
-    const toNode = nodes.find((n) => n.id === storeEdge.to);
     if (toNode) {
       toNodeId = toNode.id;
       pEnd = getAnchorPoint(toNode, storeEdge.toAnchor);
@@ -105,28 +179,30 @@ export function usePolylineEdge(
   toAnchor = storeEdge.toAnchor || { side: "top" };
 
   // construct points array
-  // [AnchorStart, ...StoredPoints, AnchorEnd]
   const allPoints: position[] = [];
 
   if (pStart && pEnd) {
     allPoints.push(pStart);
-    if (storeEdge.points && storeEdge.points.length > 0) {
+
+    if (storeEdge.path === "elbow") {
+      const pathPoints = createElbowPath(
+        pStart,
+        pEnd,
+        fromAnchor.side,
+        toAnchor.side
+      );
+      allPoints.push(...pathPoints);
+    } else if (storeEdge.points && storeEdge.points.length > 0) {
       allPoints.push(...storeEdge.points);
-    } else {
-      // NOTE: If no points exist for an Elbow edge, we could calculate a default path here.
-      // For now, we just connect start to end (behaving like straight until points are added).
-      // A more advanced implementation would auto-calculate orthogonal points here.
     }
+
     allPoints.push(pEnd);
   }
 
   // styles & selection
   color = storeEdge.style?.color || "black";
-  isSelected = selectedEdgeId === edge.id;
 
-  // Label Positioning
-  // for polyline, we usually place label on the middle segment or the longest segment.
-  // here we assume the middle of the path.
+  // label positioning
   if (allPoints.length >= 2 && storeEdge.label) {
     const totalLength = allPoints.reduce((acc, p, i) => {
       if (i === 0) return 0;
@@ -139,7 +215,6 @@ export function usePolylineEdge(
     let currentLen = 0;
     const midLen = totalLength * (storeEdge.label.t || 0.5);
 
-    // find the segment containing the midpoint
     for (let i = 0; i < allPoints.length - 1; i++) {
       const p1 = allPoints[i];
       const p2 = allPoints[i + 1];

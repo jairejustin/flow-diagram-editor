@@ -1,16 +1,15 @@
 import { useRef, useCallback, useEffect } from "react";
-import type { NodeData, EdgeAnchor, position } from "../../lib/types";
+import type { EdgeAnchor, position } from "../../lib/types";
 import {
   useSelectEdge,
-  useNodes,
   useUpdateEdgeHead,
   useUpdateEdgeTail,
   useSetIsDraggingEdge,
   useSelectedEdgeId,
-  useSelectNode,
   useViewMode,
   useViewport,
   useHistory,
+  useFlowStore,
 } from "../../store/flowStore";
 import { getAnchorPoint } from "../../lib/utils";
 import { ALIGNMENT_THRESHOLD, PAN_LIMIT } from "../../lib/constants";
@@ -22,8 +21,7 @@ export function useEdgeDrag(
   storeEdgeTo: string | position,
   storeEdgeToAnchor: EdgeAnchor,
   storeEdgeFrom: string | position,
-  storeEdgeFromAnchor: EdgeAnchor,
-  nodes: NodeData[]
+  storeEdgeFromAnchor: EdgeAnchor
 ) {
   const pointerPosRef = useRef({ x: 0, y: 0 });
   const startPosRef = useRef({ x: 0, y: 0 });
@@ -33,6 +31,7 @@ export function useEdgeDrag(
     x: false,
     y: false,
   });
+
   const handlersRef = useRef<{
     onPointerMove: ((e: PointerEvent) => void) | null;
     onPointerUp: ((e: PointerEvent) => void) | null;
@@ -44,12 +43,10 @@ export function useEdgeDrag(
   });
 
   const selectEdge = useSelectEdge();
-  const allNodes = useNodes();
   const updateEdgeHead = useUpdateEdgeHead();
   const updateEdgeTail = useUpdateEdgeTail();
   const setIsDraggingEdge = useSetIsDraggingEdge();
   const selectedEdgeId = useSelectedEdgeId();
-  const selectNode = useSelectNode();
   const viewMode = useViewMode();
   const viewport = useViewport();
   const { pause, resume } = useHistory();
@@ -77,6 +74,7 @@ export function useEdgeDrag(
       handlersRef.current.onPointerCancel = null;
     }
     activePointerId.current = null;
+    draggingEndRef.current = null;
   }, []);
 
   useEffect(() => {
@@ -88,22 +86,16 @@ export function useEdgeDrag(
   const onEdgeClick = useCallback(
     (e: React.PointerEvent) => {
       e.stopPropagation();
-      selectNode(null);
-
-      if (selectedEdgeId === edgeId) {
-        selectEdge(null);
-      } else {
-        selectEdge(edgeId);
-      }
+      selectEdge(edgeId === selectedEdgeId ? null : edgeId);
     },
-    [edgeId, selectedEdgeId, selectNode, selectEdge]
+    [edgeId, selectedEdgeId, selectEdge]
   );
 
-  // Get the opposite endpoint position
+  // imperatively fetch nodes to avoid re-rendering
   const getOppositePoint = useCallback(
     (draggingEnd: "from" | "to"): position | null => {
+      const nodes = useFlowStore.getState().nodes;
       if (draggingEnd === "to") {
-        // We're dragging the head, so get the tail position
         if (typeof storeEdgeFrom === "string") {
           const fromNode = nodes.find((n) => n.id === storeEdgeFrom);
           if (!fromNode) return null;
@@ -112,7 +104,6 @@ export function useEdgeDrag(
           return storeEdgeFrom;
         }
       } else {
-        // We're dragging the tail, so get the head position
         if (typeof storeEdgeTo === "string") {
           const toNode = nodes.find((n) => n.id === storeEdgeTo);
           if (!toNode) return null;
@@ -122,7 +113,7 @@ export function useEdgeDrag(
         }
       }
     },
-    [nodes, storeEdgeFrom, storeEdgeFromAnchor, storeEdgeTo, storeEdgeToAnchor]
+    [storeEdgeFrom, storeEdgeFromAnchor, storeEdgeTo, storeEdgeToAnchor]
   );
 
   const onMove = useCallback(
@@ -135,88 +126,75 @@ export function useEdgeDrag(
 
       if (newX > PAN_LIMIT) newX = PAN_LIMIT;
       if (newX < -PAN_LIMIT) newX = -PAN_LIMIT;
-
       if (newY > PAN_LIMIT) newY = PAN_LIMIT;
       if (newY < -PAN_LIMIT) newY = -PAN_LIMIT;
 
       const draggingEnd = draggingEndRef.current;
       if (!draggingEnd) return;
 
-      // alignment checking
       const oppositePoint = getOppositePoint(draggingEnd);
 
       if (oppositePoint) {
         const deltaX = Math.abs(newX - oppositePoint.x);
         const deltaY = Math.abs(newY - oppositePoint.y);
 
-        // X alignment
-        if (isAlignedRef.current.x) {
-          if (deltaX > ALIGNMENT_THRESHOLD * 2) {
-            isAlignedRef.current.x = false;
-          } else {
-            newX = oppositePoint.x;
-          }
+        if (deltaX < ALIGNMENT_THRESHOLD) {
+          isAlignedRef.current.x = true;
+          newX = oppositePoint.x;
         } else {
-          if (deltaX < ALIGNMENT_THRESHOLD) {
-            isAlignedRef.current.x = true;
-            newX = oppositePoint.x;
-          }
+          isAlignedRef.current.x = false;
         }
 
-        // Y alignment
-        if (isAlignedRef.current.y) {
-          if (deltaY > ALIGNMENT_THRESHOLD * 2) {
-            isAlignedRef.current.y = false;
-          } else {
-            newY = oppositePoint.y;
-          }
+        if (deltaY < ALIGNMENT_THRESHOLD) {
+          isAlignedRef.current.y = true;
+          newY = oppositePoint.y;
         } else {
-          if (deltaY < ALIGNMENT_THRESHOLD) {
-            isAlignedRef.current.y = true;
-            newY = oppositePoint.y;
-          }
+          isAlignedRef.current.y = false;
         }
       }
 
-      // collision detection and snapping to nodes
+      // COLLISION DETECTION WITH NODES
+      // fetch nodes imperatively here so we don't need 'nodes' as a prop
+      const allNodes = useFlowStore.getState().nodes;
+
       let snappedToNode = false;
+
       for (const node of allNodes) {
-        // prevent snapping to the opposite point's node
         const oppositeNodeId = draggingEnd === "to" ? fromNodeId : toNodeId;
         if (node.id === oppositeNodeId) continue;
 
         const { x, y } = node.position;
         const { width, height } = node;
 
-        // checks for collision with node bounding box
         if (newX > x && newX < x + width && newY > y && newY < y + height) {
-          // snap to nearest side
-          const distLeft = Math.abs(newX - x);
-          const distRight = Math.abs(newX - (x + width));
-          const distTop = Math.abs(newY - y);
-          const distBottom = Math.abs(newY - (y + height));
+          const anchors: EdgeAnchor[] = [
+            { side: "top" },
+            { side: "bottom" },
+            { side: "left" },
+            { side: "right" },
+          ];
 
-          const minDist = Math.min(distLeft, distRight, distTop, distBottom);
+          let bestAnchor = anchors[0];
+          let minDist = Infinity;
 
-          let anchorSide: "top" | "bottom" | "left" | "right" = "top";
-
-          if (minDist === distLeft) {
-            anchorSide = "left";
-          } else if (minDist === distRight) {
-            anchorSide = "right";
-          } else if (minDist === distTop) {
-            anchorSide = "top";
-          } else {
-            anchorSide = "bottom";
+          for (const anchor of anchors) {
+            const anchorPoint = getAnchorPoint(node, anchor);
+            const dist = Math.sqrt(
+              Math.pow(newX - anchorPoint.x, 2) +
+                Math.pow(newY - anchorPoint.y, 2)
+            );
+            if (dist < minDist) {
+              minDist = dist;
+              bestAnchor = anchor;
+            }
           }
 
           if (draggingEnd === "to") {
-            updateEdgeHead(edgeId, node.id, { side: anchorSide });
+            updateEdgeHead(edgeId, node.id, bestAnchor);
           } else {
-            updateEdgeTail(edgeId, node.id, { side: anchorSide });
+            updateEdgeTail(edgeId, node.id, bestAnchor);
           }
           snappedToNode = true;
-          // clean up
           isAlignedRef.current = { x: false, y: false };
           break;
         }
@@ -232,7 +210,6 @@ export function useEdgeDrag(
     },
     [
       viewport.zoom,
-      allNodes,
       edgeId,
       fromNodeId,
       toNodeId,
@@ -245,71 +222,62 @@ export function useEdgeDrag(
   const onEnd = useCallback(() => {
     cleanupListeners();
     setIsDraggingEdge(false);
-    draggingEndRef.current = null;
-    // clean up
     isAlignedRef.current = { x: false, y: false };
     resume();
-  }, [setIsDraggingEdge, cleanupListeners, resume]);
+  }, [cleanupListeners, setIsDraggingEdge, resume]);
 
-  // head endpoint
   const onPointerDownHead = useCallback(
     (e: React.PointerEvent) => {
       e.stopPropagation();
-
-      // check for another pointer
-      if (activePointerId.current !== null) {
-        return;
-      }
+      e.preventDefault();
+      if (activePointerId.current !== null) return;
+      if (viewMode) return;
 
       cleanupListeners();
-      selectNode(null);
 
-      if (edgeId === selectedEdgeId) {
-        selectEdge(null);
-      } else {
-        selectEdge(edgeId);
-      }
-
-      let p2: position;
-
-      if (typeof storeEdgeTo === "string") {
-        const toNode = nodes.find((n) => n.id === storeEdgeTo);
-        if (!toNode) return;
-        p2 = getAnchorPoint(toNode, storeEdgeToAnchor);
-      } else {
-        p2 = storeEdgeTo;
-      }
-
-      // get the pointer for tracking
       (e.target as HTMLElement).setPointerCapture(e.pointerId);
       activePointerId.current = e.pointerId;
 
       pointerPosRef.current = { x: e.clientX, y: e.clientY };
-      startPosRef.current = { x: p2.x, y: p2.y };
       draggingEndRef.current = "to";
 
-      pause();
+      let startX = 0;
+      let startY = 0;
+
+      if (typeof storeEdgeTo === "string") {
+        // We need to resolve initial position if it's attached to a node
+        // we use imperative store access here too if strictly needed,
+        // but typically the Edge component passes the resolved coordinate.
+        // However, useEdgeDrag doesn't receive the resolved coordinate,
+        // it receives the store data. So we must resolve it.
+        const nodes = useFlowStore.getState().nodes;
+        const node = nodes.find((n) => n.id === storeEdgeTo);
+        if (node) {
+          const p = getAnchorPoint(node, storeEdgeToAnchor);
+          startX = p.x;
+          startY = p.y;
+        }
+      } else {
+        startX = storeEdgeTo.x;
+        startY = storeEdgeTo.y;
+      }
+
+      startPosRef.current = { x: startX, y: startY };
+
       setIsDraggingEdge(true);
+      selectEdge(edgeId === selectedEdgeId ? null : edgeId);
+      pause();
 
       const onPointerMove = (e: PointerEvent) => {
-        // handle the captured pointer
-        if (e.pointerId !== activePointerId.current) {
-          return;
-        }
+        if (e.pointerId !== activePointerId.current) return;
         onMove(e.clientX, e.clientY);
       };
-
       const onPointerUp = (e: PointerEvent) => {
-        if (e.pointerId !== activePointerId.current) {
-          return;
-        }
+        if (e.pointerId !== activePointerId.current) return;
         onEnd();
       };
-
       const onPointerCancel = (e: PointerEvent) => {
-        if (e.pointerId !== activePointerId.current) {
-          return;
-        }
+        if (e.pointerId !== activePointerId.current) return;
         onEnd();
       };
 
@@ -322,79 +290,68 @@ export function useEdgeDrag(
       document.addEventListener("pointercancel", onPointerCancel);
     },
     [
-      nodes,
-      onEnd,
-      onMove,
-      selectNode,
-      setIsDraggingEdge,
+      viewMode,
+      selectedEdgeId,
+      cleanupListeners,
       storeEdgeTo,
       storeEdgeToAnchor,
-      cleanupListeners,
+      setIsDraggingEdge,
       selectEdge,
       edgeId,
-      selectedEdgeId,
       pause,
+      onMove,
+      onEnd,
     ]
   );
 
-  // tail endpoint
   const onPointerDownTail = useCallback(
     (e: React.PointerEvent) => {
       e.stopPropagation();
-
-      // check for another pointer
-      if (activePointerId.current !== null) {
-        return;
-      }
+      e.preventDefault();
+      selectEdge(edgeId === selectedEdgeId ? null : edgeId);
+      if (activePointerId.current !== null) return;
+      if (viewMode) return;
 
       cleanupListeners();
-      pause();
-      selectNode(null);
 
-      if (edgeId === selectedEdgeId) {
-        selectEdge(null);
-      } else {
-        selectEdge(edgeId);
-      }
-
-      let p1: position;
-
-      if (typeof storeEdgeFrom === "string") {
-        const fromNode = nodes.find((n) => n.id === storeEdgeFrom);
-        if (!fromNode) return;
-        p1 = getAnchorPoint(fromNode, storeEdgeFromAnchor);
-      } else {
-        p1 = storeEdgeFrom;
-      }
-
-      // get the pointer for tracking
       (e.target as HTMLElement).setPointerCapture(e.pointerId);
       activePointerId.current = e.pointerId;
 
       pointerPosRef.current = { x: e.clientX, y: e.clientY };
-      startPosRef.current = { x: p1.x, y: p1.y };
       draggingEndRef.current = "from";
+
+      let startX = 0;
+      let startY = 0;
+
+      if (typeof storeEdgeFrom === "string") {
+        const nodes = useFlowStore.getState().nodes;
+        const node = nodes.find((n) => n.id === storeEdgeFrom);
+        if (node) {
+          const p = getAnchorPoint(node, storeEdgeFromAnchor);
+          startX = p.x;
+          startY = p.y;
+        }
+      } else {
+        startX = storeEdgeFrom.x;
+        startY = storeEdgeFrom.y;
+      }
+
+      startPosRef.current = { x: startX, y: startY };
+
       setIsDraggingEdge(true);
+      selectEdge(edgeId === selectedEdgeId ? null : edgeId);
+      pause();
 
       const onPointerMove = (e: PointerEvent) => {
-        // handle the captured pointer
-        if (e.pointerId !== activePointerId.current) {
-          return;
-        }
+        if (e.pointerId !== activePointerId.current) return;
         onMove(e.clientX, e.clientY);
       };
-
       const onPointerUp = (e: PointerEvent) => {
-        if (e.pointerId !== activePointerId.current) {
-          return;
-        }
+        if (e.pointerId !== activePointerId.current) return;
         onEnd();
       };
-
       const onPointerCancel = (e: PointerEvent) => {
-        if (e.pointerId !== activePointerId.current) {
-          return;
-        }
+        if (e.pointerId !== activePointerId.current) return;
         onEnd();
       };
 
@@ -407,32 +364,19 @@ export function useEdgeDrag(
       document.addEventListener("pointercancel", onPointerCancel);
     },
     [
-      nodes,
-      onEnd,
-      onMove,
-      selectNode,
-      setIsDraggingEdge,
+      viewMode,
+      cleanupListeners,
       storeEdgeFrom,
       storeEdgeFromAnchor,
-      cleanupListeners,
+      setIsDraggingEdge,
       selectEdge,
       edgeId,
-      selectedEdgeId,
       pause,
+      onMove,
+      onEnd,
+      selectedEdgeId,
     ]
   );
 
-  if (viewMode) {
-    return {
-      onPointerDownHead: () => {},
-      onPointerDownTail: () => {},
-      onEdgeClick: () => {},
-    };
-  }
-
-  return {
-    onPointerDownHead,
-    onPointerDownTail,
-    onEdgeClick,
-  };
+  return { onPointerDownHead, onPointerDownTail, onEdgeClick };
 }
