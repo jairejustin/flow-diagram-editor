@@ -19,6 +19,7 @@ import NodeStylePanel from "../../components/style-panel/NodeStylePanel";
 import EdgeStylePanel from "../../components/style-panel/EdgeStylePanel";
 import { ResizeHandles } from "../../components/resize-handles/ResizeHandles";
 import { useCanvasPan } from "../../hooks/canvas-hooks/useCanvasPan";
+import { useKeyboardShortcuts } from "../../hooks/canvas-hooks/useKeyboardShortcuts";
 import { EdgeCreationHandles } from "../../components/edge-creation-handles/EdgeCreationHandles";
 import { Edit3 } from "lucide-react";
 import { ExportOverlay } from "../../components/export-overlay/ExportOverlay";
@@ -62,6 +63,8 @@ export default function CanvasPage() {
   const [translateY, setTranslateY] = useState(viewport.y);
   const [scale, setScale] = useState(viewport.zoom);
   const [isPanning, setIsPanning] = useState(false);
+
+  useKeyboardShortcuts();
 
   const { handlePointerDown, handleWheel } = useCanvasPan(
     translateX,
