@@ -35,10 +35,6 @@ export const useFlowStore = create<FlowState>()(
     ),
     {
       limit: 100,
-      partialize: (state) => ({
-        nodes: state.nodes,
-        edges: state.edges,
-      }),
       equality: (a, b) => {
         if (a === b) return true;
         return false;

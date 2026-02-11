@@ -1,6 +1,7 @@
 import { useRef, useCallback, useEffect } from "react";
 import { useSetViewport } from "../../store/flowStore";
 import { PAN_LIMIT } from "../../lib/constants";
+import { useHistory } from "../../store/flowStore";
 
 export function useCanvasPan(
   translateX: number,
@@ -25,6 +26,7 @@ export function useCanvasPan(
   });
 
   const setViewport = useSetViewport();
+  const { pause, resume } = useHistory();
 
   const cleanupListeners = useCallback(() => {
     if (handlersRef.current.onPointerMove) {
@@ -64,8 +66,9 @@ export function useCanvasPan(
   const onPanEnd = useCallback(() => {
     cleanupListeners();
     setIsPanning(false);
+    resume();
     activePointerId.current = null;
-  }, [cleanupListeners, setIsPanning]);
+  }, [cleanupListeners, setIsPanning, resume]);
 
   const handlePointerDown = useCallback(
     (event: React.PointerEvent) => {
@@ -86,6 +89,7 @@ export function useCanvasPan(
       if (event.pointerType === "touch") event.preventDefault();
 
       cleanupListeners();
+      pause();
 
       (event.target as HTMLElement).setPointerCapture(event.pointerId);
       activePointerId.current = event.pointerId;
@@ -133,7 +137,14 @@ export function useCanvasPan(
       document.addEventListener("pointerup", onPointerUp);
       document.addEventListener("pointercancel", onPointerCancel);
     },
-    [setIsPanning, setTranslateX, setTranslateY, onPanEnd, cleanupListeners]
+    [
+      setIsPanning,
+      setTranslateX,
+      setTranslateY,
+      onPanEnd,
+      cleanupListeners,
+      pause,
+    ]
   );
 
   const handleWheel = useCallback(
