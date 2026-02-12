@@ -8,7 +8,9 @@ interface ViewportControlsProps {
   onReset?: () => void;
 }
 
-export const ViewportControls = (ViewportControlsProps: ViewportControlsProps) => {
+export const ViewportControls = (
+  ViewportControlsProps: ViewportControlsProps
+) => {
   const { onZoomIn, onZoomOut, zoomFactor, onReset } = ViewportControlsProps;
 
   return (
@@ -25,4 +27,4 @@ export const ViewportControls = (ViewportControlsProps: ViewportControlsProps) =
       </button>
     </div>
   );
-}
+};

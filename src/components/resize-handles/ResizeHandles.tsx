@@ -1,5 +1,6 @@
 import { useNodeResize } from "../../hooks/node-hooks/useNodeResize";
 import { useIsMobile, useNodeById, useDragState } from "../../store/flowStore";
+import { memo } from "react";
 
 type ResizeHandle = "nw" | "ne" | "sw" | "se" | "n" | "s" | "e" | "w";
 
@@ -8,7 +9,7 @@ interface ResizeHandlesProps {
   scale: number;
 }
 
-export const ResizeHandles = ({ nodeId, scale }: ResizeHandlesProps) => {
+export const ResizeHandles = memo(({ nodeId, scale }: ResizeHandlesProps) => {
   const node = useNodeById(nodeId)!;
   const dragState = useDragState();
   const isMobile = useIsMobile();
@@ -120,4 +121,4 @@ export const ResizeHandles = ({ nodeId, scale }: ResizeHandlesProps) => {
       ))}
     </div>
   );
-};
+});

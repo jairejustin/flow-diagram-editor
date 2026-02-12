@@ -1,6 +1,7 @@
 import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from "lucide-react";
 import { useEdgeCreation } from "../../hooks/edge-hooks/useEdgeCreation";
 import { useNodeById, useDragState } from "../../store/flowStore";
+import { memo } from "react";
 
 type EdgeHandle = "n" | "s" | "e" | "w";
 
@@ -9,7 +10,7 @@ interface EdgeCreationHandlesProps {
   isMobile: boolean;
 }
 
-export const EdgeCreationHandles = ({
+export const EdgeCreationHandles = memo(({
   nodeId,
   isMobile,
 }: EdgeCreationHandlesProps) => {
@@ -113,4 +114,4 @@ export const EdgeCreationHandles = ({
       ))}
     </div>
   );
-};
+});
