@@ -14,6 +14,10 @@ import {
 import { getAnchorPoint } from "../../lib/utils";
 import { ALIGNMENT_THRESHOLD, PAN_LIMIT } from "../../lib/constants";
 
+type PendingUpdate =
+  | { type: "coordinate"; position: { x: number; y: number } }
+  | { type: "connect"; nodeId: string; anchor: EdgeAnchor };
+
 export function useEdgeDrag(
   edgeId: string,
   fromNodeId: string,
@@ -41,6 +45,9 @@ export function useEdgeDrag(
     onPointerUp: null,
     onPointerCancel: null,
   });
+
+  const rafId = useRef<number | null>(null);
+  const latestUpdateRef = useRef<PendingUpdate | null>(null);
 
   const selectEdge = useSelectEdge();
   const updateEdgeHead = useUpdateEdgeHead();
@@ -73,8 +80,13 @@ export function useEdgeDrag(
       );
       handlersRef.current.onPointerCancel = null;
     }
+    if (rafId.current !== null) {
+      cancelAnimationFrame(rafId.current);
+      rafId.current = null;
+    }
     activePointerId.current = null;
     draggingEndRef.current = null;
+    latestUpdateRef.current = null;
   }, []);
 
   useEffect(() => {
@@ -115,6 +127,23 @@ export function useEdgeDrag(
     },
     [storeEdgeFrom, storeEdgeFromAnchor, storeEdgeTo, storeEdgeToAnchor]
   );
+
+  const applyLatestUpdate = useCallback(() => {
+    const update = latestUpdateRef.current;
+    const end = draggingEndRef.current;
+
+    if (!update || !end) return;
+
+    if (update.type === "coordinate") {
+      if (end === "to") updateEdgeHead(edgeId, update.position);
+      else updateEdgeTail(edgeId, update.position);
+    } else {
+      if (end === "to") updateEdgeHead(edgeId, update.nodeId, update.anchor);
+      else updateEdgeTail(edgeId, update.nodeId, update.anchor);
+    }
+
+    rafId.current = null;
+  }, [updateEdgeHead, updateEdgeTail, edgeId]);
 
   const onMove = useCallback(
     (clientX: number, clientY: number) => {
@@ -189,11 +218,12 @@ export function useEdgeDrag(
             }
           }
 
-          if (draggingEnd === "to") {
-            updateEdgeHead(edgeId, node.id, bestAnchor);
-          } else {
-            updateEdgeTail(edgeId, node.id, bestAnchor);
-          }
+          latestUpdateRef.current = {
+            type: "connect",
+            nodeId: node.id,
+            anchor: bestAnchor,
+          };
+
           snappedToNode = true;
           isAlignedRef.current = { x: false, y: false };
           break;
@@ -201,22 +231,17 @@ export function useEdgeDrag(
       }
 
       if (!snappedToNode) {
-        if (draggingEnd === "to") {
-          updateEdgeHead(edgeId, { x: newX, y: newY });
-        } else {
-          updateEdgeTail(edgeId, { x: newX, y: newY });
-        }
+        latestUpdateRef.current = {
+          type: "coordinate",
+          position: { x: newX, y: newY },
+        };
+      }
+
+      if (rafId.current === null) {
+        rafId.current = requestAnimationFrame(applyLatestUpdate);
       }
     },
-    [
-      viewport.zoom,
-      edgeId,
-      fromNodeId,
-      toNodeId,
-      updateEdgeHead,
-      updateEdgeTail,
-      getOppositePoint,
-    ]
+    [viewport.zoom, fromNodeId, toNodeId, getOppositePoint, applyLatestUpdate]
   );
 
   const onEnd = useCallback(() => {

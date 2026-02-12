@@ -13,7 +13,6 @@ export function useCanvasPan(
   _isPanning: boolean,
   setIsPanning: (value: boolean) => void
 ) {
-  const lastPointerPos = useRef({ x: 0, y: 0 });
   const activePointerId = useRef<number | null>(null);
   const handlersRef = useRef<{
     onPointerMove: ((e: PointerEvent) => void) | null;
@@ -24,6 +23,12 @@ export function useCanvasPan(
     onPointerUp: null,
     onPointerCancel: null,
   });
+
+  // throttle refs
+  const initialPanRef = useRef({ x: translateX, y: translateY });
+  const startPointerRef = useRef({ x: 0, y: 0 });
+  const latestPanRef = useRef({ x: 0, y: 0 });
+  const rafId = useRef<number | null>(null);
 
   const setViewport = useSetViewport();
   const { pause, resume } = useHistory();
@@ -49,6 +54,10 @@ export function useCanvasPan(
         handlersRef.current.onPointerCancel
       );
       handlersRef.current.onPointerCancel = null;
+    }
+    if (rafId.current !== null) {
+      cancelAnimationFrame(rafId.current);
+      rafId.current = null;
     }
   }, []);
 
@@ -94,29 +103,34 @@ export function useCanvasPan(
       (event.target as HTMLElement).setPointerCapture(event.pointerId);
       activePointerId.current = event.pointerId;
       setIsPanning(true);
-      lastPointerPos.current = { x: event.clientX, y: event.clientY };
+
+      startPointerRef.current = { x: event.clientX, y: event.clientY };
+      initialPanRef.current = { x: translateX, y: translateY };
 
       const onPointerMove = (e: PointerEvent) => {
         if (e.pointerId !== activePointerId.current) return;
 
-        const dx = e.clientX - lastPointerPos.current.x;
-        const dy = e.clientY - lastPointerPos.current.y;
+        // delta
+        const dx = e.clientX - startPointerRef.current.x;
+        const dy = e.clientY - startPointerRef.current.y;
+        const nextX = initialPanRef.current.x + dx;
+        const nextY = initialPanRef.current.y + dy;
 
-        setTranslateX((prev) => {
-          const nextX = prev + dx;
-          if (nextX > PAN_LIMIT) return PAN_LIMIT;
-          if (nextX < -PAN_LIMIT) return -PAN_LIMIT;
-          return nextX;
-        });
+        // bounds
+        if (nextX > PAN_LIMIT) return PAN_LIMIT;
+        if (nextX < -PAN_LIMIT) return -PAN_LIMIT;
+        if (nextY > PAN_LIMIT) return PAN_LIMIT;
+        if (nextY < -PAN_LIMIT) return -PAN_LIMIT;
 
-        setTranslateY((prev) => {
-          const nextY = prev + dy;
-          if (nextY > PAN_LIMIT) return PAN_LIMIT;
-          if (nextY < -PAN_LIMIT) return -PAN_LIMIT;
-          return nextY;
-        });
-
-        lastPointerPos.current = { x: e.clientX, y: e.clientY };
+        latestPanRef.current = { x: nextX, y: nextY };
+        if (rafId.current === null) {
+          rafId.current = requestAnimationFrame(() => {
+            const { x, y } = latestPanRef.current;
+            setTranslateX(x);
+            setTranslateY(y);
+            rafId.current = null;
+          });
+        }
       };
 
       const onPointerUp = (e: PointerEvent) => {
@@ -144,6 +158,8 @@ export function useCanvasPan(
       onPanEnd,
       cleanupListeners,
       pause,
+      translateX,
+      translateY,
     ]
   );
 
