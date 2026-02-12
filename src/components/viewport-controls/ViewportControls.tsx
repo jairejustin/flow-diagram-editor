@@ -1,15 +1,15 @@
 import { Plus, Minus, RefreshCcw } from "lucide-react";
 import "./ViewportControls.css";
 
-interface ZoomControlsProps {
+interface ViewportControlsProps {
   onZoomIn?: () => void;
   onZoomOut?: () => void;
   zoomFactor: number;
   onReset?: () => void;
 }
 
-export default function ZoomControls(ZoomControlsProps: ZoomControlsProps) {
-  const { onZoomIn, onZoomOut, zoomFactor, onReset } = ZoomControlsProps;
+export const ViewportControls = (ViewportControlsProps: ViewportControlsProps) => {
+  const { onZoomIn, onZoomOut, zoomFactor, onReset } = ViewportControlsProps;
 
   return (
     <div className="zoom-controls">

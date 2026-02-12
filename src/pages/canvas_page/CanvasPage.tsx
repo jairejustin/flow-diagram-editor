@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Node } from "../../components/node/Node";
 import { Edge } from "../../components/edge/Edge";
 import Toolbar from "../../components/toolbar/Toolbar";
-import ZoomControls from "../../components/viewport-controls/ViewportControls";
+import { ViewportControls }  from "../../components/viewport-controls/ViewportControls";
 import {
   useIsExporting,
   useIsMobile,
@@ -122,7 +122,7 @@ export default function CanvasPage() {
                 onToggle={() => setShowPanel(!showPanel)}
               />
             )}
-            <ZoomControls
+            <ViewportControls
               zoomFactor={scale}
               onZoomIn={onZoomIn}
               onZoomOut={onZoomOut}
