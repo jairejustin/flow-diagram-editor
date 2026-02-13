@@ -159,7 +159,7 @@ export const createEdgeSlice: StateCreator<FlowState, [], [], EdgeSlice> = (
             );
           }
         } else {
-          newPoints = newPoints.reverse();
+          newPoints = [...newPoints].reverse();
         }
 
         return {
