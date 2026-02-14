@@ -278,9 +278,9 @@ export function useNodeDrag(
   const onEnd = useCallback(() => {
     cleanupListeners();
 
-    if (latestCalculatedPos.current) {
-      updateNodePosition(nodeId, latestCalculatedPos.current);
-    }
+    setIsDraggingNode(false);
+    updateDragState(null, null);
+    isAlignedRef.current = { x: false, y: false };
 
     if (nodeId === selectedNodeId) {
       selectNode(null);
@@ -288,11 +288,11 @@ export function useNodeDrag(
       selectNode(nodeId);
     }
 
-    setIsDraggingNode(false);
-    updateDragState(null, null);
-
-    isAlignedRef.current = { x: false, y: false };
     resume();
+
+    if (latestCalculatedPos.current) {
+      updateNodePosition(nodeId, latestCalculatedPos.current);
+    }
   }, [
     nodeId,
     selectNode,
