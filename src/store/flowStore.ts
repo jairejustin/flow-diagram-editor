@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create, useStore } from "zustand";
 import { persist } from "zustand/middleware";
 import { useShallow } from "zustand/shallow";
 import { useCallback } from "react";
@@ -7,7 +7,6 @@ import { createNodeSlice } from "./slices/createNodeSlice";
 import { createEdgeSlice } from "./slices/createEdgeSlice";
 import { createUISlice } from "./slices/createUISlice";
 import { temporal } from "zundo";
-import type { TemporalState } from "zundo";
 
 export interface DragState {
   nodeId: string | null;
@@ -35,22 +34,49 @@ export const useFlowStore = create<FlowState>()(
     ),
     {
       limit: 100,
+      partialize: (state) => ({
+        nodes: state.nodes,
+        edges: state.edges,
+      }),
       equality: (a, b) => {
-        if (a === b) return true;
-        return false;
-      },
-    }
-  )
+        return a.nodes === b.nodes && a.edges === b.edges
+    },
+  })
 );
 
-// History Actions
 export function useHistory() {
-  const temporalStore = useFlowStore.temporal as unknown as {
-    getState: () => TemporalState<FlowState>;
-  };
+  const temporalStore = useFlowStore.temporal;
 
-  const { undo, redo, pause, resume, clear, pastStates, futureStates } =
-    temporalStore.getState();
+  const { pastStates, futureStates, undo, redo, pause, resume, clear } = useStore(
+    temporalStore,
+    /**
+     * CRITICAL FIX DOCUMENTATION: History & Rendering Logic
+     * * 1. RENDERING PERFORMANCE (useShallow):
+     * We wrap the selector in `useShallow` to prevent infinite re-render loops. 
+     * Without it, the selector returns a new object reference on every render, 
+     * causing React to think the store state changed continuously, leading to 
+     * "Maximum update depth exceeded".
+     * * 2. HISTORY FILTERING (partialize + equality):
+     * We configure `zundo` (temporal) with `partialize` to track ONLY `nodes` 
+     * and `edges`. This excludes "noisy" state like `viewport` (pan/zoom) 
+     * and `dragState`. 
+     * * Without this, every pixel of mouse movement during a drag or pan would 
+     * create a new history entry, clogging the undo stack with invisible 
+     * changes and making "Undo" appear broken.
+     * * The `equality` function is required because `partialize` returns a new 
+     * object reference on every run; we must strictly compare the internal 
+     * `nodes` and `edges` arrays to determine if a real change occurred.
+    */
+    useShallow((state) => ({
+      pastStates: state.pastStates,
+      futureStates: state.futureStates,
+      undo: state.undo,
+      redo: state.redo,
+      pause: state.pause,
+      resume: state.resume,
+      clear: state.clear,
+    })
+  ));
 
   return {
     undo,
@@ -58,8 +84,8 @@ export function useHistory() {
     pause,
     resume,
     clear,
-    canUndo: pastStates.length > 1,
-    canRedo: futureStates.length > 1,
+    canUndo: pastStates.length > 0,
+    canRedo: futureStates.length > 0,
     pastStates,
     futureStates,
   };
