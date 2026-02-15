@@ -22,6 +22,7 @@ export default function EdgeStylePanel({ id }: EdgeStylePanelProps) {
     handleLabelToggle,
     handleLabelTextChange,
     handleLabelPositionChange,
+    handleLabelPositionCommit,
     handleLabelFontSizeChange,
     handleDeleteEdge,
     handleFlipEdge,
@@ -136,6 +137,7 @@ export default function EdgeStylePanel({ id }: EdgeStylePanelProps) {
                 step="0.01"
                 value={labelPosition}
                 onChange={handleLabelPositionChange}
+                onPointerUp={handleLabelPositionCommit}
                 className="label-position-slider"
               />
               <span className="label-position-value">

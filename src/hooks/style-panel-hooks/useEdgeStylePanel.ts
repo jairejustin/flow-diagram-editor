@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   useConvertToElbow,
   useConvertToStraight,
@@ -22,14 +22,24 @@ export function useEdgeStylePanel(id: string) {
 
   const [openPicker, setOpenPicker] = useState<string | null>(null);
 
+  const [localLabelPosition, setLocalLabelPosition] = useState(
+    edge?.label?.t ?? 0.5
+  );
+
   const edgeWidth = edge?.style?.width || 2;
   const labelText = edge?.label?.text || "";
-  const labelPosition = edge?.label?.t || 0.5;
   const labelFontSize = edge?.label?.fontSize || 14;
   const edgePath = edge?.path || "straight";
 
   const isElbow =
     edgePath === "elbow" || (edge?.points && edge.points.length > 0);
+
+  // Update local state with react effect. this is to account for external changes like when
+  // selected edge changes or undo/redo happens
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLocalLabelPosition(edge?.label?.t ?? 0.5);
+  }, [edge?.label?.t, id]);
 
   const openColorPicker = (pickerType: string) => {
     setOpenPicker(openPicker === pickerType ? null : pickerType);
@@ -59,26 +69,29 @@ export function useEdgeStylePanel(id: string) {
     }
   };
 
+  // 1. LOCAL CHANGE: Only updates the UI, does not touch the store/history
   const handleLabelPositionChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const numValue = Number(e.target.value);
     if (isNaN(numValue)) return;
-
     const clampedValue = Math.max(0, Math.min(1, numValue));
-    const currentLabel = edge?.label;
 
+    setLocalLabelPosition(clampedValue);
+  };
+
+  const handleLabelPositionCommit = () => {
+    const currentLabel = edge?.label;
     if (currentLabel) {
-      updateEdgeLabel(id, { ...currentLabel, t: clampedValue });
+      updateEdgeLabel(id, { ...currentLabel, t: localLabelPosition });
     } else {
-      updateEdgeLabel(id, { text: "", t: clampedValue, fontSize: 14 });
+      updateEdgeLabel(id, { text: "", t: localLabelPosition, fontSize: 14 });
     }
   };
 
   const handleLabelFontSizeChange = (value: number) => {
     const numValue = Number(value);
     if (isNaN(numValue)) return;
-
     const currentLabel = edge?.label;
 
     if (currentLabel) {
@@ -114,7 +127,7 @@ export function useEdgeStylePanel(id: string) {
     edge,
     edgeWidth,
     labelText,
-    labelPosition,
+    labelPosition: localLabelPosition,
     labelFontSize,
     openPicker,
     isElbow,
@@ -123,6 +136,7 @@ export function useEdgeStylePanel(id: string) {
     handleLabelToggle,
     handleLabelTextChange,
     handleLabelPositionChange,
+    handleLabelPositionCommit,
     handleLabelFontSizeChange,
     handleDeleteEdge,
     handleFlipEdge,
