@@ -121,8 +121,8 @@ export const EdgeSegment = memo(
     const cursor = !canDrag
       ? "pointer"
       : isVertical
-      ? "col-resize"
-      : "row-resize";
+        ? "col-resize"
+        : "row-resize";
 
     const dx = p2.x - p1.x;
     const dy = p2.y - p1.y;

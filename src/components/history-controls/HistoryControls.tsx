@@ -4,9 +4,8 @@ import "./HistoryControls.css";
 import { useHistory } from "../../store/flowStore";
 
 export default function HistoryControls() {
-  
   const { undo, redo, canRedo, canUndo } = useHistory();
-  
+
   /* 
   // for debugging purposes
   // const { pastStates, futureStates } = useHistory();

@@ -61,7 +61,7 @@ export function useStraightEdge(edge: EdgeData): UseStraightEdgeResult {
       (state) => {
         const { nodeId, position } = state.dragState;
         if (!nodeId || !position) return null;
-        
+
         // Why: Only wake up this hook if the dragged node is one of our endpoints.
         if (nodeId === fromIdStr || nodeId === toIdStr) {
           /*

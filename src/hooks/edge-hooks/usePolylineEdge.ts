@@ -60,10 +60,10 @@ export function usePolylineEdge(edge: EdgeData): UsePolylineEdgeResult {
     useCallback(
       (state) => {
         const { nodeId, position } = state.dragState;
-        
+
         // fast exit if no drag is happening
         if (!nodeId || !position) return null;
-        
+
         // Why: Filter out noise. If the moving node isn't one of our endpoints,
         // we don't care about the update.
         if (nodeId === fromIdStr || nodeId === toIdStr) {
