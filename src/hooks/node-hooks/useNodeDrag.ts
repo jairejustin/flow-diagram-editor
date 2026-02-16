@@ -291,7 +291,13 @@ export function useNodeDrag(
     resume();
 
     if (latestCalculatedPos.current) {
-      updateNodePosition(nodeId, latestCalculatedPos.current);
+      const hasMoved =
+        latestCalculatedPos.current.x !== startPosRef.current.x ||
+        latestCalculatedPos.current.y !== startPosRef.current.y;
+
+      if (hasMoved) {
+        updateNodePosition(nodeId, latestCalculatedPos.current);
+      }
     }
   }, [
     nodeId,
