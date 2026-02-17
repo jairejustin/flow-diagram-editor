@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { memo, useState } from "react";
 import { Node } from "../../components/node/Node";
 import { Edge } from "../../components/edge/Edge";
 import Toolbar from "../../components/toolbar/Toolbar";
@@ -44,7 +44,7 @@ const ToggleEditor = ({ onToggle }: ToggleEditorProps) => {
   );
 };
 
-export const CanvasPage = () => {
+export const CanvasPage = memo(() => {
   const selectedNodeId = useSelectedNodeId();
   const selectedEdgeId = useSelectedEdgeId();
   const viewport = useViewport();
@@ -158,5 +158,6 @@ export const CanvasPage = () => {
     </>
   );
 }
+)
 
 export default CanvasPage;
