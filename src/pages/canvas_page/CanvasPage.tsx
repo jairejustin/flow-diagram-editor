@@ -13,7 +13,6 @@ import {
   useSetShowPanel,
   useShowPanel,
   useViewport,
-  useSetViewport,
 } from "../../store/flowStore";
 import NodeStylePanel from "../../components/style-panel/NodeStylePanel";
 import EdgeStylePanel from "../../components/style-panel/EdgeStylePanel";
@@ -45,7 +44,7 @@ const ToggleEditor = ({ onToggle }: ToggleEditorProps) => {
   );
 };
 
-export default function CanvasPage() {
+export const CanvasPage = () => {
   const selectedNodeId = useSelectedNodeId();
   const selectedEdgeId = useSelectedEdgeId();
   const viewport = useViewport();
@@ -53,9 +52,7 @@ export default function CanvasPage() {
   const showPanel = useShowPanel();
   const isExporting = useIsExporting();
   const setShowPanel = useSetShowPanel();
-  const setViewport = useSetViewport();
 
-  // ID-based rendering only
   const nodeIds = useNodeIds();
   const edgeIds = useEdgeIds();
 
@@ -66,7 +63,13 @@ export default function CanvasPage() {
 
   useKeyboardShortcuts();
 
-  const { handlePointerDown, handleWheel } = useCanvasPan(
+  const { 
+    handlePointerDown,
+    handleWheel,
+    handleReset, 
+    handleZoomIn,
+    handleZoomOut 
+} = useCanvasPan(
     translateX,
     translateY,
     scale,
@@ -76,27 +79,6 @@ export default function CanvasPage() {
     isPanning,
     setIsPanning
   );
-
-  function snap(value: number) {
-    return Math.round(value * 1000) / 1000;
-  }
-
-  const onZoomIn = () => {
-    const next = snap(scale + 0.05);
-    if (next <= 5) setScale(next);
-  };
-
-  const onZoomOut = () => {
-    const next = snap(scale - 0.05);
-    if (next >= 0.1) setScale(next);
-  };
-
-  const onReset = () => {
-    setScale(1);
-    setTranslateX(0);
-    setTranslateY(0);
-    setViewport({ x: 0, y: 0, zoom: 1 });
-  };
 
   return (
     <>
@@ -124,9 +106,9 @@ export default function CanvasPage() {
             )}
             <ViewportControls
               zoomFactor={scale}
-              onZoomIn={onZoomIn}
-              onZoomOut={onZoomOut}
-              onReset={onReset}
+              onZoomIn={handleZoomIn}
+              onZoomOut={handleZoomOut}
+              onReset={handleReset}
             />
             <HistoryControls />
           </>
@@ -162,8 +144,6 @@ export default function CanvasPage() {
           {nodeIds.map((id) => (
             <React.Fragment key={id}>
               <Node id={id} />
-              {/* Only render handles if this node is selected. 
-                  Now they fetch their own data! */}
               {selectedNodeId === id && (
                 <>
                   <ResizeHandles nodeId={id} scale={scale} />
@@ -178,3 +158,5 @@ export default function CanvasPage() {
     </>
   );
 }
+
+export default CanvasPage;

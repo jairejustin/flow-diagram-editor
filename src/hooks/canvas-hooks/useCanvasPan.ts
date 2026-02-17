@@ -191,8 +191,32 @@ export function useCanvasPan(
     [scale, translateX, translateY, setTranslateX, setTranslateY, setScale]
   );
 
+  const snap = (value: number) => {
+      return Math.round(value * 1000) / 1000;
+    }
+  
+  const handleZoomIn = () => {
+      const next = snap(scale + 0.05);
+      if (next <= 5) setScale(next);
+    };
+  
+  const handleZoomOut = () => {
+      const next = snap(scale - 0.05);
+      if (next >= 0.1) setScale(next);
+    };
+  
+  const handleReset = () => {
+      setScale(1);
+      setTranslateX(0);
+      setTranslateY(0);
+      setViewport({ x: 0, y: 0, zoom: 1 });
+    };
+
   return {
     handlePointerDown,
     handleWheel,
+    handleZoomIn,
+    handleZoomOut,
+    handleReset,
   };
 }
