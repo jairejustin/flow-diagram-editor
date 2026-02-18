@@ -1,8 +1,7 @@
 import React, { memo, useState } from "react";
 import { Node } from "../../components/node/Node";
 import { Edge } from "../../components/edge/Edge";
-import Toolbar from "../../components/toolbar/Toolbar";
-import { ViewportControls } from "../../components/viewport-controls/ViewportControls";
+import Sidebar from "../../components/sidebar/Sidebar";
 import {
   useIsExporting,
   useIsMobile,
@@ -63,13 +62,13 @@ export const CanvasPage = memo(() => {
 
   useKeyboardShortcuts();
 
-  const { 
+  const {
     handlePointerDown,
     handleWheel,
-    handleReset, 
+    handleReset,
     handleZoomIn,
-    handleZoomOut 
-} = useCanvasPan(
+    handleZoomOut,
+  } = useCanvasPan(
     translateX,
     translateY,
     scale,
@@ -81,17 +80,32 @@ export const CanvasPage = memo(() => {
   );
 
   return (
-    <>
+    <div
+    // Temp
+      style={{
+        display: "flex",
+        width: "100vw",
+        height: "100vh",
+        overflow: "hidden",
+      }}
+    >
+      {!isExporting && (
+        <Sidebar
+          zoomFactor={scale}
+          onZoomIn={handleZoomIn}
+          onZoomOut={handleZoomOut}
+          onReset={handleReset}
+        />
+      )}
+
       <div
         id="canvas-container"
         className="canvas"
         onPointerDown={handlePointerDown}
         onWheel={handleWheel}
-        style={{ touchAction: "none" }}
       >
         {!isExporting && (
           <>
-            <Toolbar />
             {selectedNodeId && (!isNarrow || showPanel) && (
               <NodeStylePanel id={selectedNodeId} />
             )}
@@ -104,15 +118,10 @@ export const CanvasPage = memo(() => {
                 onToggle={() => setShowPanel(!showPanel)}
               />
             )}
-            <ViewportControls
-              zoomFactor={scale}
-              onZoomIn={handleZoomIn}
-              onZoomOut={handleZoomOut}
-              onReset={handleReset}
-            />
             <HistoryControls />
           </>
         )}
+
         <div
           style={{
             transform: `translate(${translateX}px, ${translateY}px) scale(${scale})`,
@@ -155,9 +164,8 @@ export const CanvasPage = memo(() => {
         </div>
       </div>
       {isExporting && <ExportOverlay />}
-    </>
+    </div>
   );
-}
-)
+});
 
 export default CanvasPage;
