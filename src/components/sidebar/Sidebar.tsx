@@ -3,8 +3,6 @@ import {
   ShapesIcon,
   Diamond,
   Square,
-  Eye,
-  EyeOff,
   ImageDownIcon,
   Plus,
   Minus,
@@ -20,7 +18,6 @@ import {
 } from "../../assets/CustomSVGIcons";
 import {
   useViewMode,
-  useSetViewMode,
   useSetIsExporting,
   useSelectNode,
   useSelectEdge,
@@ -44,7 +41,6 @@ export default function Sidebar({
 }: SidebarProps) {
   const [openCreateNode, setOpenCreateNode] = useState(false);
   const viewMode = useViewMode();
-  const setViewMode = useSetViewMode();
   const setIsExporting = useSetIsExporting();
   const setSelectedNodeId = useSelectNode();
   const setSelectedEdgeId = useSelectEdge();
@@ -53,15 +49,6 @@ export default function Sidebar({
   const handleAddNode = (shape: NodeShape) => {
     addNode({ shape });
     setOpenCreateNode(false);
-  };
-
-  const toggleViewMode = () => {
-    if (!viewMode) {
-      setOpenCreateNode(false);
-      setSelectedEdgeId(null);
-      setSelectedNodeId(null);
-    }
-    setViewMode(!viewMode);
   };
 
   const toggleExportMode = () => {
@@ -78,13 +65,6 @@ export default function Sidebar({
             <Menu />
           </button>
         )}
-
-        <button
-          className={`sidebar__button ${viewMode ? "active" : ""}`}
-          onClick={toggleViewMode}
-        >
-          {viewMode ? <Eye /> : <EyeOff />}
-        </button>
 
         {!viewMode && (
           <button
