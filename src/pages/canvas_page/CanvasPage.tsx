@@ -23,6 +23,8 @@ import { Edit3 } from "lucide-react";
 import { ExportOverlay } from "../../components/export-overlay/ExportOverlay";
 import "./CanvasPage.css";
 import HistoryControls from "../../components/history-controls/HistoryControls";
+import Toolbar from "../../components/toolbar/Toolbar";
+import { ViewportControls } from "../../components/viewport-controls/ViewportControls";
 
 interface ToggleEditorProps {
   isOpen: boolean;
@@ -88,14 +90,25 @@ export const CanvasPage = memo(() => {
         height: "100vh",
         overflow: "hidden",
       }}
-    >
-      {!isExporting && (
+        >
+      {!isExporting && !isNarrow && (
         <Sidebar
           zoomFactor={scale}
           onZoomIn={handleZoomIn}
           onZoomOut={handleZoomOut}
           onReset={handleReset}
         />
+      )}
+      {!isExporting && isNarrow && (
+        <>
+          <Toolbar />
+          <ViewportControls 
+        zoomFactor={scale}
+        onZoomIn={handleZoomIn}
+        onZoomOut={handleZoomOut}
+        onReset={handleReset}
+          />
+        </>
       )}
 
       <div
